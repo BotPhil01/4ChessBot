@@ -11,19 +11,8 @@
  html {
     line-height: 1.15; /* 1 */
     -webkit-text-size-adjust: 100%; /* 2 */
-    background-color: #302e2b;
-    color: #ffffff;
   }
   
-.container {
-    display: grid
-}
-
-  .center {
-    margin: auto;
-    width: 50%;
-    padding: 10px;
-  }
   /* Sections
      ========================================================================== */
   
@@ -168,26 +157,14 @@
    * 2. Remove the margin in Firefox and Safari.
    */
   
-   td:hover
-   {
-    background-color: #3b3935;
-   }
-
   button,
   input,
   optgroup,
   select,
-  textarea,
-  label {
+  textarea {
     font-family: inherit; /* 1 */
     font-size: 100%; /* 1 */
     line-height: 1.15; /* 1 */
-    margin: 0; /* 2 */
-    background-color: #262522;
-    box-shadow: #1d1c1a;
-    border: transparent;
-    color: #ffffff;
-    
   }
   
   /**
@@ -368,4 +345,22 @@
   
   [hidden] {
     display: none;
+  }
+
+  html {
+    background-color: #2d2e29;
+    color: #ffffff;
+  }
+
+  button {
+    background-color: #2d2e29;
+    color: #ffffff;
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  .centered {
+    margin:auto;
+    max-width: 50%;
+    width: 50%;
   }
