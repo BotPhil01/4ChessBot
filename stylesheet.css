@@ -350,6 +350,7 @@
   html {
     background-color: #2d2e29;
     color: #ffffff;
+    font-size: x-large;
   }
 
   button {
@@ -363,4 +364,19 @@
     margin:auto;
     max-width: 50%;
     width: 50%;
+  }
+
+  .grided {
+    display: grid;
+    margin-left: auto;
+    margin-right: auto;
+    place-items: center;
+  }
+  
+  #boardButton {
+    margin-top: 25%;
+    padding: 1.25%;
+    font-size: xx-large;
+    background-color: #262420;
+    border-radius: 5% / 20%;
   }
