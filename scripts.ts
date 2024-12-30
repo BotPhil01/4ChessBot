@@ -1,8 +1,8 @@
 // holds display data for toggling visibility of divs
 // NOTE!!! hidden gets overriden and visibility doesn't delete from document hence we have to do it this way
 var displayData = {
-    'homeDiv':'initial',
-    'gameDiv':'grid'
+    'homeDiv':'centered',
+    'gameDiv':''
 }
 
 function elementToggle(elId: string) {
@@ -11,10 +11,10 @@ function elementToggle(elId: string) {
         console.error(`unable to get element from ${elId}`);
         return
     }
-    if (window.getComputedStyle(el).display == "none") {
-        el.style.display = (displayData[elId]);
+    if (el.getAttribute("class") == "destroy") {
+        el.setAttribute("class", displayData[elId]);
     } else {
-        el.style.display = ("none");
+        el.setAttribute("class", "destroy");
     }
 }
 
