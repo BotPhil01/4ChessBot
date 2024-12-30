@@ -396,46 +396,52 @@
   }
 
   .outerGrid {
-    justify-content: center;
-    background-color: white;
+    /* background-color: white; */
+    max-height: min-content;
+    max-width: min-content;
     margin: auto;
-    height: fit-content;
+    
     display: grid;
     grid-template: 1 / 1;
-    
   }
 
   .outerGrid > * {
     grid-column: 1 / 1;
     grid-row: 1 / 1;
-    justify-content: center;
-    position:relative
   }
 
   .topStack {
     display: grid;
     z-index: 3;
-    justify-content: center;
-    grid-template: 1 / 1;
+    
+    grid-template: 10 / 10;
   }
   .midStack {
     z-index: 2;
   }
   .botStack {
+    /* this must be a grid display in order to center */
     display: grid;
+    max-height: 100%;
+    max-width: 100%;
     z-index: 1;
-    justify-content: center;
-    grid-template: 1 / 1;
+    width: auto;
+    height: auto;
+  
   }
 
   .boardImage {
-    width: 70%;
-    height: 70%;
-    background-color: aqua;
     margin-left: auto;
     margin-right: auto;
+    justify-content: center;
+    max-width: 700px;
+    max-height: 700px;
   }
 
-  #balls {
-    background-color: bisque;
+
+  .outerGrid {
+    margin: auto;
+    display: grid;
+    grid-template: 1 / 1;
+
   }
