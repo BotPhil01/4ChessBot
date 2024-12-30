@@ -1,34 +1,27 @@
-console.log("Typescript loaded");
-
-function elementToggle(el: HTMLElement) {
-    el.toggleAttribute("hidden");
-    // change the style to include display
-    // toggle element
+// holds display data for toggling visibility of divs
+// NOTE!!! hidden gets overriden and visibility doesn't delete from document hence we have to do it this way
+var displayData = {
+    'homeDiv':'initial',
+    'gameDiv':'grid'
 }
 
-function toBoard() {
+function elementToggle(elId: string) {
+    let el = document.getElementById(elId);
+    if (!el) {
+        console.error(`unable to get element from ${elId}`);
+        return
+    }
+    if (window.getComputedStyle(el).display == "none") {
+        el.style.display = (displayData[elId]);
+    } else {
+        el.style.display = ("none");
+    }
+}
+
+function swap() {
     console.log("button pressed")
-    const homeDiv: HTMLElement | null = document.getElementById("homeDiv");
-    if (homeDiv) {
-        elementToggle(homeDiv)
-    }
-    const gameDiv: HTMLElement | null = document.getElementById("gameDiv");
-    if (gameDiv) {
-        elementToggle(gameDiv)
-    }
+    elementToggle("homeDiv");
+    elementToggle("gameDiv");
 }
 
-function toHome() {
-    console.log("button pressed")
-    const gameDiv: HTMLElement | null = document.getElementById("gameDiv");
-    if (gameDiv) {
-        elementToggle(gameDiv)
-    }
-    const homeDiv: HTMLElement | null = document.getElementById("homeDiv");
-    if (homeDiv) {
-        elementToggle(homeDiv)
-    }
-}
-
-// TODO add functions for displaying board and displaying home page
 // TODO add function to query engine

@@ -11,20 +11,20 @@
     </head>
     <body>
         <script src="scripts.js" type="text/javascript"></script>
-        <div id="homeDiv" class="centered" hidden>
+        <div id="homeDiv" class="centered">
             <div class="grided">
                 <h1 style="padding-bottom: 15%;">4PChess</h1>
                 <label style="padding-bottom: 5%;font-weight: bold;">About this project</label>
                 <label>Chess has recently experienced a boom in the user base. With streaming chess being more popular than ever more and more people are looking into chess. I got into chess during this time period (most notably at the time of the first pogchamps tournament) and as a crucial feature of my journey into chess is the discovery of chess variants. One of these, more than any other, struck me the most: 4 player chess. Unfortunately, I have no friends willing to learn 4 player chess and the people on the internet scare me. As such I will make my own 4 player chess engine and GUI so that I can play against computers.</label>
-                <button onclick="toBoard()">Go to chess board</button>    
+                <button onclick="swap()">Go to chess board</button>    
             </div>
         </div>
-        <div id="gameDiv" >
-            <!-- TODO add html for board page -->
-            
+        <div id="gameDiv">
+            <!-- TODO add html for pieces -->
+            <!-- TODO add html for players -->
             <!-- banner at top for back button -->
             <div class="banner">
-                <button id="boardBackButton" onclick="toHome()">Go back</button>
+                <button id="boardBackButton" onclick="swap()">Go back</button>
             </div>
             <div>
                 <div id="balls" class="outerGrid">
@@ -32,7 +32,7 @@
                         <img class="boardImage" src="assets/board.png">
                     </div>
                     <div class="topStack">
-                        <img class="boardImage" src="assets/rk.png">
+                        <!-- <img class="boardImage" src="assets/rk.png"> -->
                         <div class="boardGrid"> 
                             <!-- chess.com implementation -->
                             <!-- 1 div for piece image where class is form: piece <colour><type> square-<square index> -->
