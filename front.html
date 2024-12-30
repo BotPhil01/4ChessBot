@@ -11,7 +11,7 @@
     </head>
     <body>
         <script src="scripts.js" type="text/javascript"></script>
-        <div id="homeDiv" class="centered" >
+        <div id="homeDiv" class="centered" hidden>
             <div class="grided">
                 <h1 style="padding-bottom: 15%;">4PChess</h1>
                 <label style="padding-bottom: 5%;font-weight: bold;">About this project</label>
@@ -19,7 +19,7 @@
                 <button onclick="toBoard()">Go to chess board</button>    
             </div>
         </div>
-        <div id="gameDiv" hidden>
+        <div id="gameDiv" >
             <!-- TODO add html for board page -->
             
             <!-- banner at top for back button -->
@@ -32,7 +32,7 @@
                         <img class="boardImage" src="assets/board.png">
                     </div>
                     <div class="topStack">
-                        <!-- <img class="boardImage" src="assets/rk.png"> -->
+                        <img class="boardImage" src="assets/rk.png">
                         <div class="boardGrid"> 
                             <!-- chess.com implementation -->
                             <!-- 1 div for piece image where class is form: piece <colour><type> square-<square index> -->
