@@ -1,18 +1,26 @@
-console.log("balls");
+console.log("Typescript loaded");
 function elementToggle(el) {
-    // get element hidden attribute
-    var hiddenVal = el.getAttribute("hidden");
-    if (!hiddenVal || hiddenVal == "False") {
-        el.setAttribute("hidden", "True");
-    }
-    else {
-        el.setAttribute("hidden", "True");
-    }
+    el.toggleAttribute("hidden");
     // change the style to include display
     // toggle element
 }
-function boardButtonPress() {
+function toBoard() {
     console.log("button pressed");
+    var homeDiv = document.getElementById("homeDiv");
+    if (homeDiv) {
+        elementToggle(homeDiv);
+    }
+    var gameDiv = document.getElementById("gameDiv");
+    if (gameDiv) {
+        elementToggle(gameDiv);
+    }
+}
+function toHome() {
+    console.log("button pressed");
+    var gameDiv = document.getElementById("gameDiv");
+    if (gameDiv) {
+        elementToggle(gameDiv);
+    }
     var homeDiv = document.getElementById("homeDiv");
     if (homeDiv) {
         elementToggle(homeDiv);

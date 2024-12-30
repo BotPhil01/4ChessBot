@@ -1,20 +1,29 @@
 console.log("Typescript loaded");
 
 function elementToggle(el: HTMLElement) {
-    
-    // get element hidden attribute
-    var hiddenVal: string | null = el.getAttribute("hidden");
-    if (!hiddenVal || hiddenVal == "False") {
-        el.setAttribute("hidden", "True");
-    } else {
-        el.setAttribute("hidden", "True");
-    }
+    el.toggleAttribute("hidden");
     // change the style to include display
     // toggle element
 }
 
-function boardButtonPress() {
+function toBoard() {
     console.log("button pressed")
+    const homeDiv: HTMLElement | null = document.getElementById("homeDiv");
+    if (homeDiv) {
+        elementToggle(homeDiv)
+    }
+    const gameDiv: HTMLElement | null = document.getElementById("gameDiv");
+    if (gameDiv) {
+        elementToggle(gameDiv)
+    }
+}
+
+function toHome() {
+    console.log("button pressed")
+    const gameDiv: HTMLElement | null = document.getElementById("gameDiv");
+    if (gameDiv) {
+        elementToggle(gameDiv)
+    }
     const homeDiv: HTMLElement | null = document.getElementById("homeDiv");
     if (homeDiv) {
         elementToggle(homeDiv)

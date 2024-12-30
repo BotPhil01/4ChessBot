@@ -354,7 +354,7 @@
   }
 
   button {
-    background-color: #2d2e29;
+    background-color: transparent;
     color: #ffffff;
     box-shadow: none;
     border-color: transparent;
@@ -379,4 +379,63 @@
     font-size: xx-large;
     background-color: #262420;
     border-radius: 5% / 20%;
+  }
+
+  #gameDiv {
+    display: grid;
+  }
+
+  .banner {
+    justify-content: stretch;
+    max-height: 10%;
+    display: grid;
+    grid-row: 1;
+    grid-column: auto;
+    background-color: #262420;
+    place-items: center start;
+  }
+
+  .outerGrid {
+    justify-content: center;
+    background-color: white;
+    margin: auto;
+    height: fit-content;
+    display: grid;
+    grid-template: 1 / 1;
+    
+  }
+
+  .outerGrid > * {
+    grid-column: 1 / 1;
+    grid-row: 1 / 1;
+    justify-content: center;
+    position:relative
+  }
+
+  .topStack {
+    display: grid;
+    z-index: 3;
+    justify-content: center;
+    grid-template: 1 / 1;
+  }
+  .midStack {
+    z-index: 2;
+  }
+  .botStack {
+    display: grid;
+    z-index: 1;
+    justify-content: center;
+    grid-template: 1 / 1;
+  }
+
+  .boardImage {
+    width: 70%;
+    height: 70%;
+    background-color: aqua;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #balls {
+    background-color: bisque;
   }
