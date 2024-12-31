@@ -456,76 +456,18 @@
     display: none;
   }
   
-  .piece-bb {
+  .grid-stack {
+    /* background: #ffffff; */
+    gs-column: 14;
+    gs-row: 14;
+    gs-cell-height: 50.4px;
+    gs-cell-width: 50.4px;
+  }
+
+  /* .piece-bb {
+    position: absolute;
     background-image: url(assets/bb.png);
-  }
-  .piece-bk {
-    background-image: url(assets/bk.png);
-  }
-  .piece-bn {
-    background-image: url(assets/bn.png);
-  }
-  .piece-bp {
-    background-image: url(assets/bp.png);
-  }
-  .piece-bq {
-    background-image: url(assets/bq.png);
-  }
-  .piece-br {
-    background-image: url(assets/br.png);
-  }
-  .piece-gb {
-    background-image: url(assets/gb.png);
-  }
-  .piece-gk {
-    background-image: url(assets/gk.png);
-  }
-  .piece-gn {
-    background-image: url(assets/gn.png);
-  }
-  .piece-gp {
-    background-image: url(assets/gp.png);
-  }
-  .piece-gq {
-    background-image: url(assets/gq.png);
-  }
-  .piece-gr {
-    background-image: url(assets/gr.png);
-  }
-  .piece-rb {
-    background-image: url(assets/rb.png);
-  }
-  .piece-rk {
-    background-image: url(assets/rk.png);
-  }
-  .piece-rn {
-    background-image: url(assets/rn.png);
-  }
-  .piece-rp {
-    background-image: url(assets/rp.png);
-  }
-  .piece-rq {
-    background-image: url(assets/rq.png);
-  }
-  .piece-rr {
-    background-image: url(assets/rr.png);
-  }
-  .piece-yb {
-    background-image: url(assets/yb.png);
-  }
-  .piece-yk {
-    background-image: url(assets/yk.png);
-  }
-  .piece-yn {
-    background-image: url(assets/yn.png);
-  }
-  .piece-yp {
-    background-image: url(assets/yp.png);
-  }
-  .piece-yq {
-    background-image: url(assets/yq.png);
-  }
-  .piece-yr {
-    background-image: url(assets/yr.png);
-  }
-  
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    cursor: move;
+  } */

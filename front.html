@@ -7,10 +7,12 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="stylesheet.css">
-        
+        <!-- <script>var exports = {};</script> -->
+        <script src="scripts.js" type="text/javascript"></script>
     </head>
     <body>
-        <script src="scripts.js" type="text/javascript"></script>
+
+
         <div id="homeDiv" class="centered">
             <div class="grided">
                 <h1 style="padding-bottom: 15%;">4PChess</h1>
@@ -25,6 +27,7 @@
             <!-- banner at top for back button -->
             <div class="banner">
                 <button id="boardBackButton" onclick="swap()">Go back</button>
+                <button id="debugButton" onclick="debug()">debug</button>
             </div>
             <div>
                 <div class="outerGrid">
@@ -35,87 +38,14 @@
                     <div class="midStack">
                         <!-- holds player images -->
                     </div>
-                    <div class="topStack">
+                    <div id="griContainer" class="topStack">
+                        <div class="grid-stack"></div>
                         <!-- holds piece images -->
-                        <div id="piecesGrid" class="piecesGrid"> 
-                            <!-- chess.com implementation -->
-                            <!-- 1 div for piece image where class is form: piece <colour><type> square-<square index> -->
-                            <!-- when clicked it changes to piece <colour><type> square-<square index> dragging where it undergoes a transformation to cursor position--> 
-                            <!-- constant updates to class -->
-            
-                            
-                            <!-- layer divs ontop of each other  -->
-                            <!-- top most div is interactable / button -->
-                            <!-- bottom div has square image -->
-                            <!-- when top interacted it changes bottom div  -->
 
-                            <!-- 12x12 grid -->
-                            <!-- track the position of each piece -->
-                            <div data-row="6" data-col="1" class="piece-bb"></div>
-                            <div data-row="9" data-col="1" class="piece-bb"></div>
-                            <div data-row="8" data-col="1" class="piece-bk"></div>
-                            <div data-row="5" data-col="1" class="piece-bn"></div>
-                            <div data-row="10" data-col="1" class="piece-bn"></div>
-                            <div data-row="4" data-col="2" class="piece-bp"></div>
-                            <div data-row="5" data-col="2" class="piece-bp"></div>
-                            <div data-row="6" data-col="2" class="piece-bp"></div>
-                            <div data-row="7" data-col="2" class="piece-bp"></div>
-                            <div data-row="8" data-col="2" class="piece-bp"></div>
-                            <div data-row="9" data-col="2" class="piece-bp"></div>
-                            <div data-row="10" data-col="2" class="piece-bp"></div>
-                            <div data-row="11" data-col="2" class="piece-bp"></div>
-                            <div data-row="7" data-col="1" class="piece-bq"></div>
-                            <div data-row="4" data-col="1" class="piece-br"></div>
-                            <div data-row="11" data-col="1" class="piece-br"></div>
-                            <div data-row="6" data-col="14" class="piece-gb"></div>
-                            <div data-row="9" data-col="14" class="piece-gb"></div>
-                            <div data-row="7" data-col="14" class="piece-gk"></div>
-                            <div data-row="5" data-col="14" class="piece-gn"></div>
-                            <div data-row="10" data-col="14" class="piece-gn"></div>
-                            <div data-row="4" data-col="13" class="piece-gp"></div>
-                            <div data-row="5" data-col="13" class="piece-gp"></div>
-                            <div data-row="6" data-col="13" class="piece-gp"></div>
-                            <div data-row="7" data-col="13" class="piece-gp"></div>
-                            <div data-row="8" data-col="13" class="piece-gp"></div>
-                            <div data-row="9" data-col="13" class="piece-gp"></div>
-                            <div data-row="10" data-col="13" class="piece-gp"></div>
-                            <div data-row="11" data-col="13" class="piece-gp"></div>
-                            <div data-row="8" data-col="14" class="piece-gq"></div>
-                            <div data-row="4" data-col="14" class="piece-gr"></div>
-                            <div data-row="11" data-col="14" class="piece-gr"></div>
-                            <div data-row="1" data-col="6" class="piece-rb"></div>
-                            <div data-row="1" data-col="9" class="piece-rb"></div>
-                            <div data-row="1" data-col="8" class="piece-rk"></div>
-                            <div data-row="1" data-col="5" class="piece-rn"></div>
-                            <div data-row="1" data-col="10" class="piece-rn"></div>
-                            <div data-row="2" data-col="4" class="piece-rp"></div>
-                            <div data-row="2" data-col="5" class="piece-rp"></div>
-                            <div data-row="2" data-col="6" class="piece-rp"></div>
-                            <div data-row="2" data-col="7" class="piece-rp"></div>
-                            <div data-row="2" data-col="8" class="piece-rp"></div>
-                            <div data-row="2" data-col="9" class="piece-rp"></div>
-                            <div data-row="2" data-col="10" class="piece-rp"></div>
-                            <div data-row="2" data-col="11" class="piece-rp"></div>
-                            <div data-row="1" data-col="7" class="piece-rq"></div>
-                            <div data-row="1" data-col="4" class="piece-rr"></div>
-                            <div data-row="1" data-col="11" class="piece-rr"></div>
-                            <div data-row="14" data-col="6" class="piece-yb"></div>
-                            <div data-row="14" data-col="9" class="piece-yb"></div>
-                            <div data-row="14" data-col="7" class="piece-yk"></div>
-                            <div data-row="14" data-col="5" class="piece-yn"></div>
-                            <div data-row="14" data-col="10" class="piece-yn"></div>
-                            <div data-row="13" data-col="4" class="piece-yp"></div>
-                            <div data-row="13" data-col="5" class="piece-yp"></div>
-                            <div data-row="13" data-col="6" class="piece-yp"></div>
-                            <div data-row="13" data-col="7" class="piece-yp"></div>
-                            <div data-row="13" data-col="8" class="piece-yp"></div>
-                            <div data-row="13" data-col="9" class="piece-yp"></div>
-                            <div data-row="13" data-col="10" class="piece-yp"></div>
-                            <div data-row="13" data-col="11" class="piece-yp"></div>
-                            <div data-row="14" data-col="8" class="piece-yq"></div>
-                            <div data-row="14" data-col="4" class="piece-yr"></div>
-                            <div data-row="14" data-col="11" class="piece-yr"></div>
-                        </div>
+                        <!-- <div data-row="6" data-col="1" class="piece-bb"></div> -->
+                        <!-- <div id="piecesGrid" class="piecesGrid">  -->
+                            
+                        <!-- </div> -->
                     </div>
                 </div>
             </div>
