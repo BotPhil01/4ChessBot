@@ -17,9 +17,29 @@ function elementToggle(elId) {
         el.setAttribute("class", "destroy");
     }
 }
+// swap home and game div
+// change if more pages required (likely)
 function swap() {
     console.log("button pressed");
     elementToggle("homeDiv");
     elementToggle("gameDiv");
+    // PLACES PIECES IN DEFAULT POSITION CHANGE AFTER CACHING IS FOUND
+    placePieces();
+}
+// runs on startup to place pieces at beginning
+function placePieces() {
+    var piecesGrid = document.getElementById("piecesGrid");
+    if (!piecesGrid) {
+        console.error("unable to get piece grid element");
+        return;
+    }
+    // get children
+    var pieces = piecesGrid.getElementsByTagName("div");
+    for (var i = 0; i < pieces.length; i++) {
+        var piece = pieces[i];
+        var row = piece.getAttribute("data-row");
+        var col = piece.getAttribute("data-col");
+        piece.style.gridArea = "".concat(row, " / ").concat(col, " / ").concat(row, " / ").concat(col);
+    }
 }
 // TODO add function to query engine

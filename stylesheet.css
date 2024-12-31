@@ -381,9 +381,6 @@
     border-radius: 5% / 20%;
   }
 
-  #gameDiv {
-    display: None;
-  }
 
   .banner {
     justify-content: stretch;
@@ -402,6 +399,9 @@
     margin: auto;
     display: grid;
     grid-template: 1 / 1;
+    margin: auto;
+    display: grid;
+    grid-template: 1 / 1;
   }
 
   .outerGrid > * {
@@ -413,7 +413,7 @@
     display: grid;
     z-index: 3;
     
-    grid-template: 10 / 10;
+    /* grid-template: ; */
   }
   .midStack {
     z-index: 2;
@@ -433,14 +433,99 @@
     margin-left: auto;
     margin-right: auto;
     justify-content: center;
-    /* 17.5% smaller than the original image 840, 840 */
-    max-width: 693px; 
-    max-height: 693px;
+    /* 28% smaller than the original image 980, 980 */
+    max-width: 705.6px; 
+    max-height: 705.6px;
   }
 
-
-  .outerGrid {
-    margin: auto;
+  .piecesGrid {
+    /* grid-template: 12 / 12; */
+    /* grid-template-rows: 57px 57px 57px 57px 57px 57px 57px 57px 57px 57px 57px 57px;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr; */
     display: grid;
-    grid-template: 1 / 1;
+    grid-template: 14 /14;
+    grid-auto-columns: 50.4px;
+    grid-auto-rows: 50.4px;
+    /* background-color: red; */
+    width: max-content;
+    height: max-content;
   }
+  /* destroy the div and all its children temporarily (removes from document completely */
+  /* DO NOT DELETE */
+  .destroy {
+    display: none;
+  }
+  
+  .piece-bb {
+    background-image: url(assets/bb.png);
+  }
+  .piece-bk {
+    background-image: url(assets/bk.png);
+  }
+  .piece-bn {
+    background-image: url(assets/bn.png);
+  }
+  .piece-bp {
+    background-image: url(assets/bp.png);
+  }
+  .piece-bq {
+    background-image: url(assets/bq.png);
+  }
+  .piece-br {
+    background-image: url(assets/br.png);
+  }
+  .piece-gb {
+    background-image: url(assets/gb.png);
+  }
+  .piece-gk {
+    background-image: url(assets/gk.png);
+  }
+  .piece-gn {
+    background-image: url(assets/gn.png);
+  }
+  .piece-gp {
+    background-image: url(assets/gp.png);
+  }
+  .piece-gq {
+    background-image: url(assets/gq.png);
+  }
+  .piece-gr {
+    background-image: url(assets/gr.png);
+  }
+  .piece-rb {
+    background-image: url(assets/rb.png);
+  }
+  .piece-rk {
+    background-image: url(assets/rk.png);
+  }
+  .piece-rn {
+    background-image: url(assets/rn.png);
+  }
+  .piece-rp {
+    background-image: url(assets/rp.png);
+  }
+  .piece-rq {
+    background-image: url(assets/rq.png);
+  }
+  .piece-rr {
+    background-image: url(assets/rr.png);
+  }
+  .piece-yb {
+    background-image: url(assets/yb.png);
+  }
+  .piece-yk {
+    background-image: url(assets/yk.png);
+  }
+  .piece-yn {
+    background-image: url(assets/yn.png);
+  }
+  .piece-yp {
+    background-image: url(assets/yp.png);
+  }
+  .piece-yq {
+    background-image: url(assets/yq.png);
+  }
+  .piece-yr {
+    background-image: url(assets/yr.png);
+  }
+  
