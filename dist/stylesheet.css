@@ -471,10 +471,172 @@
     text-align: center;
     cursor: grab;
   }
-  /* .piece-bb {
+  .piece-bb {
+    background-image: url(../assets/bb.png);
     position: absolute;
-    background-image: url(assets/bb.png);
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
-    cursor: move;
-  } */
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-bk {
+    background-image: url(../assets/bk.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-bn {
+    background-image: url(../assets/bn.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-bp {
+    background-image: url(../assets/bp.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-bq {
+    background-image: url(../assets/bq.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-br {
+    background-image: url(../assets/br.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-gb {
+    background-image: url(../assets/gb.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-gk {
+    background-image: url(../assets/gk.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-gn {
+    background-image: url(../assets/gn.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-gp {
+    background-image: url(../assets/gp.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-gq {
+    background-image: url(../assets/gq.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-gr {
+    background-image: url(../assets/gr.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-rb {
+    background-image: url(../assets/rb.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-rk {
+    background-image: url(../assets/rk.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-rn {
+    background-image: url(../assets/rn.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-rp {
+    background-image: url(../assets/rp.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-rq {
+    background-image: url(../assets/rq.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-rr {
+    background-image: url(../assets/rr.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-yb {
+    background-image: url(../assets/yb.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-yk {
+    background-image: url(../assets/yk.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-yn {
+    background-image: url(../assets/yn.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-yp {
+    background-image: url(../assets/yp.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-yq {
+    background-image: url(../assets/yq.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  .piece-yr {
+    background-image: url(../assets/yr.png);
+    position: absolute;
+    z-index: 10;
+    text-align: center;
+    cursor: grab;
+  }
+  

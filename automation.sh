@@ -110,12 +110,12 @@ f() {
     calc_col
     calc_row
     echo "${piece} col: ${col} row: ${row}"
-    echo "<div data-row=\"$row\" data-col=\"$col\" class=\"piece-$piece\"></div>" >> "a.txt"
+    echo "<div class=\"piece-$piece\"></div>" >> "a.txt"
     # red and yellow
     if [[ "$piece" =~ [ry]p ]]; then
         for i in {1..7}; do
             col+=1
-            echo "<div data-row=\"$row\" data-col=\"$col\" class=\"piece-$piece\"></div>" >> "a.txt"
+            echo "<div class=\"piece-$piece\"></div>" >> "a.txt"
         done
     elif [[ "$piece" =~ [ry]r ]]; then
         col+=7
@@ -127,7 +127,7 @@ f() {
     elif [[ "$piece" =~ [bg]p ]]; then
         for i in {1..7}; do
             row+=1
-            echo "<div data-row=\"$row\" data-col=\"$col\" class=\"piece-$piece\"></div>" >> "a.txt"
+            echo "<div class=\"piece-$piece\"></div>" >> "a.txt"
         done
     elif [[ "$piece" =~ [bg]r ]]; then
         row+=7
@@ -146,7 +146,7 @@ f() {
     fi
     if [[ $col -gt 0 && $row -gt 0 && !($piece =~ [rbyg]p) ]]; then
         echo "test ${piece}"
-        echo "<div data-row=\"$row\" data-col=\"$col\" class=\"piece-$piece\"></div>" >> "a.txt"
+        echo "<div class=\"piece-$piece\"></div>" >> "a.txt"
     fi
     return 0
 }
@@ -154,7 +154,11 @@ f() {
 g() {
     echo "running g"
     echo ".piece-${piece} {
-  background-image: url("assets/${piece}.png");
+  background-image: url("../assets/${piece}.png");
+  position: absolute;
+  z-index: 10;
+  text-align: center;
+  cursor: grab;
 }" >> "b.txt"
 }
 

@@ -5,6 +5,7 @@ const BOARDDIMENSION = 14;
 window.onload = function() {
     console.log("starting up");
     buttons();
+    initBoard();
 }
 
 function buttons() {
@@ -13,9 +14,10 @@ function buttons() {
     var bb = document.getElementById("boardBackButton")
     if (bb) {bb.onclick = swap;}
     var db = document.getElementById("debugButton")
-    if (document.getElementById("draggable")) {
+    var draggable = document.getElementById("draggable");
+    if (draggable) {
         console.log("dragging element");
-        dragPieceElement("draggable");
+        dragPieceElement(draggable);
     }
 }
 
@@ -42,13 +44,14 @@ function swap() {
 
 // func for dragging pieces
 // uses ts event handling no libraries needed
-function dragPieceElement(elementId: string) {
-    var element = document.getElementById(elementId);
+function dragPieceElement(element: HTMLElement) {
+    
     var initialSquare: number[];
     var initialPos: number[];
 
     if (!element) {
-        console.error(`Unable to retrieve element <${elementId}>`);
+        // error here 
+        console.error(`Unable to retrieve element <${element}>`);
         return;
     }
     element.onmousedown = startDrag;
@@ -60,45 +63,7 @@ function dragPieceElement(elementId: string) {
     function setInitialPosition(pos: number[]) {
         initialPos = pos;
     }
-
-    // takes position of the element relative to viewport
-    function positionToSquare(position: number[]): number[] {
-        //TODO optimise this function to use global variables instead of recalculating
-        var boardElement = document.getElementById("boardImage");
-        if (!boardElement) {
-            console.error("unable to find board element");
-            return [-1, -1];
-        }
-        var boardRect = boardElement.getBoundingClientRect();
-        const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
-
-        // make position relative to board
-        position[0] -= boardRect.left; 
-        position[1] -= boardRect.top;
-        // remove position relative to the square 
-        var square: number[] = [-1, -1];
-        square[0] = Math.floor(position[0] / squareLength);
-        square[1] = Math.floor(position[1] / squareLength);
-        return square;
-    }
-
-    // returns psoition relative to viewport
-    function positionFromSquare(square: number[]): number[] {
-        //TODO optimise this function to use global variables instead of recalculating
-        var boardElement = document.getElementById("boardImage");
-        if (!boardElement) {
-            console.error("unable to find board element");
-            return [-1, -1];
-        }
-        var boardRect = boardElement.getBoundingClientRect();
-        const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
-
-        var position: number[] = [-1, -1];
-        position[0] = boardRect.left + square[0] * squareLength;
-        position[1] = boardRect.top + square[1] * squareLength;
-        return position;
-    }
-
+    
     // triggered by onmousedown
     function startDrag(e: MouseEvent) {
         if (!element) {console.error("trying to move non existent element"); return;}
@@ -167,8 +132,12 @@ function dragPieceElement(elementId: string) {
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
         setInitialPosition(position);
+        setInitialSquare(square);
     }
 
+    
+
+        
     // validates if an element can move from a valid t  o square to a potentially invalid square
     function elemCanMove(fromSquare: number[], toSquare: number[]) {
         // validate toSquare is on the board 
@@ -176,10 +145,235 @@ function dragPieceElement(elementId: string) {
         var inCorners = toSquare[0] < 3 && (toSquare[1] < 3 || toSquare[1] > 10) || 
                         toSquare[0] > 10 && (toSquare[1] < 3 || toSquare[1] > 10)
         if (boardSquareLimit || inCorners) {
-            return false;
+            return false;   
         }
         return true;
     }
     
 }
 
+// takes position of the element relative to viewport
+function positionToSquare(position: number[]): number[] {
+//TODO optimise this function to use global variables instead of recalculating
+var boardElement = document.getElementById("boardImage");
+if (!boardElement) {
+    console.error("unable to find board element");
+    return [-1, -1];
+}
+var boardRect = boardElement.getBoundingClientRect();
+const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
+
+// make position relative to board
+position[0] -= boardRect.left; 
+position[1] -= boardRect.top;
+// remove position relative to the square 
+var square: number[] = [-1, -1];
+square[0] = Math.floor(position[0] / squareLength);
+square[1] = Math.floor(position[1] / squareLength);
+return square;
+}
+
+// returns psoition relative to viewport
+function positionFromSquare(square: number[]): number[] {
+//TODO optimise this function to use global variables instead of recalculating
+var boardElement = document.getElementById("boardImage");
+if (!boardElement) {
+    console.error("unable to find board element");
+    return [-1, -1];
+}
+var boardRect = boardElement.getBoundingClientRect();
+const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
+
+var position: number[] = [-1, -1];
+position[0] = boardRect.left + square[0] * squareLength;
+position[1] = boardRect.top + square[1] * squareLength;
+return position;
+}
+
+// assume we have <div class="piece-br"></div>
+
+function initBoard() {
+    const pieceClassNames = ["bb", "bk", "bn", "bp", "bq", "br", "gb", "gk", "gn", "gp", "gq", "gr", "rb", "rk", "rn", "rp", "rq", "rr", "yb", "yk", "yn", "yp", "yq", "yr"];
+    for (var i = 0; i < pieceClassNames.length; i++) {
+        var pieceName = pieceClassNames[i];
+        // gets indices of leftmost and downmost piece
+        console.log(`initialising piece: ${pieceName}`);
+        assignPieces(pieceName);
+        
+    }
+}
+
+function calculatePieceColumn(pieceName: string): number {
+    switch (pieceName[0]) {
+        case 'b': {
+            if (pieceName[1] == 'p') {
+                return 1;
+            }
+            return 0;
+        } 
+        case 'g': {
+            if (pieceName[1] == 'p') {
+                return 12;
+            }
+            return 13;
+        }
+        case 'r': {
+            switch (pieceName[1]) {
+                case 'k': {
+                    return 7;
+                } 
+                case 'q': {
+                    return 6;
+                }
+                case 'b': {
+                    return 5;
+                }
+                case 'n': {
+                    return 4;
+                }
+                default: {
+                    return 3;
+                }
+            }
+        }
+        default: {
+            switch (pieceName[1]) {
+                case 'k': {
+                    return 7;
+                } 
+                case 'q': {
+                    return 6;
+                }
+                case 'b': {
+                    return 5;
+                }
+                case 'n': {
+                    return 4;
+                }
+                default: {
+                    return 3;
+                }
+            }
+        }
+    }
+}
+
+function calculatePieceRow(pieceName: string): number {
+    switch (pieceName[0]) {
+        case 'r': {
+            if (pieceName[1] == 'p') {
+                return 1;
+            }
+            return 0;
+        } 
+        case 'y': {
+            if (pieceName[1] == 'p') {
+                return 12;
+            }
+            return 13;
+        }
+        case 'b': {
+            switch (pieceName[1]) {
+                case 'k': {
+                    return 7;
+                } 
+                case 'q': {
+                    return 6;
+                }
+                case 'b': {
+                    return 5;
+                }
+                case 'n': {
+                    return 4;
+                }
+                default: {
+                    return 3;
+                }
+            }
+        }
+        default: {
+            switch (pieceName[1]) {
+                case 'k': {
+                    return 7;
+                } 
+                case 'q': {
+                    return 6;
+                }
+                case 'b': {
+                    return 5;
+                }
+                case 'n': {
+                    return 4;
+                }
+                default: {
+                    return 3;
+                }
+            }
+        }
+    }
+}
+
+function assignPieces(pieceName: string) {
+    var container = document.getElementById("pieceContainer");
+    if (!container) {
+        console.error("contaienr not found");
+        return;
+    }
+    var initCol = calculatePieceColumn(pieceName);
+    var initRow = calculatePieceRow(pieceName);
+    
+    var className = "piece-" + pieceName;
+    var pieces = container.getElementsByClassName(className);
+    // always place the fist element
+    var first = <HTMLElement>pieces[0];
+    dragPieceElement(first);
+    console.log(initCol);
+    console.log(initRow);
+    var position = positionFromSquare([initCol, initRow]);
+    // cannot read properties of undefined (reading 'style') 
+    first.style.left = position[0] + "px";
+    first.style.top = position[1] + "px";
+
+    var size = pieces.length;
+    var data = [
+        {name: 'p', offset: 1},
+        {name: 'r', offset: 7},
+        {name: 'n', offset: 5},
+        {name: 'b', offset: 3},
+    ]
+
+
+    if (className[0] == 'r' || className == 'y') {
+        // alter columns 
+        for (var i = 1; i < size; i++) {
+            var element = <HTMLElement>pieces[i];
+            dragPieceElement(element);
+            let offset = 0;
+            data.forEach(function (data){
+                if (data.name == className[1]) {
+                    offset = data.offset;
+                }
+            });
+
+            initCol += offset;
+            position = positionFromSquare([initCol, initRow]);
+            element.style.left = position[0] + "px";
+            element.style.top = position[1] + "px";
+        }
+    } else {
+        for (var i = 1; i < size; i++) {
+            var element = <HTMLElement>pieces[i];
+            let offset = 0;
+            data.forEach(function (data){
+                if (data.name == className[1]) {
+                    offset = data.offset;
+                }
+            });
+
+            initRow += offset;
+            position = positionFromSquare([initCol, initRow]);
+            element.style.left = position[0] + "px";
+            element.style.top = position[1] + "px";
+        }
+    }
+}
