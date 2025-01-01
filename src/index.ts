@@ -169,14 +169,13 @@ function dragPieceElement(elementId: string) {
         setInitialPosition(position);
     }
 
-    // validates if an element can move from a valid to square to a potentially invalid square
+    // validates if an element can move from a valid t  o square to a potentially invalid square
     function elemCanMove(fromSquare: number[], toSquare: number[]) {
-        // check square bounds
-        // general bounds
-        var outGeneralBounds = toSquare[0] > 13 || toSquare[0] < 0 || toSquare[1] > 13 || toSquare[1] < 0;
+        // validate toSquare is on the board 
+        var boardSquareLimit = toSquare[0] >= BOARDDIMENSION || toSquare[0] < 0 || toSquare[1] >= BOARDDIMENSION || toSquare[1] < 0;
         var inCorners = toSquare[0] < 3 && (toSquare[1] < 3 || toSquare[1] > 10) || 
                         toSquare[0] > 10 && (toSquare[1] < 3 || toSquare[1] > 10)
-        if (outGeneralBounds || inCorners) {
+        if (boardSquareLimit || inCorners) {
             return false;
         }
         return true;
