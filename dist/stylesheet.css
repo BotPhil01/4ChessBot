@@ -456,14 +456,21 @@
     display: none;
   }
   
-  .grid-stack {
-    /* background: #ffffff; */
+  /* .grid-stack {
+    background: #ffffff;
     gs-column: 14;
     gs-row: 14;
     gs-cell-height: 50.4px;
     gs-cell-width: 50.4px;
-  }
+  } */
 
+  .draggable {
+    position: absolute;
+    z-index: 10;
+    background-color: red;
+    text-align: center;
+    cursor: grab;
+  }
   /* .piece-bb {
     position: absolute;
     background-image: url(assets/bb.png);
