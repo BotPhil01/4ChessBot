@@ -1,8 +1,4 @@
-import {createGrid, GridOptions, ClientSideRowModelModule, ModuleRegistry} from 'ag-grid-community';
-
-ModuleRegistry.registerModules([ ClientSideRowModelModule ]);
-
-
+const BOARDDIMENSION = 14;
 
 window.onload = function() {
     console.log("starting up");
@@ -17,71 +13,22 @@ function buttons() {
     var db = document.getElementById("debugButton")
     if (document.getElementById("draggable")) {
         console.log("dragging element");
-        dragElement("draggable");
+        dragPieceElement("draggable");
     }
-    // if (db) {db.onclick = f;}
 }
 
-// function f() {
-
-//     interface ICar {
-//         make: string,
-//         model: string,
-//         price: number,
-//         electric: boolean
-//     }
-
-
-
-//     const gridOptions: GridOptions<ICar> = {
-//         rowData: [{ make: "Tesla", model: "Model Y", price: 64950, electric: true }],
-
-//         columnDefs: [
-//             {field: "make"},
-//             {field: "model"},
-//             {field: "price"},
-//             {field: "electric"},
-//         ],
-
-//         defaultColDef: {
-//             flex: 1,
-//         },
-
-//         getRowId: (params) => {
-//             return params.data.make + params.data.model;
-//         },
-
-//         onRowSelected: (event) => {
-//             if (event.data) {
-//                 const price = event.data.price;
-//             }
-//         }
-//     };
-
-//     const gridElem = document.getElementById("pieceGrid");
-
-//     if (!gridElem) {
-//         console.error("no element found");
-//         return;
-//     } else {
-//         console.log("creating grid with options");
-//         console.log(`${gridOptions}`);
-//         createGrid(gridElem, gridOptions);
-//     }
-    
-
-// }
-
+// func for swapping between home and game pages
 function swap() {
     console.log("swapping");
     let gameDiv = document.getElementById("gameDiv");
     let homeDiv = document.getElementById("homeDiv");
     console.log(`${gameDiv}`);
+    // mandatory error handling by ts
     if (!homeDiv || !gameDiv) {
         console.error("No divs founds");
         return;
     }
-    if (homeDiv?.getAttribute("class") == "centered" && gameDiv?.getAttribute("class") == "destroy") {
+    if (homeDiv.getAttribute("class") == "centered" && gameDiv.getAttribute("class") == "destroy") {
         homeDiv.setAttribute("class", "destroy");
         gameDiv.setAttribute("class", "block");
         
@@ -91,41 +38,33 @@ function swap() {
     }
 }
 
-function dragElement(elementId: string) {
-    var pos1 = 0; 
-    var pos2 = 0;
-    var pos3 = 0;
-    var pos4 = 0;
-
+// func for dragging pieces
+// uses ts event handling no libraries needed
+function dragPieceElement(elementId: string) {
     var element = document.getElementById(elementId);
     if (!element) {
         console.error(`Unable to retrieve element <${elementId}>`);
         return;
     }
-    element.onmousedown = dragMouseDown;
+    element.onmousedown = startDrag;
 
-
-    function dragMouseDown(e: MouseEvent) {
+    // triggered by onmousedown
+    function startDrag(e: MouseEvent) {
         e.preventDefault();
-        pos3 = e.clientX
-        pos4 = e.clientY
-        document.onmouseup = closeDragElement;
+        document.onmouseup = stopDrag;
         
         document.onmousemove = elementDrag;
         return true;
     }
 
+    // triggered when moving
     function elementDrag(ev: MouseEvent) {
         ev.preventDefault();
-
-        pos1 = pos3 - ev.clientX;
-        pos2 = pos4 - ev.clientY;
-        pos3 = ev.clientX;
-        pos4 = ev.clientY;
         
         if (element) {
-            element.style.top = (element.offsetTop - pos2) + "px";
-            element.style.left = (element.offsetLeft - pos1) + "px";
+            // elemenet midpoint binds to cursor position
+            element.style.top = (ev.clientY - (element.offsetHeight / 2)) + "px";
+            element.style.left = (ev.clientX - (element.offsetWidth / 2)) + "px";
             return true;
         }
         console.error("Element has been clicked dragged and disappeared");
@@ -133,9 +72,45 @@ function dragElement(elementId: string) {
         
     }
 
-    function closeDragElement() {
+    // triggered by on mouse up
+    function stopDrag(ev: MouseEvent) {
+        // TODO make element snap to grid cell
+        snapToBoard(ev.clientX, ev.clientY);
+
         document.onmouseup = null;
         document.onmousemove = null;
         return true;
+    }
+
+    // takes position of element relative to the viewport and snaps it to the board element
+    function snapToBoard(posX: number, posY: number) {
+        var boardElement = document.getElementById("boardImage");
+        if (!boardElement) {
+            console.error("Unable to find board element in snapToBoard function");
+            alert("something went wrong with the board see console for details");
+            return;
+        }
+        // gets element dimensions and offsets from viewport
+        var boardRect = boardElement.getBoundingClientRect();
+        
+        var squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
+        
+        // make position relative to board
+        posX -= boardRect.left; 
+        posY -= boardRect.top;
+        
+        // get square index
+        // var squareX = 
+        // var squareY = 
+
+        // remove remainder and add board padding again
+        posX = boardRect.left + (posX - (posX % squareLength));
+        posY = boardRect.top + (posY - (posY % squareLength));
+
+
+        if (element) {
+            element.style.left = posX + "px";
+            element.style.top = posY + "px";
+        }
     }
 }
