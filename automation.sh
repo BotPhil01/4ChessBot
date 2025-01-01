@@ -155,9 +155,15 @@ g() {
     echo "running g"
     echo ".piece-${piece} {
   background-image: url("../assets/${piece}.png");
+  background-repeat: no-repeat;
+  background-size: cover;
   position: absolute;
+  background-position: center center;
+  width: 100%;
+  height: 100%; 
+  max-width: 50.4px;
+  max-height: 50.4px;
   z-index: 10;
-  text-align: center;
   cursor: grab;
 }" >> "b.txt"
 }

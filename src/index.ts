@@ -5,7 +5,6 @@ const BOARDDIMENSION = 14;
 window.onload = function() {
     console.log("starting up");
     buttons();
-    initBoard();
 }
 
 function buttons() {
@@ -35,6 +34,7 @@ function swap() {
     if (homeDiv.getAttribute("class") == "centered" && gameDiv.getAttribute("class") == "destroy") {
         homeDiv.setAttribute("class", "destroy");
         gameDiv.setAttribute("class", "block");
+        initBoard();
         
     } else {
         homeDiv.setAttribute("class", "centered");
@@ -183,7 +183,9 @@ if (!boardElement) {
 }
 var boardRect = boardElement.getBoundingClientRect();
 const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
-
+console.log(`boardRect.right: ${boardRect.right}`);
+console.log(`boardRect.left: ${boardRect.left}`);
+console.log(`boardRect.top: ${boardRect.top}`);
 var position: number[] = [-1, -1];
 position[0] = boardRect.left + square[0] * squareLength;
 position[1] = boardRect.top + square[1] * squareLength;
@@ -194,12 +196,12 @@ return position;
 
 function initBoard() {
     const pieceClassNames = ["bb", "bk", "bn", "bp", "bq", "br", "gb", "gk", "gn", "gp", "gq", "gr", "rb", "rk", "rn", "rp", "rq", "rr", "yb", "yk", "yn", "yp", "yq", "yr"];
+    // const pieceClassNames = ["bb"]; DEBUG CODE
     for (var i = 0; i < pieceClassNames.length; i++) {
         var pieceName = pieceClassNames[i];
         // gets indices of leftmost and downmost piece
         console.log(`initialising piece: ${pieceName}`);
         assignPieces(pieceName);
-        
     }
 }
 
@@ -326,14 +328,13 @@ function assignPieces(pieceName: string) {
     var pieces = container.getElementsByClassName(className);
     // always place the fist element
     var first = <HTMLElement>pieces[0];
-    dragPieceElement(first);
-    console.log(initCol);
-    console.log(initRow);
+    console.log(`initIndex: ${[initCol, initRow]}`);
     var position = positionFromSquare([initCol, initRow]);
     // cannot read properties of undefined (reading 'style') 
+    console.log(`position: ${position}`);
     first.style.left = position[0] + "px";
     first.style.top = position[1] + "px";
-
+    dragPieceElement(first);
     var size = pieces.length;
     var data = [
         {name: 'p', offset: 1},
@@ -343,14 +344,14 @@ function assignPieces(pieceName: string) {
     ]
 
 
-    if (className[0] == 'r' || className == 'y') {
+    if (pieceName[0] == 'r' || pieceName[0] == 'y') {
         // alter columns 
         for (var i = 1; i < size; i++) {
             var element = <HTMLElement>pieces[i];
             dragPieceElement(element);
             let offset = 0;
             data.forEach(function (data){
-                if (data.name == className[1]) {
+                if (data.name == pieceName[1]) {
                     offset = data.offset;
                 }
             });
@@ -363,9 +364,10 @@ function assignPieces(pieceName: string) {
     } else {
         for (var i = 1; i < size; i++) {
             var element = <HTMLElement>pieces[i];
+            dragPieceElement(element);
             let offset = 0;
             data.forEach(function (data){
-                if (data.name == className[1]) {
+                if (data.name == pieceName[1]) {
                     offset = data.offset;
                 }
             });
