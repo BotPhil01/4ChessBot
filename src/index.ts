@@ -1,3 +1,5 @@
+import { FakeHScrollComp } from "ag-grid-community";
+
 const BOARDDIMENSION = 14;
 
 window.onload = function() {
@@ -42,14 +44,68 @@ function swap() {
 // uses ts event handling no libraries needed
 function dragPieceElement(elementId: string) {
     var element = document.getElementById(elementId);
+    var initialSquare: number[];
+    var initialPos: number[];
+
     if (!element) {
         console.error(`Unable to retrieve element <${elementId}>`);
         return;
     }
     element.onmousedown = startDrag;
 
+    function setInitialSquare(square: number[]) {
+        initialSquare = square;
+    }
+
+    function setInitialPosition(pos: number[]) {
+        initialPos = pos;
+    }
+
+    // takes position of the element relative to viewport
+    function positionToSquare(position: number[]): number[] {
+        //TODO optimise this function to use global variables instead of recalculating
+        var boardElement = document.getElementById("boardImage");
+        if (!boardElement) {
+            console.error("unable to find board element");
+            return [-1, -1];
+        }
+        var boardRect = boardElement.getBoundingClientRect();
+        const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
+
+        // make position relative to board
+        position[0] -= boardRect.left; 
+        position[1] -= boardRect.top;
+        // remove position relative to the square 
+        var square: number[] = [-1, -1];
+        square[0] = Math.floor(position[0] / squareLength);
+        square[1] = Math.floor(position[1] / squareLength);
+        return square;
+    }
+
+    // returns psoition relative to viewport
+    function positionFromSquare(square: number[]): number[] {
+        //TODO optimise this function to use global variables instead of recalculating
+        var boardElement = document.getElementById("boardImage");
+        if (!boardElement) {
+            console.error("unable to find board element");
+            return [-1, -1];
+        }
+        var boardRect = boardElement.getBoundingClientRect();
+        const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
+
+        var position: number[] = [-1, -1];
+        position[0] = boardRect.left + square[0] * squareLength;
+        position[1] = boardRect.top + square[1] * squareLength;
+        return position;
+    }
+
     // triggered by onmousedown
     function startDrag(e: MouseEvent) {
+        if (!element) {console.error("trying to move non existent element"); return;}
+        // cache initial position and square in case needed to return there
+        var elemRect = element.getBoundingClientRect();
+        setInitialPosition([elemRect.left, elemRect.top]);
+
         e.preventDefault();
         document.onmouseup = stopDrag;
         
@@ -74,43 +130,57 @@ function dragPieceElement(elementId: string) {
 
     // triggered by on mouse up
     function stopDrag(ev: MouseEvent) {
-        // TODO make element snap to grid cell
-        snapToBoard(ev.clientX, ev.clientY);
+        snapToBoard([ev.clientX, ev.clientY]);
 
         document.onmouseup = null;
         document.onmousemove = null;
         return true;
     }
 
-    // takes position of element relative to the viewport and snaps it to the board element
-    function snapToBoard(posX: number, posY: number) {
-        var boardElement = document.getElementById("boardImage");
-        if (!boardElement) {
-            console.error("Unable to find board element in snapToBoard function");
+    // takes position of element relative to the viewport and snaps it to the board element if element is over a valid square 
+    function snapToBoard(position: number[]) {
+        
+        if (!element) {
+            console.error("Unable to find elements in snapToBoard function");
             alert("something went wrong with the board see console for details");
             return;
         }
-        // gets element dimensions and offsets from viewport
-        var boardRect = boardElement.getBoundingClientRect();
-        
-        var squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
-        
-        // make position relative to board
-        posX -= boardRect.left; 
-        posY -= boardRect.top;
-        
-        // get square index
-        // var squareX = 
-        // var squareY = 
-
-        // remove remainder and add board padding again
-        posX = boardRect.left + (posX - (posX % squareLength));
-        posY = boardRect.top + (posY - (posY % squareLength));
 
 
-        if (element) {
-            element.style.left = posX + "px";
-            element.style.top = posY + "px";
+        var square = positionToSquare(position);
+        
+        // check if piece can move there
+        if (!elemCanMove(initialSquare, square)) {
+            console.log(`returning to initial position: ${initialPos[0]},${initialPos[1]}`);
+            // return to intitial space 
+            element.style.left = initialPos[0] + "px";
+            element.style.top = initialPos[1] + "px";
+            return;
         }
+
+    
+        // calculate pixel coords to move to
+        position = positionFromSquare(square);
+        
+        
+        console.log(`moving to pos: ${position[0]},${position[0]}`);
+        element.style.left = position[0] + "px";
+        element.style.top = position[1] + "px";
+        setInitialPosition(position);
     }
+
+    // validates if an element can move from a valid to square to a potentially invalid square
+    function elemCanMove(fromSquare: number[], toSquare: number[]) {
+        // check square bounds
+        // general bounds
+        var outGeneralBounds = toSquare[0] > 13 || toSquare[0] < 0 || toSquare[1] > 13 || toSquare[1] < 0;
+        var inCorners = toSquare[0] < 3 && (toSquare[1] < 3 || toSquare[1] > 10) || 
+                        toSquare[0] > 10 && (toSquare[1] < 3 || toSquare[1] > 10)
+        if (outGeneralBounds || inCorners) {
+            return false;
+        }
+        return true;
+    }
+    
 }
+
