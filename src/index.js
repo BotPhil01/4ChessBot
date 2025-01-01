@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const BOARDDIMENSION = 14;
 window.onload = function () {
-    console.log("starting up");
     buttons();
 };
 function buttons() {
@@ -17,16 +16,13 @@ function buttons() {
     var db = document.getElementById("debugButton");
     var draggable = document.getElementById("draggable");
     if (draggable) {
-        console.log("dragging element");
         dragPieceElement(draggable);
     }
 }
 // func for swapping between home and game pages
 function swap() {
-    console.log("swapping");
     let gameDiv = document.getElementById("gameDiv");
     let homeDiv = document.getElementById("homeDiv");
-    console.log(`${gameDiv}`);
     // mandatory error handling by ts
     if (!homeDiv || !gameDiv) {
         console.error("No divs founds");
@@ -102,7 +98,6 @@ function dragPieceElement(element) {
         var square = positionToSquare(position);
         // check if piece can move there
         if (!elemCanMove(initialSquare, square)) {
-            console.log(`returning to initial position: ${initialPos[0]},${initialPos[1]}`);
             // return to intitial space 
             element.style.left = initialPos[0] + "px";
             element.style.top = initialPos[1] + "px";
@@ -110,7 +105,6 @@ function dragPieceElement(element) {
         }
         // calculate pixel coords to move to
         position = positionFromSquare(square);
-        console.log(`moving to pos: ${position[0]},${position[0]}`);
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
         setInitialPosition(position);
@@ -157,9 +151,6 @@ function positionFromSquare(square) {
     }
     var boardRect = boardElement.getBoundingClientRect();
     const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
-    console.log(`boardRect.right: ${boardRect.right}`);
-    console.log(`boardRect.left: ${boardRect.left}`);
-    console.log(`boardRect.top: ${boardRect.top}`);
     var position = [-1, -1];
     position[0] = boardRect.left + square[0] * squareLength;
     position[1] = boardRect.top + square[1] * squareLength;
@@ -172,7 +163,6 @@ function initBoard() {
     for (var i = 0; i < pieceClassNames.length; i++) {
         var pieceName = pieceClassNames[i];
         // gets indices of leftmost and downmost piece
-        console.log(`initialising piece: ${pieceName}`);
         assignPieces(pieceName);
     }
 }
@@ -190,7 +180,7 @@ function calculatePieceColumn(pieceName) {
             }
             return 13;
         }
-        case 'r': {
+        case 'y': {
             switch (pieceName[1]) {
                 case 'k': {
                     return 7;
@@ -232,13 +222,13 @@ function calculatePieceColumn(pieceName) {
 }
 function calculatePieceRow(pieceName) {
     switch (pieceName[0]) {
-        case 'r': {
+        case 'y': {
             if (pieceName[1] == 'p') {
                 return 1;
             }
             return 0;
         }
-        case 'y': {
+        case 'r': {
             if (pieceName[1] == 'p') {
                 return 12;
             }
@@ -324,11 +314,9 @@ function assignPieces(pieceName) {
         // adding offset is orthogonal between ry and bg pieces
         // hence we want to choose whether to increment columns or rows
         if (pieceName[0] == 'r' || pieceName[0] == 'y') {
-            console.log("square: " + [initCol + (i * offset), initRow]);
             position = positionFromSquare([initCol + (i * offset), initRow]);
         }
         else {
-            console.log("square: " + [initCol + (i * offset), initRow]);
             position = positionFromSquare([initCol, initRow + (i * offset)]);
         }
         element.style.left = position[0] + "px";
