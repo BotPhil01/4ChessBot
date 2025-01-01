@@ -1,5 +1,3 @@
-import { FakeHScrollComp } from "ag-grid-community";
-
 const BOARDDIMENSION = 14;
 
 window.onload = function() {
@@ -321,61 +319,48 @@ function assignPieces(pieceName: string) {
         console.error("contaienr not found");
         return;
     }
+    // calculate indices according to piece name eg: "bb" = blue bishop 
     var initCol = calculatePieceColumn(pieceName);
     var initRow = calculatePieceRow(pieceName);
-    
-    var className = "piece-" + pieceName;
-    var pieces = container.getElementsByClassName(className);
-    // always place the fist element
-    var first = <HTMLElement>pieces[0];
-    console.log(`initIndex: ${[initCol, initRow]}`);
-    var position = positionFromSquare([initCol, initRow]);
-    // cannot read properties of undefined (reading 'style') 
-    console.log(`position: ${position}`);
-    first.style.left = position[0] + "px";
-    first.style.top = position[1] + "px";
-    dragPieceElement(first);
-    var size = pieces.length;
-    var data = [
-        {name: 'p', offset: 1},
-        {name: 'r', offset: 7},
-        {name: 'n', offset: 5},
-        {name: 'b', offset: 3},
-    ]
-
-
-    if (pieceName[0] == 'r' || pieceName[0] == 'y') {
-        // alter columns 
-        for (var i = 1; i < size; i++) {
-            var element = <HTMLElement>pieces[i];
-            dragPieceElement(element);
-            let offset = 0;
-            data.forEach(function (data){
-                if (data.name == pieceName[1]) {
-                    offset = data.offset;
-                }
-            });
-
-            initCol += offset;
-            position = positionFromSquare([initCol, initRow]);
-            element.style.left = position[0] + "px";
-            element.style.top = position[1] + "px";
+    var position: number[];
+    var pieces = container.getElementsByClassName("piece-" + pieceName);
+    var pieceCount = pieces.length;
+    // for piece duplication
+    // take initial position adding row or col offset
+    var offset = -1;
+    switch (pieceName[1]) {
+        case 'p': {
+            offset = 1;
+            break;
         }
-    } else {
-        for (var i = 1; i < size; i++) {
-            var element = <HTMLElement>pieces[i];
-            dragPieceElement(element);
-            let offset = 0;
-            data.forEach(function (data){
-                if (data.name == pieceName[1]) {
-                    offset = data.offset;
-                }
-            });
-
-            initRow += offset;
-            position = positionFromSquare([initCol, initRow]);
-            element.style.left = position[0] + "px";
-            element.style.top = position[1] + "px";
+        case 'r': {
+            offset = 7;
+            break;
         }
+        case 'n': {
+            offset = 5;
+            break;
+        }
+        default: {
+            offset = 3;
+            break;
+        }
+    };
+    for (var i = 0; i < pieceCount; i++) {
+        var element = <HTMLElement>pieces[i];
+        dragPieceElement(element);
+        // adding offset is orthogonal between ry and bg pieces
+        // hence we want to choose whether to increment columns or rows
+        if (pieceName[0] == 'r' || pieceName[0] == 'y') {
+            console.log("square: " + [initCol + (i * offset), initRow]);
+            position = positionFromSquare([initCol + (i * offset), initRow]);
+        } else {
+            console.log("square: " + [initCol + (i * offset), initRow]);
+            position = positionFromSquare([initCol, initRow + (i * offset)]);
+        }
+        element.style.left = position[0] + "px";
+        element.style.top = position[1] + "px";
     }
+
+    
 }
