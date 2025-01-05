@@ -1,1 +1,6 @@
-/.~lock.Plan.odt#
+**/.~lock.Plan.odt#
+Dockerfile
+automation.sh
+engine/compile.sh
+engine/streamable
+engine/notes.txt

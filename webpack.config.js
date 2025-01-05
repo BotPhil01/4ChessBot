@@ -1,3 +1,4 @@
+const { url } = require('inspector');
 const path = require('path');
 
 module.exports = {
@@ -9,6 +10,5 @@ module.exports = {
     },
     optimization: {
         checkWasmTypes: false,
-
-    }
+    },
 };

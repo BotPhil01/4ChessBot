@@ -112,15 +112,59 @@ function dragPieceElement(element) {
     }
     // validates if an element can move from a valid t  o square to a potentially invalid square
     function elemCanMove(fromSquare, toSquare) {
+        // TODO do some stuff when game end
+        var res = queryEngineLegalMove(fromSquare, toSquare);
+        if (res == 0) {
+            console.error("Engine error");
+            return false;
+        }
         // validate toSquare is on the board 
-        var boardSquareLimit = toSquare[0] >= BOARDDIMENSION || toSquare[0] < 0 || toSquare[1] >= BOARDDIMENSION || toSquare[1] < 0;
+        var outBoardSquare = toSquare[0] >= BOARDDIMENSION || toSquare[0] < 0 || toSquare[1] >= BOARDDIMENSION || toSquare[1] < 0;
         var inCorners = toSquare[0] < 3 && (toSquare[1] < 3 || toSquare[1] > 10) ||
             toSquare[0] > 10 && (toSquare[1] < 3 || toSquare[1] > 10);
-        if (boardSquareLimit || inCorners) {
+        if (outBoardSquare || inCorners || res < 2) {
             return false;
         }
         return true;
     }
+}
+function queryEngineLegalMove(fromSquare, toSquare) {
+    const url = "localhost:42069";
+    const socket = new WebSocket(url);
+    var res = -1;
+    socket.onopen = function (e) {
+        console.log("connection established");
+        socket.send(`${fromSquare[0]}0${fromSquare[1]}0${toSquare[0]}0${toSquare}`);
+    };
+    socket.onmessage = function (e) {
+        res = parseEngineLegalMoveData(e.data);
+    };
+    socket.onclose = function (e) {
+        if (e.wasClean) {
+            console.log("Connection closed cleanly");
+        }
+        else {
+            console.log("Connection ended dirty");
+        }
+    };
+    // hang while waiting for a response
+    while (socket.OPEN && res == -1) {
+        continue;
+    }
+    return res;
+}
+// returns code depending on game state after move
+// 0 - engine error
+// 1 - illegal move
+// 2 - legal move + game cont
+// 3 - legal move + stalemate
+// 4 - legal move + red win
+// 5 - legal move + blue win
+// 6 - legal move + green win       
+// 8 - legal move + yellow win
+function parseEngineLegalMoveData(data) {
+    // TODO implemnet when engine and sockets done
+    return 1;
 }
 // takes position of the element relative to viewport
 function positionToSquare(position) {
