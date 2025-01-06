@@ -259,6 +259,25 @@ namespace helper
         return v1;
     }
 
+    template <typename T>
+    // layers vectors ontop of each other with + 
+    // vectors must have same size
+    std::vector<T> layer(std::vector<T> v1, std::vector<T> v2) {
+        std::vector out;
+        for (int i = 0; i < v1.size(); i++) {
+            out.emplace_back(v1 + v2);
+        }
+        return out;
+    }
+
+    template<typename T>
+    void multiplyValues(std::vector<T> *v, T f) {
+        for (int i = 0; i < v.size(); ++i) {
+            (*v)[i] *= f;
+        }
+    }
+
+
     constexpr std::string_view PieceTypeToString(PieceType t)
     {
         using pt = PieceType;
@@ -357,6 +376,28 @@ namespace helper
         }
         std::cout << "\n";
     }
+
+    char getColourIndex(PieceColour c) {
+        switch (c) {
+            case PieceColour::RED:
+                return 0;
+            case PieceColour::BLUE:
+                return 1;
+            case PieceColour::YELLOW:
+                return 2;
+            case PieceColour::GREEN:
+                return 3;
+            default:
+                throw std::invalid_argument("Invalid colour argument in placeAtColourIndex colour: " + std::string(PieceColourToString(c)) + "\n");
+        }
+        return -1;
+    }
+
+    // takes vector of length 4 a colour to has with and a value to place in vector
+    void placeAtColourIndex(std::vector<float> * const ve, PieceColour c, float va) {
+        (*ve)[getColourIndex(c)] = va;
+    }
+
 };
 
 #endif;

@@ -102,14 +102,16 @@ namespace types {
         boardIndex fromIndex;
         Square toSquare;
         boardIndex toIndex;
+        int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
         Move() {
             fromSquare = Square();
             toSquare = Square();
             fromIndex = 300;
             toIndex = 300;
+            totalMoves = 0;
         }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti) :
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti) {
+        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, int total = 0) :
+        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti), totalMoves(0) {
         }
         Move(Square fs, boardIndex fi, Square ts, boardIndex ti, PieceType p) :
         Promotion(p), 

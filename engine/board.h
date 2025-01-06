@@ -17,13 +17,22 @@ namespace board {
             std::vector<Move> moveVector;
         public:
 
-            Board() {
+            Board() : {
                 // construct to initial position
                 for (short i = 0; i < 288; ++i) {
                     boardVector.emplace_back(generateSquare(i));
                 }
                 turn = initailTurn;
                 moveVector = std::vector<Move> ();
+                
+            }
+            
+            std::vector<Move> getMoveHistory() {
+                return moveVector;
+            }
+
+            std::vector<Square> getBoard() {
+                return boardVector;
             }
 
             boardIndex toIndex(unsigned char r, unsigned char c) {
@@ -202,9 +211,11 @@ namespace board {
                 return false;
             }
 
+            // generates the colours legal moves
             std::vector<Move> generateLegalMoves() {
                 std::vector<Move> out;
                 auto moves = generatePseudoLegalMoves();
+                auto length = moves.size();
                 std::cout << "moves generated\n";
                 for (auto m : moves) {
                     playMove(m);
