@@ -57,33 +57,10 @@ namespace types {
                 type = p.type;
                 pieceColour = p.pieceColour;
             }
+            SquareColour getSquareColour() {
+                return squareColour;
+            }
             
-    };
-
-    // move is a container for squares and indices
-    struct Move : Promotion, Capture {
-        Square fromSquare;
-        boardIndex fromIndex;
-        Square toSquare;
-        boardIndex toIndex;
-        Move() {
-            fromSquare = Square();
-            toSquare = Square();
-            fromIndex = 300;
-            toIndex = 300;
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti) :
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti) {
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, PieceType p) :
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti), Promotion(p) {
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, Piece c) :
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti), Capture(c) {
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, Piece c, PieceType p) :
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti), Capture(c), Promotion(p) {
-        }
     };
 
     // inherits move
@@ -117,6 +94,35 @@ namespace types {
                 }
             }
 
+    };
+
+    // move is a container for squares and indices
+    struct Move : Promotion, Capture {
+        Square fromSquare;
+        boardIndex fromIndex;
+        Square toSquare;
+        boardIndex toIndex;
+        Move() {
+            fromSquare = Square();
+            toSquare = Square();
+            fromIndex = 300;
+            toIndex = 300;
+        }
+        Move(Square fs, boardIndex fi, Square ts, boardIndex ti) :
+        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti) {
+        }
+        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, PieceType p) :
+        Promotion(p), 
+        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti) {
+        }
+        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, Piece c) :
+        Capture(c),
+        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti){
+        }
+        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, Piece c, PieceType p) : 
+        Promotion(p), Capture(c),  
+        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti) {
+        }
     };
 
     enum class Direction {

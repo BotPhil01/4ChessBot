@@ -193,7 +193,7 @@ class Board {
                     return true;
                 }
             }
-
+            return false;
         }
 
         std::vector<Move> generateLegalMoves() {
@@ -413,34 +413,20 @@ class Board {
             if (boardVector[src].hasMoved) {
                 return out;
             }
-            boardIndex endLeftIndex = 300;
-            boardIndex endRightIndex = 300; 
-            switch(boardVector[src].pieceColour) {
-                case PieceColour::RED:
-                    endLeftIndex = getRay(src, Direction::WEST).back();
-                    endRightIndex = getRay(src, Direction::EAST).back();
-                    break;
-                case PieceColour::BLUE:
-                    endLeftIndex = getRay(src, Direction::NORTH).back();
-                    endRightIndex = getRay(src, Direction::SOUTH).back();
-                    break;
-                case PieceColour::GREEN:
-                    endLeftIndex = getRay(src, Direction::SOUTH).back();
-                    endRightIndex = getRay(src, Direction::NORTH).back();
-                    break;
-                case PieceColour::YELLOW:
-                    endLeftIndex = getRay(src, Direction::EAST).back();
-                    endRightIndex = getRay(src, Direction::WEST).back();
-                    break;
-                default:
-                    break;
-            }
+            auto leftRay = getRay(src, getLeft(boardVector[src].pieceColour));
+            auto rightRay = getRay(src, getRight(boardVector[src].pieceColour)); 
 
-            if (boardVector[endLeftIndex].type == PieceType::ROOK && boardVector[endLeftIndex].hasMoved == false) {
-                out.emplace_back(endLeftIndex);
+            if (leftRay.size() > 0) {
+                auto endLeftIndex = leftRay.back();
+                if (boardVector[endLeftIndex].type == PieceType::ROOK && boardVector[endLeftIndex].hasMoved == false) {
+                    out.emplace_back(endLeftIndex);
+                }
             }
-            if (boardVector[endRightIndex].type == PieceType::ROOK && boardVector[endRightIndex].hasMoved == false) {
-                out.emplace_back(endRightIndex);
+            if (rightRay.size() > 0) {
+                auto endRightIndex = rightRay.back();
+                if (boardVector[endRightIndex].type == PieceType::ROOK && boardVector[endRightIndex].hasMoved == false) {
+                    out.emplace_back(endRightIndex);
+                }
             }
             return out;
         }
@@ -497,7 +483,8 @@ class Board {
                     return m.toIndex < 143;
                 case PieceColour::GREEN:
                     return m.toIndex <= 7;
-                return false;
+                default:
+                    return false;
             }
             return false;
         }
