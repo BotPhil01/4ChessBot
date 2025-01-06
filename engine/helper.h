@@ -318,6 +318,22 @@ namespace helper
         return s;
     }
 
+    PieceColour getPrevTurn(PieceColour current) {
+        switch (current) {
+            case PieceColour::BLUE:
+                return PieceColour::RED;
+            case PieceColour::YELLOW:
+                return PieceColour::BLUE;
+            case PieceColour::GREEN:
+                return PieceColour::YELLOW;
+            case PieceColour::RED:
+                return PieceColour::GREEN;
+            default:
+                return PieceColour::NONE;
+        }
+        return PieceColour::NONE;
+    }
+
     PieceColour getNextTurn(PieceColour current) {
         switch (current) {
             case PieceColour::RED:
@@ -329,9 +345,17 @@ namespace helper
             case PieceColour::GREEN:
                 return PieceColour::RED;
             default:
-                return PieceColour::RED;
+                return PieceColour::NONE;
         }
-        return PieceColour::RED;
+        return PieceColour::NONE;
+    }
+    
+    void printMoveVector(std::vector<Move> mvs) {
+        std::cout << "Moves: ";
+        for (Move m : mvs) {
+            std::cout << moveToString(m) << ", ";
+        }
+        std::cout << "\n";
     }
 };
 #endif

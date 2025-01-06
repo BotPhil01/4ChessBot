@@ -3,6 +3,8 @@
 #include<vector>
 using namespace helper;
 using namespace types;
+#ifndef BOARD_H
+#define BOARD_H
 // Add legal move generation
 
 // board is padded to 16x18
@@ -159,14 +161,16 @@ class Board {
             for (Direction d : diags) {
                 // sliding piece check
                 auto ray = getRay(kingIndex, d);
-                auto last = ray.back();
-                if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::BISHOP || boardVector.at(last).type == PieceType::QUEEN)) {
-                    return true;
+                if (ray.size() > 0) {
+                    auto last = ray.back();
+                    if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::BISHOP || boardVector.at(last).type == PieceType::QUEEN)) {
+                        return true;
+                    }
                 }
 
                 // pawn check
                 auto diagIndex = shiftOne(kingIndex, d);
-                if (existsEnemyPiece(kingIndex, diagIndex) && (boardVector.at(last).type == PieceType::PAWN)) {
+                if (existsEnemyPiece(kingIndex, diagIndex) && (boardVector.at(diagIndex).type == PieceType::PAWN)) {
                     // get the pawn shift
                     // if the result of the pawn shift is the kignIndex then return true 
                     auto pawnAttacks = pawnCaptureShift(diagIndex);
@@ -180,9 +184,11 @@ class Board {
 
             for (Direction d : upDowns) {
                 auto ray = getRay(kingIndex, d);
-                auto last = ray.back();
-                if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::ROOK || boardVector.at(last).type == PieceType::QUEEN)) {
-                    return true;
+                if (ray.size() > 0) {
+                    auto last = ray.back();
+                    if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::ROOK || boardVector.at(last).type == PieceType::QUEEN)) {
+                        return true;
+                    }
                 }
             }
 
@@ -199,6 +205,7 @@ class Board {
         std::vector<Move> generateLegalMoves() {
             std::vector<Move> out;
             auto moves = generatePseudoLegalMoves();
+            std::cout << "moves generated\n";
             for (auto m : moves) {
                 playMove(m);
                 if (!isKingInCheck(turn)) {
@@ -291,13 +298,13 @@ class Board {
             // regular captures
             boardIndex target = shiftOne(index, getUpRight(boardVector[index].pieceColour));
             bool upRightEmpty = isEmpty(target);
-            if (existsCapturable(index, target)) {
+            if (existsEnemyPiece(index, target)) {
                 out.emplace_back(target);
             }
 
             target = shiftOne(index, getUpLeft(boardVector[index].pieceColour)); // go to next possible capture
             bool upLeftEmpty = isEmpty(target);
-            if (existsCapturable(index, target)) {
+            if (existsEnemyPiece(index, target)) {
                 out.emplace_back(target);
             }
 
@@ -501,7 +508,8 @@ class Board {
             }
 
             if (boardVector[m.fromIndex].pieceColour != turn) {
-                throw std::invalid_argument("It is not the given move's turn");
+                std::string s = "It is not the given move's turn. Turn: " + std::string(PieceColourToString(turn)) + " pieceColour: " + std::string(PieceColourToString(m.fromSquare.pieceColour)) + " board piece colour: " + std::string(PieceColourToString(boardVector[m.fromIndex].pieceColour)) + "\n";
+                throw std::invalid_argument(s);
             }
 
             turn = getNextTurn(turn);
@@ -566,18 +574,23 @@ class Board {
             Move lastMove = moveVector.back(); //retreive last elem 
             boardVector[lastMove.toIndex].setPiece(lastMove.toSquare); //return data to state
             boardVector[lastMove.fromIndex].setPiece(lastMove.fromSquare); 
+            turn = getPrevTurn(turn);// reset turn counter
             moveVector.pop_back(); //remove from stack
+
         }
 };
 
-int main() {
-    // main for debugging / testing types
-    Board b = Board();
-    b.printBoard();
-    std::vector<Move> moves = b.generatePseudoLegalMoves();
-    std::cout << "moves length: " << moves.size() << "\n";
-    std::cout << "first move: " << moveToString(moves[0]) << "\n";
-    b.playMove(moves.at(0));
-    std::cout << "board after first move is played\n";
-    b.printBoard();
-}
+// int main() {
+//     // main for debugging / testing types
+//     Board b = Board();
+//     b.printBoard();
+//     std::vector<Move> moves = b.generateLegalMoves();
+//     b.playMove(moves.at(0));
+//     std::cout << "board after first move is played\n";
+//     b.printBoard();
+//     std::cout << "moves length: " << moves.size() << "\n";
+//     // std::cout << "first move: " << moveToString(moves[0]) << "\n";
+//     printMoveVector(moves);
+// }
+
+#endif
