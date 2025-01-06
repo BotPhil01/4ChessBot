@@ -17,7 +17,7 @@ namespace board {
             std::vector<Move> moveVector;
         public:
 
-            Board() : {
+            Board() {
                 // construct to initial position
                 for (short i = 0; i < 288; ++i) {
                     boardVector.emplace_back(generateSquare(i));

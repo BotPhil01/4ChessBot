@@ -1,6 +1,6 @@
 
 #include<iostream>
-#include<vector
+#include<vector>
 #include<algorithm>
 #include<exception>
 #include"board.h"
@@ -176,7 +176,7 @@ class Engine : Board {
 
         // evaluates current board position
         // evaluation works by calculating the advantages based on material and position and choosing one player to focus
-        // basically constantly tries to bring down the best player (other than itself)
+        // basically constantly tries to bring down the best player (other than itself) and assumes others will too!
         float evaluateBoard() {
             auto material = evaluateMaterial();
             multiplyValues(&material, (float) 10); // weightings
