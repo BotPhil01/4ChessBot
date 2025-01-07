@@ -1,4 +1,5 @@
 #include "types.h"
+#include<cassert>
 #include <vector>
 using namespace types;
 #ifndef HELPER_H
@@ -263,16 +264,18 @@ namespace helper
     // layers vectors ontop of each other with + 
     // vectors must have same size
     std::vector<T> layer(std::vector<T> v1, std::vector<T> v2) {
-        std::vector out;
+        const size_t s1 = v1.size();
+        const size_t s2 = v2.size();
+        assert(s1 == s2 && s1 == 4);
         for (int i = 0; i < v1.size(); i++) {
-            out.emplace_back(v1 + v2);
+            v1[i] += v2[i];
         }
-        return out;
+        return v1;
     }
 
     template<typename T>
     void multiplyValues(std::vector<T> *v, T f) {
-        for (int i = 0; i < v.size(); ++i) {
+        for (int i = 0; i < (*v).size(); ++i) {
             (*v)[i] *= f;
         }
     }
@@ -388,9 +391,26 @@ namespace helper
             case PieceColour::GREEN:
                 return 3;
             default:
-                throw std::invalid_argument("Invalid colour argument in placeAtColourIndex colour: " + std::string(PieceColourToString(c)) + "\n");
+                throw std::invalid_argument("Invalid colour argument in getColourIndex colour: " + std::string(PieceColourToString(c)) + "\n");
         }
         return -1;
+    }
+
+    PieceColour getColourFromIndex(char i) {
+        switch (i) {
+            case 0:
+                return PieceColour::RED;
+            case 1:
+                return PieceColour::BLUE;
+            case 2:
+                return PieceColour::YELLOW;
+            case 3:
+                return PieceColour::GREEN;
+            default:
+                std::string s{i};
+                throw std::invalid_argument("Invalid indeex argument in getColourFromIndex index: " + s + "\n");
+        }
+        return PieceColour::NONE;
     }
 
     // takes vector of length 4 a colour to has with and a value to place in vector
@@ -400,4 +420,4 @@ namespace helper
 
 };
 
-#endif;
+#endif

@@ -1,6 +1,7 @@
 #include"types.h"
 #include"helper.h"
 #include<vector>
+#include<string>
 using namespace helper;
 using namespace types;
 #ifndef BOARD_H
@@ -100,19 +101,17 @@ namespace board {
             std::vector<Move> generatePseudoLegalMoves() {
                 std::size_t size = boardVector.size();
                 std::vector<Move> out {};
-                // std::cout << "out size after initialisation: " << out.size() << "\n";
-                bool debug = false;
-                // std::cout << "generating pseudo legal moves\n";
+                // bool debug = false;
                 for (int i = 0; i < size; i++) {
                     if (boardVector[i].pieceColour == turn) {
                         switch(boardVector[i].type) {
                             case PieceType::PAWN:
-                                if (!debug) {
-                                    std::cout << "index of pawn: " << i << "\n";
-                                    std::cout << "bulkCreateMove[0] after i: " << PieceTypeToString(bulkCreateMove(i, pawnShift(i))[0].fromSquare.type) << "\n";
+                                // if (!debug) {
+                                //     std::cout << "index of pawn: " << i << "\n";
+                                //     std::cout << "bulkCreateMove[0] after i: " << PieceTypeToString(bulkCreateMove(i, pawnShift(i))[0].fromSquare.type) << "\n";
                                     
-                                    debug = true;
-                                }
+                                //     debug = true;
+                                // }
                                 out = concat(out, bulkCreateMove(i, pawnShift(i)));
                                 
                                 break;
@@ -215,7 +214,6 @@ namespace board {
             std::vector<Move> generateLegalMoves() {
                 std::vector<Move> out;
                 auto moves = generatePseudoLegalMoves();
-                auto length = moves.size();
                 std::cout << "moves generated\n";
                 for (auto m : moves) {
                     playMove(m);
@@ -515,7 +513,11 @@ namespace board {
             void playMove(const Move m) {
                 // runtime check that everything is working smoothly
                 if ((boardVector[m.fromIndex].type != m.fromSquare.type) || (boardVector[m.toIndex].type != m.toSquare.type)) {
-                    throw std::invalid_argument("Move is poorly formed: board square does not match move square data ");
+                    printBoard();
+                    std::string s = "Move is poorly formed: board square does not match move square data. Board type: " 
+                    + std::string(PieceTypeToString(boardVector[m.fromIndex].type)) + "(" + std::to_string(m.fromIndex) + ")" 
+                    + ", " + std::string(PieceTypeToString(m.fromSquare.type)) + "(" + std::to_string(m.fromIndex) + ")" + "\n";
+                    throw std::invalid_argument(s);
                 }
 
                 if (boardVector[m.fromIndex].pieceColour != turn) {
@@ -604,4 +606,4 @@ namespace board {
 //     printMoveVector(moves);
 // }
 
-#endif;
+#endif
