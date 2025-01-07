@@ -11,7 +11,7 @@
     "url": "git+https://github.com/BotPhil01/4PChess.git"
   },
   "author": "Alex Robles",
-  "license": "Artistic-2.0",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/BotPhil01/4PChess/issues"
   },
