@@ -17,14 +17,14 @@
   },
   "homepage": "https://github.com/BotPhil01/4PChess#readme",
   "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/ws": "^8.5.13",
     "typescript": "^5.7.2",
     "webpack": "^5.97.1",
     "webpack-cli": "^6.0.1"
   },
   "dependencies": {
-    "@types/express": "^5.0.0",
-    "install": "^0.13.0",
-    "socket.io": "^4.8.1",
-    "url": "^0.11.4"
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
   }
 }

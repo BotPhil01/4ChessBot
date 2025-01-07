@@ -4,3 +4,5 @@ automation.sh
 engine/compile.sh
 engine/streamable
 engine/notes.txt
+*.txt
+*.sh

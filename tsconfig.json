@@ -3,6 +3,10 @@
     "excludeDirectories": ["dist", "deprecated", "assets", ".vscode"],
     "excludeFiles": ["compile.sh", "automation.sh", ".gitignore", "Plan.odt", "README.md", "webpack.config.js"],
   },
+  // "include": [
+  //   "./src/engineProcessHandler.ts",
+  //   "./src/engineProcess.ts",
+  // ],
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig to read more about this file */
 

@@ -3,9 +3,10 @@ rm b.txt
 rm afiles.txt
 rm names.txt
 
-cd "./assets"
-ls > "../afiles.txt"
-cd ..
+cd "./public/assets"
+ls > "../../afiles.txt"
+cd ../..
+pwd
 
 piece=""
 declare -i row
@@ -110,7 +111,7 @@ f() {
     calc_col
     calc_row
     echo "${piece} col: ${col} row: ${row}"
-    echo "<div class=\"piece-$piece\"></div>" >> "a.txt"
+    echo "<div class=\"piece-$piece\"></div>" > "a.txt"
     # red and yellow
     if [[ "$piece" =~ [ry]p ]]; then
         for i in {1..7}; do
@@ -154,7 +155,7 @@ f() {
 g() {
     echo "running g"
     echo ".piece-${piece} {
-  background-image: url("../assets/${piece}.png");
+  background-image: url("assets/${piece}.png");
   background-repeat: no-repeat;
   background-size: cover;
   position: absolute;
@@ -165,7 +166,7 @@ g() {
   max-height: 50.4px;
   z-index: 10;
   cursor: grab;
-}" >> "b.txt"
+}" > "b.txt"
 }
 
 names=$(echo| grep '[bgry][qknrpb]\.png' "afiles.txt" | sed 's/\.[^.]*$//')

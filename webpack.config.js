@@ -11,4 +11,7 @@ module.exports = {
     optimization: {
         checkWasmTypes: false,
     },
+    resolve: {
+        modules: ['node_modules']
+    }
 };

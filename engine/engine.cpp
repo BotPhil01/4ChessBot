@@ -206,7 +206,8 @@ class Engine : Board {
 
 void serverLoop() {
     // create a websocket
-    // receive over websocket
+    // receive over a websocket
+    
 }
 
 int main() {
