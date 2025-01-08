@@ -12,8 +12,8 @@ namespace board {
     class Board {
         private:
             std::vector<Square> boardVector;
-            const char PADDEDCOLS = 16;
-            const char PADDEDROWS = 18;
+            char PADDEDCOLS = 16;
+            char PADDEDROWS = 18;
             PieceColour turn;
             std::vector<Move> moveVector;
         public:
@@ -36,9 +36,7 @@ namespace board {
                 return boardVector;
             }
 
-            boardIndex toIndex(unsigned char r, unsigned char c) {
-                return (r * PADDEDCOLS + c);
-            }
+            
 
             Square & getSquare(boardIndex r, boardIndex c) { // from 14x14
                 short a1 = 33;
@@ -93,8 +91,11 @@ namespace board {
             }
 
             Move createMove(boardIndex src, boardIndex trgt) {
+                std::cout << "creating move\n";
                 Square srcSquare = boardVector[src];
+                std::cout << "src colour: " << PieceColourToString(srcSquare.pieceColour) << "\n";
                 Square trgtSquare = boardVector[trgt];
+                std::cout << "trgt colour: " << PieceColourToString(trgtSquare.pieceColour) << "\n";
                 return Move(srcSquare, src, trgtSquare, trgt);
             }
 
@@ -247,6 +248,7 @@ namespace board {
                         return i;
                 };
             }
+
 
             // get colour's last move 
             // returns valid iterator if move exists otherwise returns .end() iterator
@@ -592,6 +594,17 @@ namespace board {
 
             }
     };
+
+    boardIndex toIndex( unsigned char c, unsigned char r) { // returns boardIndex from 16 * 18  coordinates
+        return (r * 16 + c);
+    }
+
+    // translates a boardIndex to a padded row column pair
+    std::pair<int, int> to16RC(boardIndex i) {
+        int x = (i % 16);
+        int y = i - x / 16;
+        return std::pair(x,y);
+    }
 };
 // int main() {
 //     // main for debugging / testing types
