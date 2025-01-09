@@ -6,3 +6,4 @@ engine/streamable
 engine/notes.txt
 *.txt
 *.sh
+export/
