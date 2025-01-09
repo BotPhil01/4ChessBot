@@ -7,3 +7,4 @@ engine/notes.txt
 *.txt
 *.sh
 export/
+helper/
