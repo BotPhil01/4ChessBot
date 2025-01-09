@@ -1,3 +1,39 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+    return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var ws = new WebSocket("ws://".concat(window.location.host));
 var BOARDDIMENSION = 14;
 window.onload = function () {
@@ -49,6 +85,7 @@ function swap() {
 function dragPieceElement(element) {
     var initialSquare;
     var initialPos;
+    // console.log(`AAAAAAAAAAAAAAAA ${initialSquare}`);
     if (!element) {
         // error here 
         console.error("Unable to retrieve element <".concat(element, ">"));
@@ -69,8 +106,10 @@ function dragPieceElement(element) {
         }
         // cache initial position and square in case needed to return there
         var elemRect = element.getBoundingClientRect();
-        setInitialPosition([elemRect.left, elemRect.top]);
-        setInitialSquare([elemRect.left, elemRect.top]);
+        console.log("settign position to ".concat(e.clientX, ",").concat(e.clientY));
+        setInitialPosition([e.clientX, e.clientY]);
+        console.log("setting initial square position to ".concat(positionToSquare([e.clientX, e.clientY])));
+        setInitialSquare(positionToSquare([e.clientX, e.clientY]));
         e.preventDefault();
         document.onmouseup = stopDrag;
         document.onmousemove = elementDrag;
@@ -91,21 +130,21 @@ function dragPieceElement(element) {
     // triggered by on mouse up
     function stopDrag(ev) {
         var pos = [ev.clientX, ev.clientY];
-        var initSqu = positionToSquare(initialPos);
-        console.log("initial square from positionToSquare: " + initSqu[0].toString() + "," + initSqu[1].toString());
+        console.log("stopdrag position ".concat(pos[0], ",").concat(pos[1]));
         console.log("initial square: " + initialSquare[0].toString() + "," + initialSquare[1].toString());
         var toSquare = snapToBoard(pos);
-        if (toSquare == initialSquare) {
+        if (toSquare != initialSquare) {
             // moved to a square successfully
-            console.log(initSqu.length);
-            var message = initSqu[0].toString() + "|" + initSqu[1].toString() + "|" + toSquare[0].toString() + "|" + toSquare[1].toString();
+            var message = initialSquare[0].toString() + "|" + initialSquare[1].toString() + "|" + toSquare[0].toString() + "|" + toSquare[1].toString();
             console.log("Sending move: " + message + "\n");
             ws.send(message);
+            setInitialPosition(positionFromSquare(toSquare));
+            setInitialSquare(toSquare);
             ws.onmessage = function (event) {
                 console.log("server response: " + event.data);
+                console.log("data type ".concat(typeof (event.data)));
                 handleOutput(event.data);
             };
-            ws.onmessage = null;
             // handler response
         }
         document.onmouseup = null;
@@ -113,11 +152,13 @@ function dragPieceElement(element) {
         return true;
     }
     // takes position of element relative to the viewport and snaps it to the board element if element is over a valid square 
+    // returns the initial square if cant move else returns the square it snaps to
     function snapToBoard(position) {
+        // console.log(`snap to board position ${position[0]},${position[1]}`);
         if (!element) {
             console.error("Unable to find elements in snapToBoard function");
             alert("something went wrong with the board see console for details");
-            return false;
+            return initialSquare;
         }
         var square = positionToSquare(position);
         // check if piece can move there
@@ -125,18 +166,16 @@ function dragPieceElement(element) {
             // return to intitial space 
             element.style.left = initialPos[0] + "px";
             element.style.top = initialPos[1] + "px";
-            return initialPos;
+            return initialSquare;
         }
         // calculate pixel coords to move to
         position = positionFromSquare(square);
-        // erase element at that position
+        // erase overelapped element
         var destroyed = document.elementFromPoint(position[0], position[1]);
-        // destroy overlapped element
         if (!element || !destroyed) {
             console.error("when playing move: elements not found");
-            return;
+            return initialSquare;
         }
-        console.log("destroyed element: ".concat(destroyed));
         var c = destroyed.getAttribute("class");
         if (c != null && /piece-/.test(c) && destroyed != element) {
             destroyed.setAttribute("class", "destroy");
@@ -144,8 +183,8 @@ function dragPieceElement(element) {
         // set element to new position
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
-        setInitialPosition(position);
-        setInitialSquare(square);
+        // setInitialPosition(position);
+        // setInitialSquare(square);
         return square;
     }
     // validates if an element can move from a valid t  o square to a potentially invalid square
@@ -211,6 +250,8 @@ function positionToSquare(position) {
     }
     var boardRect = boardElement.getBoundingClientRect();
     var squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
+    // console.log(`board left: ${boardRect.left}`);
+    // console.log(`square length: ${squareLength}`);
     // make position relative to board
     position[0] -= boardRect.left;
     position[1] -= boardRect.top;
@@ -218,10 +259,12 @@ function positionToSquare(position) {
     var square = [-1, -1];
     square[0] = Math.floor(position[0] / squareLength);
     square[1] = Math.floor(position[1] / squareLength);
+    // console.log(`calculated square: ${square[0]},${square[1]} from: ${position[0]},${position[1]}`);
     return square;
 }
 // returns psoition relative to viewport
 function positionFromSquare(square) {
+    // console.log(`square[0]: ${square[0]}`);
     //TODO optimise this function to use global variables instead of recalculating
     var boardElement = document.getElementById("boardImage");
     if (!boardElement) {
@@ -231,8 +274,10 @@ function positionFromSquare(square) {
     var boardRect = boardElement.getBoundingClientRect();
     var squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
     var position = [-1, -1];
-    position[0] = boardRect.left + square[0] * squareLength;
-    position[1] = boardRect.top + square[1] * squareLength;
+    position[0] = Number(boardRect.left) + square[0] * squareLength;
+    position[1] = Number(boardRect.top) + square[1] * squareLength;
+    // console.log(`position[0] in posfsqu: ${position[0]}`);
+    // console.log(`position[1] in posfsqu: ${position[0]}`);
     return position;
 }
 // assume we have <div class="piece-br"></div>
@@ -261,10 +306,10 @@ function calculatePieceColumn(pieceName) {
         }
         case 'y': {
             switch (pieceName[1]) {
-                case 'k': {
+                case 'q': {
                     return 7;
                 }
-                case 'q': {
+                case 'k': {
                     return 6;
                 }
                 case 'b': {
@@ -315,10 +360,10 @@ function calculatePieceRow(pieceName) {
         }
         case 'b': {
             switch (pieceName[1]) {
-                case 'k': {
+                case 'q': {
                     return 7;
                 }
-                case 'q': {
+                case 'k': {
                     return 6;
                 }
                 case 'b': {
@@ -402,29 +447,63 @@ function assignPieces(pieceName) {
         element.style.top = position[1] + "px";
     }
 }
-function handleOutput(data) {
-    // data comes in rows and columns already translated to js layout
-    var moves = data.split("/n");
-    console.log("moves length: ".concat(moves.length));
-    moves.forEach(function f(move) {
-        var data = move.split("|");
-        console.log("data length: ".concat(data.length));
-        playMove([+data[0], +data[1]], [+data[2], +data[3]]);
+function handleOutput(d) {
+    return __awaiter(this, void 0, void 0, function () {
+        var str, moves, i, move, data;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, new Response(d).text()];
+                case 1:
+                    str = _a.sent();
+                    moves = str.split("#");
+                    // console.log(`moves length: ${moves.length}`);
+                    for (i = 0; i < moves.length; i++) {
+                        move = moves[i];
+                        if (!/(\d\|)+/.test(move)) {
+                            continue;
+                        }
+                        data = move.split("|");
+                        console.log("data length: ".concat(data.length));
+                        // data.forEach(function f (da: string) {
+                        //     console.log(`da: ${da}`);
+                        // })
+                        playMove([+data[0], +data[1]], [+data[2], +data[3]]);
+                    }
+                    ;
+                    return [2 /*return*/];
+            }
+        });
     });
-    return;
 }
 function playMove(from, to) {
+    // for (var i = 0; i < from.length; i++) {
+    //     console.log(`from[${i}] = ${from[i]}`);
+    // }
+    // for (var i = 0; i < to.length; i++) {
+    //     console.log(`to[${i}] = ${to[i]}`);
+    // }
     // get html element at square
     // move to different square
     var fpos = positionFromSquare(from);
     var tpos = positionFromSquare(to);
-    var elem = document.elementFromPoint(fpos[0], fpos[1]);
-    var destroyed = document.elementFromPoint(tpos[0], tpos[1]);
+    if (fpos.length != 2 || tpos.length != 2) {
+        console.error("fpos || tpos length not correct");
+        console.error("fpos length: ".concat(fpos.length));
+        console.error("tpo length: ".concat(tpos.length));
+    }
+    // for (var i = 0; i < fpos.length; i++) {
+    //     console.log(`fpos[i]: ${fpos[i]}`);
+    // }
+    // for (var i = 0; i < tpos.length; i++) {
+    //     console.log(`tpos[i]: ${tpos[i]}`);
+    // }
+    var elem = document.elementFromPoint(Number(fpos[0]), Number(fpos[1]));
+    var destroyed = document.elementFromPoint(Number(tpos[0]), Number(tpos[1]));
     if (!elem || !destroyed) {
         console.error("when playing move: elements not found");
         return;
     }
-    console.log("destroyed element: ".concat(destroyed));
+    // console.log(`destroyed element: ${destroyed}`);
     var c = destroyed.getAttribute("class");
     if (c != null && /piece-/.test(c) && destroyed != elem) {
         destroyed.setAttribute("class", "destroy");

@@ -49,7 +49,6 @@ namespace board {
             }
 
             void printBoard() {
-                // std::size_t length = boardVector.size();
                 // algo is weird but prints correctly according to red
                 // orientation in order NESW = YGRB
                 for (short i = PADDEDROWS - 1; i >= 0; --i) {
@@ -68,8 +67,6 @@ namespace board {
             bool existsCapturable(boardIndex src, boardIndex trgt) {
                 Square const trgtSqu = boardVector.at(trgt);
                 Square const srcSqu = boardVector.at(src);
-                // std::cout << "target colour for " << trgt << ": " << PieceCOlourToString(trgtSqu.pieceColour) << "\n";
-                // std::cout << "src colour for " << src << ": " << PieceCOlourToString(srcSqu.pieceColour) << "\n";
                 return isOnBoard(trgt) && trgtSqu.pieceColour != srcSqu.pieceColour && trgtSqu.type != PieceType::BLOCK;
             }
 
@@ -91,11 +88,8 @@ namespace board {
             }
 
             Move createMove(boardIndex src, boardIndex trgt) {
-                // std::cout << "creating move\n";
                 Square srcSquare = boardVector[src];
-                // std::cout << "src colour: " << PieceColourToString(srcSquare.pieceColour) << "\n";
                 Square trgtSquare = boardVector[trgt];
-                // std::cout << "trgt colour: " << PieceColourToString(trgtSquare.pieceColour) << "\n";
                 return Move(srcSquare, src, trgtSquare, trgt);
             }
 
@@ -107,12 +101,6 @@ namespace board {
                     if (boardVector[i].pieceColour == turn) {
                         switch(boardVector[i].type) {
                             case PieceType::PAWN:
-                                // if (!debug) {
-                                //     std::cout << "index of pawn: " << i << "\n";
-                                //     std::cout << "bulkCreateMove[0] after i: " << PieceTypeToString(bulkCreateMove(i, pawnShift(i))[0].fromSquare.type) << "\n";
-                                    
-                                //     debug = true;
-                                // }
                                 out = concat(out, bulkCreateMove(i, pawnShift(i)));
                                 
                                 break;
@@ -135,15 +123,8 @@ namespace board {
                                 continue;
                         }
                     }
-                    // if (!debug && out.size() > 0) {
-                    //     debug = true;
-                    //     std::cout << "first i to print to out: " << i << "\n";
-                    //     std::cout << "First elem after i printing: " << out[0].fromSquare.toStringView() << "\n";
-                    // }
                 }
                 
-                // std::cout << "out[0]: " << moveToString(out[0]) << "\n";
-                // std::cout << "out[0] with type: " << PieceTypeToString(out[0].fromSquare.type) << "\n";
                 return out;
             }
 
@@ -153,14 +134,20 @@ namespace board {
                 // get king index
                 boardIndex kingIndex = 300;
                 unsigned short size = boardVector.size();
+                std::cout << PieceTypeToString(boardVector.at(145).type) << "\n";
                 for (unsigned short i = 0; i < size; ++i) {
                     Square s = boardVector[i];
                     if (s.pieceColour == c && s.type == PieceType::KING) {
                         kingIndex = i;
+                        if (c == PieceColour::BLUE) {
+                            std::cout << kingIndex << "\n";
+                        }
                         break;
                     }
+                    
                 }
-
+                
+                assert(kingIndex != 300);
 
                 // generate possible attacks
 
@@ -215,7 +202,6 @@ namespace board {
             std::vector<Move> generateLegalMoves() {
                 std::vector<Move> out;
                 auto moves = generatePseudoLegalMoves();
-                // std::cout << "moves generated\n";
                 for (auto m : moves) {
                     playMove(m);
                     if (!isKingInCheck(turn)) {
@@ -290,7 +276,6 @@ namespace board {
 
             // Quiet move shift checks if on the board
             std::vector<boardIndex> pawnQuietShift(boardIndex index) {
-                // std::cout << "quiet shifting\n";
                 std::vector<boardIndex> out = {};
                 boardIndex m = shiftOne(index, Direction::NORTH);
                 if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
@@ -299,7 +284,6 @@ namespace board {
                 }
                 m = shiftOne(m, Direction::NORTH);
                 if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
-                // std::cout << "out size: "<< out.size() << "\n";
                 return out;
             }
 
@@ -525,7 +509,10 @@ namespace board {
                 }
 
                 if (boardVector[m.fromIndex].pieceColour != turn) {
-                    std::string s = "It is not the given move's turn. Turn: " + std::string(PieceColourToString(turn)) + " pieceColour: " + std::string(PieceColourToString(m.fromSquare.pieceColour)) + " board piece colour: " + std::string(PieceColourToString(boardVector[m.fromIndex].pieceColour)) + "\n";
+                    std::string s = "It is not the given move's turn. Turn: " + std::string(PieceColourToString(turn)) 
+                        + " pieceColour: " + std::string(PieceColourToString(m.fromSquare.pieceColour)) + " board piece colour: " 
+                        + std::string(PieceColourToString(boardVector[m.fromIndex].pieceColour)) + " move: "
+                        + moveToString(m) + "\n";
                     throw std::invalid_argument(s);
                 }
 
@@ -605,23 +592,9 @@ namespace board {
 
     // translates a boardIndex to a padded row column pair
     std::pair<int, int> to16RC(boardIndex i) {
-        // std::cout << "passed in index to 16RC: " << i << "\n";
         int x = (i % 16);
         int y = (i - x) / 16;
         return std::pair(x,y);
     }
 };
-// int main() {
-//     // main for debugging / testing types
-//     Board b = Board();
-//     b.printBoard();
-//     std::vector<Move> moves = b.generateLegalMoves();
-//     b.playMove(moves.at(0));
-//     std::cout << "board after first move is played\n";
-//     b.printBoard();
-//     std::cout << "moves length: " << moves.size() << "\n";
-//     // std::cout << "first move: " << moveToString(moves[0]) << "\n";
-//     printMoveVector(moves);
-// }
-
 #endif

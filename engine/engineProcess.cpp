@@ -17,13 +17,11 @@ class EngineProcess {
         Move parseInput(string jMove) {
             // extract from string
             // fromx|fromy|tox|toy
-            assert(jMove.size() > 8);
+            assert(jMove.size() > 6);
             vector<int> coordinates;
             size_t i = jMove.find('|', 0);
             while (i != jMove.npos) {
-                // cout << "substring: " << jMove.substr(0, i) << "\n";
                 coordinates.emplace_back(stoi(jMove.substr(0, i))); // place at end
-                // cout << "jMove" << jMove << "\n";
                 jMove = jMove.substr(i+1, jMove.size() - i);
                 i = jMove.find('|', 0);
             }
@@ -32,9 +30,6 @@ class EngineProcess {
                 coordinates.emplace_back(stoi(jMove));                
             }
             assert(coordinates.size() == 4);
-            // for (auto coord : coordinates) {
-            //     std::cout << "coord: " << coord << "\n";
-            // }
             // reflect across x axis
             coordinates[1] = 13 - coordinates[1];
             coordinates[3] = 13 - coordinates[3];
@@ -45,17 +40,9 @@ class EngineProcess {
             coordinates[1] += 2;
             coordinates[3] += 2;
 
-            // cout << "coords post adjustment: \n";
-            // cout << "x: " << coordinates[0] << "\n";
-            // cout << "y: " << coordinates[1] << "\n";
-            // cout << "x: " << coordinates[2] << "\n";
-            // cout << "y: " << coordinates[3] << "\n";
             
-
             boardIndex from = toIndex(coordinates[0], coordinates[1]);
             boardIndex to = toIndex(coordinates[2], coordinates[3]);
-            // cout << "from index: " << from << "\n";
-            // cout << "to Index: " << to << "\n";
             
             Move m = rBoard.createMove(from, to);
         
@@ -64,7 +51,6 @@ class EngineProcess {
 
         // converts 16x18 coords to javascript coords
         pair<int, int> toJCoords(pair <int, int> coords) {
-            // std::cout << "toJCoords from coords: " << coords.first << "," << coords.second << "\n";
             coords.first -= 1;
             coords.second -= 2;
             coords.second = 13 - coords.second;
@@ -73,12 +59,11 @@ class EngineProcess {
 
         // translates a cpp move into a js move
         string parseOutput(Move m) {
-            // std::cout << "Output Move: " << moveToString(m) << "\n";
             stringstream stream;
             pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex));
             pair<int, int> toCoords =  toJCoords(to16RC(m.toIndex));
             
-            stream << fromCoords.first << "|" << fromCoords.second << "|" << toCoords.first << "|" << toCoords.second << "\n";
+            stream << fromCoords.first << "|" << fromCoords.second << "|" << toCoords.first << "|" << toCoords.second << "#";
             return stream.str();
         }
 
@@ -101,12 +86,10 @@ class EngineProcess {
         bool startLoop() {
             string input;
             while (getline(cin, input)) {
-                // cout << "Input received" << "\n";
                 if (input.compare("quit") == 0) {
                     cout << "Comparison success exiting..." << "\n";
                     break;
                 }
-                // cout << "Comparison failed continuing...\n" ;
                 Move m = parseInput(input);
                 updateGameState(m);
                 Move bm = bEngine.chooseNextMove();

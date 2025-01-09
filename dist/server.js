@@ -24,18 +24,19 @@ wss.on('connection', function (ws) {
         shell: true,
     });
     ws.on('message', function (message) {
-        console.log("Message receieved from client");
+        console.log("Message received from client ".concat(message));
         (0, node_assert_1.default)(engineProcess.stdin != null);
         var res = engineProcess.stdin.write(message + "\n");
         console.log("result after writing ".concat(res));
     });
     (0, node_assert_1.default)(engineProcess.stdout != null);
     engineProcess.stdout.on('data', function (data) {
-        console.log("Process has output data: ".concat(data));
+        console.log("Process has output data: <data>".concat(data, "</data>"));
         ws.send(data);
     });
     ws.on('close', function () {
         console.log("Socket closed");
+        engineProcess.stdin.write("quit");
         engineProcess.kill();
     });
     engineProcess.stderr.on('data', function (data) {

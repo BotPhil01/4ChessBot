@@ -26,7 +26,7 @@ wss.on('connection', (ws: WebSocket) => {
     });
 
     ws.on('message', (message: string) => {
-        console.log("Message receieved from client");
+        console.log(`Message received from client ${message}`);
         assert(engineProcess.stdin != null);
         
         var res = engineProcess.stdin.write(message + "\n");
@@ -35,7 +35,7 @@ wss.on('connection', (ws: WebSocket) => {
 
     assert(engineProcess.stdout != null);
     engineProcess.stdout.on('data', (data: Buffer) => {
-        console.log(`Process has output data: ${data}`);
+        console.log(`Process has output data: <data>${data}</data>`);
         ws.send(data);
     });
 
