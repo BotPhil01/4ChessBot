@@ -476,9 +476,9 @@ function handleOutput(d) {
     });
 }
 function playMove(from, to) {
-    // for (var i = 0; i < from.length; i++) {
-    //     console.log(`from[${i}] = ${from[i]}`);
-    // }
+    for (var i = 0; i < from.length; i++) {
+        console.log("from[".concat(i, "] = ").concat(from[i]));
+    }
     // for (var i = 0; i < to.length; i++) {
     //     console.log(`to[${i}] = ${to[i]}`);
     // }

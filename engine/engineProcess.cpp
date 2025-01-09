@@ -99,7 +99,9 @@ class EngineProcess {
                 Move gm = gEngine.chooseNextMove();
                 updateGameState(gm);
                 //write to stdout the string translation of the moves
-                cout << parseOutput(bm) << parseOutput(ym) << parseOutput(gm) << endl;
+                cout << parseOutput(bm) << endl;
+                cout << parseOutput(ym) << endl;
+                cout << parseOutput(gm) << endl;
                 cout.flush();
             }
             return 0;

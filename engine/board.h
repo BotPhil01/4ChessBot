@@ -28,6 +28,10 @@ namespace board {
                 
             }
             
+            PieceColour getCurrentTurn() {
+                return turn;
+            }
+
             std::vector<Move> getMoveHistory() {
                 return moveVector;
             }
@@ -102,7 +106,6 @@ namespace board {
                         switch(boardVector[i].type) {
                             case PieceType::PAWN:
                                 out = concat(out, bulkCreateMove(i, pawnShift(i)));
-                                
                                 break;
                             case PieceType::ROOK:
                                 out = concat(out, bulkCreateMove(i, rookShift(i)));
@@ -130,18 +133,24 @@ namespace board {
 
             // asks whether c's king is in check in current board position
             bool isKingInCheck(PieceColour c) {
+                // BUG this does not adequately check whether the king is in check
+                // knight just fucking takes the blue king
                 // idea
                 // get king index
                 boardIndex kingIndex = 300;
                 unsigned short size = boardVector.size();
-                std::cout << PieceTypeToString(boardVector.at(145).type) << "\n";
+                Square copy = boardVector[145];
+                if (copy.hasMoved) {
+                    std::cout << "nuts\n";
+                }
+                // std::cout << PieceTypeToString(boardVector.at(145).type) << "\n";
                 for (unsigned short i = 0; i < size; ++i) {
                     Square s = boardVector[i];
                     if (s.pieceColour == c && s.type == PieceType::KING) {
                         kingIndex = i;
-                        if (c == PieceColour::BLUE) {
-                            std::cout << kingIndex << "\n";
-                        }
+                        // if (c == PieceColour::BLUE) {
+                        //     // std::cout << kingIndex << "\n";
+                        // }
                         break;
                     }
                     
@@ -190,8 +199,10 @@ namespace board {
 
                 // check knight
                 auto knightRays = knightShift(kingIndex);
+                assert(knightRays.size() < 9);
                 for (boardIndex i : knightRays) {
                     if (existsEnemyPiece(kingIndex, i) && boardVector.at(i).type == PieceType::KNIGHT) {
+                        // std::cout << "knight ray found\n";
                         return true;
                     }
                 }
@@ -199,12 +210,13 @@ namespace board {
             }
 
             // generates the colours legal moves
-            std::vector<Move> generateLegalMoves() {
+            std::vector<Move> generateLegalMoves(PieceColour c) {
                 std::vector<Move> out;
                 auto moves = generatePseudoLegalMoves();
+                // std::cout << "legal moves generated";
                 for (auto m : moves) {
                     playMove(m);
-                    if (!isKingInCheck(turn)) {
+                    if (!isKingInCheck(c)) {
                         out.emplace_back(m);
                     }
                     unPlayMove();

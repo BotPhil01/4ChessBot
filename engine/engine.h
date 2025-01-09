@@ -110,7 +110,7 @@ namespace engine {
                 // main idea could be after an upper bound of advantage gained it reevaluates
                 // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
                 // generate legal moves
-                auto moves = generateLegalMoves();
+                auto moves = generateLegalMoves(self);
                 PieceColour strongest = evaluateBoard().first;
                 auto movesLength = moves.size();
                 // store the generated move length 
@@ -148,7 +148,7 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 }
-                auto moves = generateLegalMoves();
+                auto moves = generateLegalMoves(getCurrentTurn());
                 for (auto move : moves) {
                     playMove(move);
                     float res = alphaBetaMin(alpha, beta, depth-1, commonEnemy);
@@ -171,7 +171,7 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 } 
-                auto moves = generateLegalMoves();
+                auto moves = generateLegalMoves(getCurrentTurn());
                 for (auto move : moves) {
                     playMove(move);
                     float res = alphaBetaMax(alpha, beta, depth-1, commonEnemy);
@@ -211,11 +211,6 @@ namespace engine {
             }
     };
 
-    void serverLoop() {
-        // create a websocket
-        // receive over a websocket
-        
-    }
 
     // int main() {
     //     Engine e = Engine();
