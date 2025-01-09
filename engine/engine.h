@@ -199,7 +199,7 @@ namespace engine {
                 auto mobility = evaluateMobility();
                 // auto position = evaluatePosition();
                 auto advantages = layer(material, mobility); // combine into singular valus
-                std::cout << "self " << PieceColourToString(self) << "\n";
+                // std::cout << "self " << PieceColourToString(self) << "\n";
                 char selfIndex = getColourIndex(self);
                 char maxAdvantageIndex = 0; // index of max advantage
                 for (char i = 0; i < advantages.size(); i++) {

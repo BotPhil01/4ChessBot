@@ -4,7 +4,7 @@ import { Server } from 'node:http';
 import WebSocket, { WebSocketServer } from 'ws';
 import path from 'path';
 import assert from 'node:assert';
-const executablePath = path.resolve(__dirname, 'dummy.o');
+const executablePath = path.resolve(__dirname, 'main.o');
 
 let server = null;
 const PORT = 3000;
@@ -41,6 +41,7 @@ wss.on('connection', (ws: WebSocket) => {
 
     ws.on('close', () => {
         console.log("Socket closed");
+        engineProcess.stdin.write("quit");
         engineProcess.kill();
     });
 

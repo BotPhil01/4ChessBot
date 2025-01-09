@@ -91,11 +91,11 @@ namespace board {
             }
 
             Move createMove(boardIndex src, boardIndex trgt) {
-                std::cout << "creating move\n";
+                // std::cout << "creating move\n";
                 Square srcSquare = boardVector[src];
-                std::cout << "src colour: " << PieceColourToString(srcSquare.pieceColour) << "\n";
+                // std::cout << "src colour: " << PieceColourToString(srcSquare.pieceColour) << "\n";
                 Square trgtSquare = boardVector[trgt];
-                std::cout << "trgt colour: " << PieceColourToString(trgtSquare.pieceColour) << "\n";
+                // std::cout << "trgt colour: " << PieceColourToString(trgtSquare.pieceColour) << "\n";
                 return Move(srcSquare, src, trgtSquare, trgt);
             }
 
@@ -142,8 +142,8 @@ namespace board {
                     // }
                 }
                 
-                std::cout << "out[0]: " << moveToString(out[0]) << "\n";
-                std::cout << "out[0] with type: " << PieceTypeToString(out[0].fromSquare.type) << "\n";
+                // std::cout << "out[0]: " << moveToString(out[0]) << "\n";
+                // std::cout << "out[0] with type: " << PieceTypeToString(out[0].fromSquare.type) << "\n";
                 return out;
             }
 
@@ -215,7 +215,7 @@ namespace board {
             std::vector<Move> generateLegalMoves() {
                 std::vector<Move> out;
                 auto moves = generatePseudoLegalMoves();
-                std::cout << "moves generated\n";
+                // std::cout << "moves generated\n";
                 for (auto m : moves) {
                     playMove(m);
                     if (!isKingInCheck(turn)) {
@@ -257,9 +257,11 @@ namespace board {
                 unsigned char min = std::min(vs, (const size_t) 4); 
                 std::vector<Move>::iterator iterator = moveVector.end() - 1;
                 for (int i = 0; i < min; ++i) {
-                    Move m = moveVector[vs - i]; 
-                    if (m.fromSquare.pieceColour == colour) {
-                        return iterator - i;
+                    if (vs - i > 0 && vs - i < moveVector.size()) {
+                        Move m = moveVector[vs - i]; 
+                        if (m.fromSquare.pieceColour == colour) {
+                            return iterator - i;
+                        }
                     }
                 }
                 return moveVector.end();
@@ -576,6 +578,8 @@ namespace board {
                     moveVector.emplace_back(m);
                     return;
                 }
+                assert (m.fromIndex < boardVector.size() && m.fromIndex > 0);
+                assert (m.toIndex < boardVector.size() && m.toIndex > 0);
                 boardVector[m.toIndex].pieceColour = boardVector[m.fromIndex].pieceColour;
                 boardVector[m.toIndex].type = boardVector[m.fromIndex].type;
                 boardVector[m.toIndex].hasMoved = true;
@@ -601,8 +605,9 @@ namespace board {
 
     // translates a boardIndex to a padded row column pair
     std::pair<int, int> to16RC(boardIndex i) {
+        // std::cout << "passed in index to 16RC: " << i << "\n";
         int x = (i % 16);
-        int y = i - x / 16;
+        int y = (i - x) / 16;
         return std::pair(x,y);
     }
 };

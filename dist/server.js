@@ -9,18 +9,13 @@ var node_http_1 = require("node:http");
 var ws_1 = require("ws");
 var path_1 = __importDefault(require("path"));
 var node_assert_1 = __importDefault(require("node:assert"));
-var executablePath = path_1.default.resolve(__dirname, 'dummy.o');
+var executablePath = path_1.default.resolve(__dirname, 'main.o');
 var server = null;
 var PORT = 3000;
-try {
-    var app = (0, express_1.default)();
-    app.use(express_1.default.static('public'));
-    console.log("balls");
-    server = new node_http_1.Server(app);
-}
-catch (e) {
-    console.log("an error has occurred while starting the server");
-}
+var app = (0, express_1.default)();
+app.use(express_1.default.static('public'));
+console.log("balls");
+server = new node_http_1.Server(app);
 (0, node_assert_1.default)(server != null);
 var wss = new ws_1.WebSocketServer({ server: server });
 wss.on('connection', function (ws) {

@@ -1,5 +1,3 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var ws = new WebSocket("ws://".concat(window.location.host));
 var BOARDDIMENSION = 14;
 window.onload = function () {
@@ -15,10 +13,17 @@ function buttons() {
         bb.onclick = swap;
     }
     var db = document.getElementById("debugButton");
+    if (db) {
+        db.onclick = destroy;
+    }
     var draggable = document.getElementById("draggable");
     if (draggable) {
         dragPieceElement(draggable);
     }
+}
+function destroy() {
+    ws.send("quit");
+    ws.close();
 }
 // func for swapping between home and game pages
 function swap() {
@@ -98,6 +103,7 @@ function dragPieceElement(element) {
             ws.send(message);
             ws.onmessage = function (event) {
                 console.log("server response: " + event.data);
+                handleOutput(event.data);
             };
             ws.onmessage = null;
             // handler response
@@ -123,6 +129,19 @@ function dragPieceElement(element) {
         }
         // calculate pixel coords to move to
         position = positionFromSquare(square);
+        // erase element at that position
+        var destroyed = document.elementFromPoint(position[0], position[1]);
+        // destroy overlapped element
+        if (!element || !destroyed) {
+            console.error("when playing move: elements not found");
+            return;
+        }
+        console.log("destroyed element: ".concat(destroyed));
+        var c = destroyed.getAttribute("class");
+        if (c != null && /piece-/.test(c) && destroyed != element) {
+            destroyed.setAttribute("class", "destroy");
+        }
+        // set element to new position
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
         setInitialPosition(position);
@@ -382,4 +401,35 @@ function assignPieces(pieceName) {
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
     }
+}
+function handleOutput(data) {
+    // data comes in rows and columns already translated to js layout
+    var moves = data.split("/n");
+    console.log("moves length: ".concat(moves.length));
+    moves.forEach(function f(move) {
+        var data = move.split("|");
+        console.log("data length: ".concat(data.length));
+        playMove([+data[0], +data[1]], [+data[2], +data[3]]);
+    });
+    return;
+}
+function playMove(from, to) {
+    // get html element at square
+    // move to different square
+    var fpos = positionFromSquare(from);
+    var tpos = positionFromSquare(to);
+    var elem = document.elementFromPoint(fpos[0], fpos[1]);
+    var destroyed = document.elementFromPoint(tpos[0], tpos[1]);
+    if (!elem || !destroyed) {
+        console.error("when playing move: elements not found");
+        return;
+    }
+    console.log("destroyed element: ".concat(destroyed));
+    var c = destroyed.getAttribute("class");
+    if (c != null && /piece-/.test(c) && destroyed != elem) {
+        destroyed.setAttribute("class", "destroy");
+    }
+    elem.style.left = tpos[0] + "px";
+    elem.style.top = tpos[1] + "px";
+    return;
 }
