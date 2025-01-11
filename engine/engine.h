@@ -23,9 +23,9 @@ using namespace helper;
 
 namespace engine {
     class Engine : Board {
-        PieceColour self;
-        int DEPTH = 2;
         private:
+            PieceColour self;
+            int DEPTH = 2;
             int getPieceValue(Piece p) {
                 switch (p.type) {
                     case PieceType::PAWN:
@@ -99,20 +99,29 @@ namespace engine {
                 return out;
             }
         public:
-            Engine(PieceColour p = PieceColour::RED, int depth = 2) :
-            self(p), DEPTH(depth) {
+            bool hasFinished;
+            Engine(PieceColour p = PieceColour::RED, int depth = 2, bool finished = false) :
+            self(p), DEPTH(depth), hasFinished(finished) {
             }
+            PieceColour getColour() {
+                return self;
+            }
+
             // returns a next move 
             using::Board::printBoard;
             using::Board::playMove;
-            Move chooseNextMove() {
+            Move chooseNextMove() { // return the next move or an empty move from default move constructor if unable to find one
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS -> want the algorithm to be able to check mid way through whether a new player becomes the strongest
                 // main idea could be after an upper bound of advantage gained it reevaluates
                 // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
                 // generate legal moves
                 auto moves = generateLegalMoves(self);
+                if (moves.size() == 0) {
+                    hasFinished = true;
+                    return Move();
+                }
                 PieceColour strongest = evaluateBoard().first;
-                auto movesLength = moves.size();
+                
                 // store the generated move length 
                 // play a move 
                 float bestCutOff = 999;
@@ -132,7 +141,7 @@ namespace engine {
                     }
                     unPlayMove();
                 }
-                bestMove.totalMoves = movesLength;
+                bestMove.totalMoves = moves.size();
                 return bestMove;
             }
 

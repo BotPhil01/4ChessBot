@@ -57,13 +57,21 @@ class EngineProcess {
             return coords;
         }
 
-        // translates a cpp move into a js move
+        // gives a js output for a cppp move
         string parseOutput(Move m) {
             stringstream stream;
             pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex));
             pair<int, int> toCoords =  toJCoords(to16RC(m.toIndex));
             
             stream << fromCoords.first << "|" << fromCoords.second << "|" << toCoords.first << "|" << toCoords.second << "#";
+            return stream.str();
+        }
+
+        // gives js output for a finished engine
+        string parseOutput(Engine e) {
+            assert(e.hasFinished);
+            stringstream stream;
+            stream << PieceColourToString(e.getColour()) << "#";
             return stream.str();
         }
 
@@ -80,8 +88,8 @@ class EngineProcess {
         EngineProcess() {
             rBoard = Board();
             bEngine = Engine(PieceColour::BLUE);
-            bEngine = Engine(PieceColour::BLUE);
-            bEngine = Engine(PieceColour::BLUE);
+            yEngine = Engine(PieceColour::YELLOW);
+            gEngine = Engine(PieceColour::GREEN);
         }
         bool startLoop() {
             string input;
@@ -92,16 +100,34 @@ class EngineProcess {
                 }
                 Move m = parseInput(input);
                 updateGameState(m);
-                Move bm = bEngine.chooseNextMove();
-                updateGameState(bm);
-                Move ym = yEngine.chooseNextMove();
-                updateGameState(ym);
-                Move gm = gEngine.chooseNextMove();
-                updateGameState(gm);
-                //write to stdout the string translation of the moves
-                cout << parseOutput(bm) << endl;
-                cout << parseOutput(ym) << endl;
-                cout << parseOutput(gm) << endl;
+                if (!bEngine.hasFinished) {
+                    Move bm = bEngine.chooseNextMove();
+                    if (bm.fromIndex != 300 || bm.toIndex != 300) {
+                        updateGameState(bm);
+                    }
+                    cout << parseOutput(bm) << endl;
+                } else {
+                    cout << parseOutput(bEngine) << endl;
+                }
+                if (!yEngine.hasFinished) {
+                    Move ym = yEngine.chooseNextMove();
+                    if (ym.fromIndex != 300 || ym.toIndex != 300) {
+                        updateGameState(ym);
+                    }
+                    cout << parseOutput(ym) << endl;
+                } else {
+                    cout << parseOutput(yEngine) << endl;
+                }
+                if (!gEngine.hasFinished) {
+                    Move gm = gEngine.chooseNextMove();
+                    if (gm.fromIndex != 300 || gm.toIndex != 300) {
+                        updateGameState(gm);
+                    }
+                    cout << parseOutput(gm) << endl;
+                } else {
+                    cout << parseOutput(gEngine) << endl;
+                }
+                
                 cout.flush();
             }
             return 0;

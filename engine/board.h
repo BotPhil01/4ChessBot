@@ -289,12 +289,12 @@ namespace board {
             // Quiet move shift checks if on the board
             std::vector<boardIndex> pawnQuietShift(boardIndex index) {
                 std::vector<boardIndex> out = {};
-                boardIndex m = shiftOne(index, Direction::NORTH);
+                boardIndex m = shiftOne(index, helper::getUp(turn));
                 if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
                 if (!isPawnStart(index)) {
                     return out;
                 }
-                m = shiftOne(m, Direction::NORTH);
+                m = shiftOne(m, helper::getUp(turn));
                 if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
                 return out;
             }
