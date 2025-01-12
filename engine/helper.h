@@ -2,12 +2,24 @@
 #include<cassert>
 #include <vector>
 using namespace types;
+using namespace std;
 #ifndef HELPER_H
 #define HELPER_H
 
 // helper functions and constants
 namespace helper
 {
+    
+    
+    const PieceColour RED = PieceColour::RED;
+    const PieceColour BLUE = PieceColour::BLUE;
+    const PieceColour YELLOW = PieceColour::YELLOW;
+    const PieceColour GREEN = PieceColour::GREEN;
+    const Direction NORTH = Direction::NORTH;
+    const Direction EAST = Direction::EAST;
+    const Direction SOUTH = Direction::SOUTH;
+    const Direction WEST = Direction::WEST;
+    
     const Piece EMPTYPIECE = Piece(PieceColour::NONE, PieceType::EMPTY);
     const Direction REDUP = Direction::NORTH;
     const Direction REDDOWN = Direction::SOUTH;
@@ -45,6 +57,9 @@ namespace helper
     const Direction GREENDOWNRIGHT = Direction::NORTHEAST;
     const Direction GREENDOWNLEFT = Direction::SOUTHEAST;
 
+    const std::vector<PieceColour> playableColours {PieceColour::RED, PieceColour::BLUE, PieceColour::YELLOW, PieceColour::GREEN};
+    const vector<PieceType> playableTypes {PieceType::PAWN, PieceType::ROOK, PieceType::KNIGHT, PieceType::BISHOP, PieceType::QUEEN, PieceType::KING};
+
     const std::vector<boardIndex> cornerIndices = {
         33, 34, 35, 49, 50, 51, 65, 66, 67,           // sw
         44, 45, 46, 60, 61, 62, 76, 77, 78,           // se
@@ -52,6 +67,15 @@ namespace helper
         220, 221, 222, 236, 237, 238, 252, 253, 254}; // ne
 
     const PieceColour initailTurn = PieceColour::RED;
+
+    const int indexFromType(PieceType t) {
+        for (int i = 0; i < playableTypes.size(); ++i) {
+            if (playableTypes[i] == t) {
+                return i;
+            }
+        }
+        throw invalid_argument("Wrong type provided to indexFromType");
+    }
 
     const Direction getLeft(PieceColour c)
     {
@@ -333,10 +357,9 @@ namespace helper
 
     std::string moveToString(Move m)
     {
-        std::string s = std::string(pieceToStringView(m.fromSquare));
-        s.append(std::to_string(m.fromIndex));
-        s.append(pieceToStringView(m.toSquare));
-        s.append(std::to_string(m.toIndex));
+        std::string s = "";
+        s.append(std::to_string(m.fromIndex()));
+        s.append(std::to_string(m.toIndex()));
         return s;
     }
 
@@ -372,13 +395,13 @@ namespace helper
         return PieceColour::NONE;
     }
     
-    void printMoveVector(std::vector<Move> mvs) {
-        std::cout << "Moves: ";
-        for (Move m : mvs) {
-            std::cout << moveToString(m) << ", ";
-        }
-        std::cout << "\n";
-    }
+    // void printMoveVector(std::vector<Move> mvs) {
+    //     std::cout << "Moves: ";
+    //     for (Move m : mvs) {
+    //         std::cout << moveToString(m) << ", ";
+    //     }
+    //     std::cout << "\n";
+    // }
 
     char getColourIndex(PieceColour c) {
         switch (c) {
@@ -416,6 +439,29 @@ namespace helper
     // takes vector of length 4 a colour to has with and a value to place in vector
     void placeAtColourIndex(std::vector<float> * const ve, PieceColour c, float va) {
         (*ve)[getColourIndex(c)] = va;
+    }
+
+    boardIndex shiftOne(boardIndex i, Direction d) {
+        switch (d) {
+            case Direction::NORTH: 
+                return i + 16;
+            case Direction::NORTHEAST: 
+                return i + 17;
+            case Direction::EAST:
+                return i + 1;
+            case Direction::SOUTHEAST:
+                return i - 15;
+            case Direction::SOUTH:
+                return i - 16;
+            case Direction::SOUTHWEST:
+                return i - 17;
+            case Direction::WEST:
+                return i - 1;
+            case Direction::NORTHWEST:
+                return i + 15;
+            default:
+                return i;
+        };
     }
 
 };

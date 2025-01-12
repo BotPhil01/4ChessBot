@@ -11,59 +11,24 @@ namespace board {
     // board is padded to 16x18
     class Board {
         private:
-            std::vector<Square> boardVector;
+            std::vector<Square> boardVector; //TODO change board implementation to piece lists
             char PADDEDCOLS = 16;
             char PADDEDROWS = 18;
             PieceColour turn;
-            std::vector<Move> moveVector;
-        public:
-
-            Board() {
-                // construct to initial position
-                for (short i = 0; i < 288; ++i) {
-                    boardVector.emplace_back(generateSquare(i));
-                }
-                turn = initailTurn;
-                moveVector = std::vector<Move> ();
-                
-            }
-            
-            PieceColour getCurrentTurn() {
-                return turn;
-            }
+            std::vector<Move> moveVector; 
+            std::vector<bool> playableColours; // r b y g
 
             std::vector<Move> getMoveHistory() {
                 return moveVector;
             }
-
-            std::vector<Square> getBoard() {
-                return boardVector;
-            }
-
-            
-
             Square & getSquare(boardIndex r, boardIndex c) { // from 14x14
                 short a1 = 33;
                 return boardVector.at(r * PADDEDCOLS + (c + 1) + a1);
             }
-
             // Square & getSquareByType(COLUMN c, short r) {}
             Square & getSquarePadded(boardIndex r, boardIndex c) { // from 16x18
                 return boardVector.at(r * 16 + c);
             }
-
-            void printBoard() {
-                // algo is weird but prints correctly according to red
-                // orientation in order NESW = YGRB
-                for (short i = PADDEDROWS - 1; i >= 0; --i) {
-                    for (int j = 0; j < PADDEDCOLS; ++j) {
-                        PieceType type = boardVector[16 * i + j].type;
-                        std::cout << PieceTypeToString(type).substr(0, 2) << " ";
-                    }
-                    std::cout << '\n';
-                }
-            }
-
             // helper function to query board if the piece at s can capture at t also checking if t exists (can be anything on board as long as diff colours)
             // note this is pseudo legal and hence should not be used as a definitive answer
             // assume src is a valid piece ie not empty
@@ -73,14 +38,12 @@ namespace board {
                 Square const srcSqu = boardVector.at(src);
                 return isOnBoard(trgt) && trgtSqu.pieceColour != srcSqu.pieceColour && trgtSqu.type != PieceType::BLOCK;
             }
-
             // STRICTER THAN existsCapturable
             bool existsEnemyPiece(boardIndex src, boardIndex trgt) {
                 Square const trgtSqu = boardVector.at(trgt);
                 Square const srcSqu = boardVector.at(src);
                 return isOnBoard(trgt) && trgtSqu.pieceColour != srcSqu.pieceColour && trgtSqu.type != PieceType::BLOCK && trgtSqu.type != PieceType::EMPTY;
-            }
-
+            }            
             std::vector<Move> bulkCreateMove(boardIndex src, std::vector<boardIndex> trgts) {
                 std::vector<Move> out {};
                 Move m = createMove(src, 37);
@@ -89,12 +52,6 @@ namespace board {
                     out.emplace_back(m.fromSquare, m.fromIndex, m.toSquare, m.toIndex);
                 }
                 return out;
-            }
-
-            Move createMove(boardIndex src, boardIndex trgt) {
-                Square srcSquare = boardVector[src];
-                Square trgtSquare = boardVector[trgt];
-                return Move(srcSquare, src, trgtSquare, trgt);
             }
 
             std::vector<Move> generatePseudoLegalMoves() {
@@ -131,123 +88,6 @@ namespace board {
                 return out;
             }
 
-            // asks whether c's king is in check in current board position
-            bool isKingInCheck(PieceColour c) {
-                // BUG this does not adequately check whether the king is in check
-                // knight just fucking takes the blue king
-                // idea
-                // get king index
-                boardIndex kingIndex = 300;
-                unsigned short size = boardVector.size();
-                Square copy = boardVector[145];
-                if (copy.hasMoved) {
-                    std::cout << "nuts\n";
-                }
-                // std::cout << PieceTypeToString(boardVector.at(145).type) << "\n";
-                for (unsigned short i = 0; i < size; ++i) {
-                    Square s = boardVector[i];
-                    if (s.pieceColour == c && s.type == PieceType::KING) {
-                        kingIndex = i;
-                        // if (c == PieceColour::BLUE) {
-                        //     // std::cout << kingIndex << "\n";
-                        // }
-                        break;
-                    }
-                    
-                }
-                
-                assert(kingIndex != 300);
-
-                // generate possible attacks
-
-                // check ray attacks () and 
-                std::vector<Direction> diags {Direction::NORTHEAST, Direction::SOUTHEAST, Direction::SOUTHWEST, Direction::NORTHWEST};
-                std::vector<Direction> upDowns {Direction::NORTH, Direction::EAST, Direction::SOUTH, Direction::WEST};
-                for (Direction d : diags) {
-                    // sliding piece check
-                    auto ray = getRay(kingIndex, d);
-                    if (ray.size() > 0) {
-                        auto last = ray.back();
-                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::BISHOP || boardVector.at(last).type == PieceType::QUEEN)) {
-                            return true;
-                        }
-                    }
-
-                    // pawn check
-                    auto diagIndex = shiftOne(kingIndex, d);
-                    if (existsEnemyPiece(kingIndex, diagIndex) && (boardVector.at(diagIndex).type == PieceType::PAWN)) {
-                        // get the pawn shift
-                        // if the result of the pawn shift is the kignIndex then return true 
-                        auto pawnAttacks = pawnCaptureShift(diagIndex);
-                        for (auto attack : pawnAttacks) {
-                            if (attack == kingIndex) {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                for (Direction d : upDowns) {
-                    auto ray = getRay(kingIndex, d);
-                    if (ray.size() > 0) {
-                        auto last = ray.back();
-                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::ROOK || boardVector.at(last).type == PieceType::QUEEN)) {
-                            return true;
-                        }
-                    }
-                }
-
-                // check knight
-                auto knightRays = knightShift(kingIndex);
-                assert(knightRays.size() < 9);
-                for (boardIndex i : knightRays) {
-                    if (existsEnemyPiece(kingIndex, i) && boardVector.at(i).type == PieceType::KNIGHT) {
-                        // std::cout << "knight ray found\n";
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            // generates the colours legal moves
-            std::vector<Move> generateLegalMoves(PieceColour c) {
-                std::vector<Move> out;
-                auto moves = generatePseudoLegalMoves();
-                // std::cout << "legal moves generated";
-                for (auto m : moves) {
-                    playMove(m);
-                    if (!isKingInCheck(c)) {
-                        out.emplace_back(m);
-                    }
-                    unPlayMove();
-                }
-                return out;
-            }
-
-            boardIndex shiftOne(boardIndex i, Direction d) {
-                switch (d) {
-                    case Direction::NORTH: 
-                        return i + 16;
-                    case Direction::NORTHEAST: 
-                        return i + 17;
-                    case Direction::EAST:
-                        return i + 1;
-                    case Direction::SOUTHEAST:
-                        return i - 15;
-                    case Direction::SOUTH:
-                        return i - 16;
-                    case Direction::SOUTHWEST:
-                        return i - 17;
-                    case Direction::WEST:
-                        return i - 1;
-                    case Direction::NORTHWEST:
-                        return i + 15;
-                    default:
-                        return i;
-                };
-            }
-
-
             // get colour's last move 
             // returns valid iterator if move exists otherwise returns .end() iterator
             std::vector<Move>::iterator getLastMoveIterator(PieceColour colour) {
@@ -264,7 +104,6 @@ namespace board {
                 }
                 return moveVector.end();
             }
-
             // check if a square is empty by index
             bool isEmpty(boardIndex i) {
                 return boardVector[i].type == PieceType::EMPTY;
@@ -504,7 +343,167 @@ namespace board {
                 }
                 return false;
             }
+
+            std::vector<Square> getBoard() {
+                return boardVector;
+            }
             
+            int getValue(PieceType t) {
+                switch (t) {
+                    case PieceType::PAWN:
+                        return 1;
+                    case PieceType::ROOK:
+                        return 5;
+                    case PieceType::BISHOP:
+                        return 3;
+                    case PieceType::KNIGHT:
+                        return 3;
+                    case PieceType::QUEEN:
+                        return 9;
+                    case PieceType::KING:
+                        return 200;
+                    default:
+                        return 0;
+                }
+                return 0;
+            }
+        public:
+
+            Board() {
+                // construct to initial position
+                for (short i = 0; i < 288; ++i) {
+                    boardVector.emplace_back(generateSquare(i));
+                }
+                turn = initailTurn;
+                moveVector = std::vector<Move> ();
+                playableColours = {true, true, true, true};
+            }
+            
+            PieceColour getCurrentTurn() {
+                return turn;
+            }
+
+            // returns (c)'s last move if no move is found it returns the last move played
+            Move & getLastMove(PieceColour c) {
+                assert(moveVector.size() > 0);
+                for (int i = 1; i < 5; i++) {
+                    int index = moveVector.size() - i;
+                    if (index < 0) {
+                        break;
+                    }
+                    if (moveVector[index].fromSquare.pieceColour == c) {
+                        return moveVector[index];
+                    }
+                }
+                return moveVector[moveVector.size() - 1];
+            } 
+
+            void printBoard() {
+                // TODO Change to unicode characters see https://www.chessprogramming.org/Pieces
+                // algo is weird but prints correctly according to red
+                // orientation in order NESW = YGRB
+                for (short i = PADDEDROWS - 1; i >= 0; --i) {
+                    for (int j = 0; j < PADDEDCOLS; ++j) {
+                        PieceType type = boardVector[16 * i + j].type;
+                        std::cout << PieceTypeToString(type).substr(0, 2) << " ";
+                    }
+                    std::cout << '\n';
+                }
+            }
+
+            // asks whether c's king is in check in current board position
+            bool isKingInCheck(PieceColour c) {
+                // BUG this does not adequately check whether the king is in check
+                // knight just fucking takes the blue king
+                // idea
+                // get king index
+                boardIndex kingIndex = 300;
+                unsigned short size = boardVector.size();
+                Square copy = boardVector[145];
+                if (copy.hasMoved) {
+                    std::cout << "nuts\n";
+                }
+                // std::cout << PieceTypeToString(boardVector.at(145).type) << "\n";
+                for (unsigned short i = 0; i < size; ++i) {
+                    Square s = boardVector[i];
+                    if (s.pieceColour == c && s.type == PieceType::KING) {
+                        kingIndex = i;
+                        // if (c == PieceColour::BLUE) {
+                        //     // std::cout << kingIndex << "\n";
+                        // }
+                        break;
+                    }
+                    
+                }
+                
+                assert(kingIndex != 300);
+
+                // generate possible attacks
+
+                // check ray attacks () and 
+                std::vector<Direction> diags {Direction::NORTHEAST, Direction::SOUTHEAST, Direction::SOUTHWEST, Direction::NORTHWEST};
+                std::vector<Direction> upDowns {Direction::NORTH, Direction::EAST, Direction::SOUTH, Direction::WEST};
+                for (Direction d : diags) {
+                    // sliding piece check
+                    auto ray = getRay(kingIndex, d);
+                    if (ray.size() > 0) {
+                        auto last = ray.back();
+                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::BISHOP || boardVector.at(last).type == PieceType::QUEEN)) {
+                            return true;
+                        }
+                    }
+
+                    // pawn check
+                    auto diagIndex = shiftOne(kingIndex, d);
+                    if (existsEnemyPiece(kingIndex, diagIndex) && (boardVector.at(diagIndex).type == PieceType::PAWN)) {
+                        // get the pawn shift
+                        // if the result of the pawn shift is the kignIndex then return true 
+                        auto pawnAttacks = pawnCaptureShift(diagIndex);
+                        for (auto attack : pawnAttacks) {
+                            if (attack == kingIndex) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                for (Direction d : upDowns) {
+                    auto ray = getRay(kingIndex, d);
+                    if (ray.size() > 0) {
+                        auto last = ray.back();
+                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type == PieceType::ROOK || boardVector.at(last).type == PieceType::QUEEN)) {
+                            return true;
+                        }
+                    }
+                }
+
+                // check knight
+                auto knightRays = knightShift(kingIndex);
+                assert(knightRays.size() < 9);
+                for (boardIndex i : knightRays) {
+                    if (existsEnemyPiece(kingIndex, i) && boardVector.at(i).type == PieceType::KNIGHT) {
+                        // std::cout << "knight ray found\n";
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            // generates the colours legal moves
+            std::vector<Move> generateLegalMoves(PieceColour c) {
+                std::vector<Move> out;
+                auto moves = generatePseudoLegalMoves();
+                // std::cout << "legal moves generated";
+                for (auto m : moves) {
+                    playMove(m);
+                    if (!isKingInCheck(c)) {
+                        out.emplace_back(m);
+                    }
+                    unPlayMove();
+                }
+                return out;
+            }
+
             // checks if indices constitute a capture with relation to the board
             // bool isCapture(boardIndex src, boardIndex trgt) {
             //     return existsEnemyPiece(src, trgt);
@@ -596,6 +595,52 @@ namespace board {
                 moveVector.pop_back(); //remove from stack
 
             }
+    
+            // gets the current material value of a colour 
+            float getMaterial(PieceColour c) {
+                float res = 0;
+                for (auto square : boardVector) {
+                    if (square.pieceColour == c) {
+                        res += getValue(square.type);
+                    }
+                }
+                return res;
+            }
+
+            // returns the position of the given colour
+            std::vector<std::pair<Square, boardIndex>> getPosition(PieceColour c) {
+                std::vector<std::pair<Square, boardIndex>> res;
+                for (int i = 0; i < boardVector.size(); ++i) {
+                    Square square = boardVector[i];
+                    if (square.pieceColour == c) {
+                        res.emplace_back(std::pair<Square, boardIndex> {square, i});
+                    }
+                }    
+                return res;            
+            }   
+
+            bool canPlay(PieceColour c) {
+                switch(c) {
+                    case PieceColour::RED:
+                        return playableColours[0];
+                    case PieceColour::BLUE:
+                        return playableColours[0];
+                    case PieceColour::YELLOW:
+                        return playableColours[0];
+                    case PieceColour::GREEN:
+                        return playableColours[0];
+                    default:
+                        throw std::invalid_argument("PieceColour provided is not valid in board::canPlay(): " +  std::string(PieceColourToString(c)));
+                }
+                throw std::invalid_argument("Shouldn't have reached here in canPlay()");
+            }
+        
+            Move createMove(boardIndex src, boardIndex trgt) {
+                Square srcSquare = boardVector[src];
+                Square trgtSquare = boardVector[trgt];
+                return Move(srcSquare, src, trgtSquare, trgt);
+            }
+            
     };
 
     boardIndex toIndex( unsigned char c, unsigned char r) { // returns boardIndex from 16 * 18  coordinates

@@ -26,50 +26,16 @@ namespace engine {
         private:
             PieceColour self;
             int DEPTH = 2;
-            int getPieceValue(Piece p) {
-                switch (p.type) {
-                    case PieceType::PAWN:
-                        return 1;
-                    case PieceType::ROOK:
-                        return 5;
-                    case PieceType::BISHOP:
-                        return 3;
-                    case PieceType::KNIGHT:
-                        return 3;
-                    case PieceType::QUEEN:
-                        return 9;
-                    case PieceType::KING:
-                        return 200;
-                    default:
-                        return 0;
-                }
-                return 0;
-            }
 
             // returns material evaluation for all colours 
             // vector in form {r, b, y, g}
             const std::vector<float> evaluateMaterial() {
-                std::vector<float> weightings {0, 0, 0, 0}; //r b y g
-                auto board = getBoard();
-                for (Square s : board) {
-                    switch (s.pieceColour) {
-                        case PieceColour::RED:
-                            weightings[0] += getPieceValue(s);
-                            break;
-                        case PieceColour::BLUE:
-                            weightings[1] += getPieceValue(s);
-                            break;
-                        case PieceColour::YELLOW:
-                            weightings[2] += getPieceValue(s);
-                            break;
-                        case PieceColour::GREEN:
-                            weightings[3] += getPieceValue(s);
-                            break;
-                        default:
-                            continue;
-                    }
-                }
-                return weightings;
+                std::vector<float> weightings {
+                    getMaterial(PieceColour::RED), 
+                    getMaterial(PieceColour::BLUE), 
+                    getMaterial(PieceColour::YELLOW), 
+                    getMaterial(PieceColour::GREEN)}; //r b y g
+                return weightings;   
             }
 
             // const std::vector<float> evaluatePosition() {
@@ -83,68 +49,17 @@ namespace engine {
 
             // vector in form {r, b, y, g}
             const std::vector<float> evaluateMobility() {
-                std::vector<float> out {0, 0, 0, 0};
-                auto history = getMoveHistory();
-                if (history.size() < 4) {
-                    for (Move m : history) {
-                        placeAtColourIndex(&out, m.fromSquare.pieceColour, m.totalMoves);
+                std::vector<float> out;
+                
+                for (PieceColour c : helper::playableColours) {
+                    auto move = getLastMove(c);
+                    if (move.fromSquare.pieceColour != c) { // failed to find move
+                        out.emplace_back((float) generateLegalMoves(c).size());
                     }
-                    return out;
-                }
-
-                for (int i = 0; i < 4; i++) {
-                    Move m = history[history.size() - 1 - i];
-                    placeAtColourIndex(&out, m.fromSquare.pieceColour, m.totalMoves);
+                    out.emplace_back(move.totalMoves);
                 }
                 return out;
             }
-        public:
-            bool hasFinished;
-            Engine(PieceColour p = PieceColour::RED, int depth = 2, bool finished = false) :
-            self(p), DEPTH(depth), hasFinished(finished) {
-            }
-            PieceColour getColour() {
-                return self;
-            }
-
-            // returns a next move 
-            using::Board::printBoard;
-            using::Board::playMove;
-            Move chooseNextMove() { // return the next move or an empty move from default move constructor if unable to find one
-                // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS -> want the algorithm to be able to check mid way through whether a new player becomes the strongest
-                // main idea could be after an upper bound of advantage gained it reevaluates
-                // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
-                // generate legal moves
-                auto moves = generateLegalMoves(self);
-                if (moves.size() == 0) {
-                    hasFinished = true;
-                    return Move();
-                }
-                PieceColour strongest = evaluateBoard().first;
-                
-                // store the generated move length 
-                // play a move 
-                float bestCutOff = 999;
-                float bestEval = (float) -9999;
-                Move bestMove = moves[0];
-                for (Move m : moves) {
-                    // m.totalMoves = movesLength;
-                    playMove(m);
-                    float eval = alphaBetaMax(-9999, 9999, DEPTH, strongest);
-                    if (eval > bestEval) {
-                        bestEval = eval;
-                        bestMove = m;
-                        if (eval > bestCutOff) {
-                            unPlayMove();
-                            break;
-                        }
-                    }
-                    unPlayMove();
-                }
-                bestMove.totalMoves = moves.size();
-                return bestMove;
-            }
-
             // search to a depth
             // alpha =  lower bound
             // beta = upper bound
@@ -197,6 +112,52 @@ namespace engine {
             }
 
 
+        public:
+            bool hasFinished;
+            Engine(PieceColour p = PieceColour::RED, int depth = 2, bool finished = false) :
+            self(p), DEPTH(depth), hasFinished(finished) {
+            }
+            PieceColour getColour() {
+                return self;
+            }
+
+            // returns a next move 
+            using::Board::printBoard;
+            using::Board::playMove;
+            Move chooseNextMove() { // return the next move or an empty move from default move constructor if unable to find one
+                // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS -> want the algorithm to be able to check mid way through whether a new player becomes the strongest
+                // main idea could be after an upper bound of advantage gained it reevaluates
+                // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
+                // generate legal moves
+                auto moves = generateLegalMoves(self);
+                if (moves.size() == 0) {
+                    hasFinished = true;
+                    return Move();
+                }
+                PieceColour strongest = evaluateBoard().first;
+                
+                // store the generated move length 
+                // play a move 
+                float bestCutOff = 999;
+                float bestEval = (float) -9999;
+                Move bestMove = moves[0];
+                for (Move m : moves) {
+                    // m.totalMoves = movesLength;
+                    playMove(m);
+                    float eval = alphaBetaMax(-9999, 9999, DEPTH, strongest);
+                    if (eval > bestEval) {
+                        bestEval = eval;
+                        bestMove = m;
+                        if (eval > bestCutOff) {
+                            unPlayMove();
+                            break;
+                        }
+                    }
+                    unPlayMove();
+                }
+                bestMove.totalMoves = moves.size();
+                return bestMove;
+            }
 
             // evaluates current board position
             // evaluation works by calculating the advantages based on material and position and choosing one player to focus
@@ -219,16 +180,5 @@ namespace engine {
                 return std::pair<PieceColour, float> (getColourFromIndex(maxAdvantageIndex), advantages[selfIndex] - advantages[maxAdvantageIndex]);
             }
     };
-
-
-    // int main() {
-    //     Engine e = Engine();
-    //     Move m = e.chooseNextMove();
-    //     e.printBoard();
-    //     e.playMove(m);
-    //     std::cout << moveToString(m);
-    //     e.printBoard();
-    //     return 0;
-    // }
 };
 #endif

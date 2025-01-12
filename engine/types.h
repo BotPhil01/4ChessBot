@@ -30,9 +30,10 @@ namespace types {
     struct Piece {
         PieceColour pieceColour;
         PieceType type;
-        bool hasMoved ;
-        Piece(PieceColour c = PieceColour::NONE, PieceType t = PieceType::EMPTY, bool m = false) :
-        pieceColour(c), type(t), hasMoved(m) {
+        bool hasMoved;
+        boardIndex positionIndex;
+        Piece(PieceColour c = PieceColour::NONE, PieceType t = PieceType::EMPTY, bool m = false, boardIndex i = 300) :
+        pieceColour(c), type(t), hasMoved(m), positionIndex(i) {
         }
     };
 
@@ -63,68 +64,85 @@ namespace types {
             
     };
 
-    // inherits move
-    struct Promotion {
-        PieceType newType;
-        Promotion(PieceType o = PieceType::QUEEN) 
-        : newType(o) {
-        }
-    };
-    
-    class Capture {
-        private: 
-            bool captureHappened; // asserts whether any piece has been captured yet
-            Piece capturedPiece = Piece(); //default to an empty capture
-            bool checkConstraints(Piece p) {
-                return p.type != PieceType::EMPTY && p.type != PieceType::BLOCK && p.pieceColour != PieceColour::NONE;
-            }
-        public:
-            Capture() {
-            }
-            Capture(Piece p) {
-                setCapture(p);
-            }
-            bool checkCaptureHappened() {
-                return captureHappened;
-            }
-            void setCapture(Piece p) {
-                if (checkConstraints(p)) {
-                    captureHappened = true;
-                    capturedPiece = p;
-                }
-            }
-
-    };
-
     // move is a container for squares and indices
-    struct Move : Promotion, Capture {
-        Square fromSquare;
-        boardIndex fromIndex;
-        Square toSquare;
-        boardIndex toIndex;
-        int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
-        Move() {
-            fromSquare = Square();
-            toSquare = Square();
-            fromIndex = 300;
-            toIndex = 300;
-            totalMoves = 0;
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, int total = 0) :
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti), totalMoves(0) {
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, PieceType p) :
-        Promotion(p), 
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti) {
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, Piece c) :
-        Capture(c),
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti){
-        }
-        Move(Square fs, boardIndex fi, Square ts, boardIndex ti, Piece c, PieceType p) : 
-        Promotion(p), Capture(c),  
-        fromSquare(fs), fromIndex(fi), toSquare(ts), toIndex(ti) {
-        }
+    class Move {
+        private:
+            boardIndex fromI;
+            boardIndex toI;
+            PieceColour fromC;
+            // capture
+            PieceType capturedP;
+            PieceColour capturedC;
+            // promotion
+            PieceType fromP;
+            PieceType toP;
+
+        public:
+            int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
+            
+            Move() : 
+
+            fromI(300), toI(300), 
+            totalMoves(0), fromC(PieceColour::NONE),
+            capturedP(PieceType::EMPTY), capturedC(PieceColour::NONE),
+            fromP(PieceType::EMPTY), toP(PieceType::EMPTY)  {
+            }
+
+            Move(const boardIndex fi, const boardIndex ti, 
+            const int total = 0, const PieceColour fromCol, 
+            const PieceType captured, const PieceColour capturedCol) :
+
+            fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
+            capturedP(captured), capturedC(capturedCol), 
+            fromP(PieceType::EMPTY), toP(PieceType::EMPTY) {
+            }
+
+            Move(const boardIndex fi, const boardIndex ti, 
+            const int total, const PieceColour fromCol,
+            const PieceType captured, const PieceColour capturedCol, 
+            const PieceType fp, const PieceType tp = PieceType::EMPTY) : 
+
+            fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
+            capturedP(captured), capturedC(capturedCol),
+            fromP(fp), toP(tp) {
+            }
+
+            Move(Move &m) {
+                fromI = m.fromIndex();
+                toI = m.toIndex();
+                capturedP = m.capturedPiece();
+                fromP = m.fromPiece();
+                toP = m.toPiece();
+                capturedC = m.capturedColour();
+            }
+
+            const bool isPromotion() {
+                return fromP != PieceType::EMPTY && toP != PieceType::EMPTY;
+            }
+            const bool isCapture() {
+                return capturedP != PieceType::EMPTY && capturedP != PieceType::BLOCK;
+            }
+            PieceType capturedPiece() {
+                return capturedP;
+            }
+            PieceColour capturedColour() {
+                return capturedC;
+            }
+            const boardIndex fromIndex() {
+                return fromI;
+            }
+            const boardIndex toIndex() {
+                return toI;
+            }
+            const PieceType fromPiece() {
+                return fromP;
+            }
+            const PieceType toPiece() {
+                return  toP;
+            }
+            const PieceColour fromColour() {
+                return fromC;
+            }
     };
 
     enum class Direction {
