@@ -16,7 +16,8 @@ namespace player {
     using Colour = PieceColour;
     class Player {
         private: 
-            Colour colour;
+            Colour clr;
+            
             set<boardIndex> pawns;
             set<boardIndex> rooks;
             set<boardIndex> knights;
@@ -32,7 +33,7 @@ namespace player {
             void genPawns() {
                 int lo = 0;
                 int hi = 0;
-                switch(colour) {
+                switch(clr) {
                     case RED:
                         lo = 52;
                         hi = 60;
@@ -49,18 +50,18 @@ namespace player {
                         lo = 0;
                         hi = 0;
                 }
-                if (colour == RED || colour == YELLOW) {
+                if (clr == RED || clr == YELLOW) {
                     for (; lo < hi; ++lo) {
                         pawns.emplace(lo);
                     }
-                } else if(colour == BLUE || colour == GREEN) {
+                } else if(clr == BLUE || clr == GREEN) {
                     for (; lo < hi; lo = shiftOne(lo, NORTH)) {
                         pawns.emplace(lo);
                     }
                 }
             }
             void genRooks() {
-                switch(colour) {
+                switch(clr) {
                     case RED:
                         rooks.emplace(36);
                         rooks.emplace(43);
@@ -78,7 +79,7 @@ namespace player {
                 }
             }
             void genKnights() {
-                switch(colour) {
+                switch(clr) {
                     case RED:
                         knights.emplace(37);
                         knights.emplace(42);
@@ -96,7 +97,7 @@ namespace player {
                 }
             }
             void genBishops() {
-                switch(colour) {
+                switch(clr) {
                     case RED:
                         bishops.emplace(38);
                         bishops.emplace(41);
@@ -114,7 +115,7 @@ namespace player {
                 }
             }
             void genQueens() {
-                switch(colour) {
+                switch(clr) {
                     case RED:
                         queens.emplace(39);
                     case BLUE:
@@ -128,7 +129,7 @@ namespace player {
                 }
             }
             void genKings() {
-                switch(colour) {
+                switch(clr) {
                     case RED:
                         kings.emplace(40);
                     case BLUE:
@@ -164,24 +165,55 @@ namespace player {
                     }
                 }
                 assert(i < pieces.size());
-                return playableTypes[i];
+                return playablePieces[i];
             }
-        
-        public:
-            Player(Colour c) :
-            colour(c) {
-                genPieces();                
-            }
-
-            const vector<const reference_wrapper<set<boardIndex>>> getPieces() {
-                return pieces;
+            
+            // for updating an index from src to trgt
+            // src is assumed to be in our control
+            // used in updating for a move
+            void handleMoved(boardIndex src, boardIndex trgt) {
+                auto it = movedPieces.find(src);
+                if (it != movedPieces.end()) {
+                    movedPieces.emplace_hint(it, trgt);
+                    movedPieces.extract(it);
+                    return;
+                }
+                movedPieces.emplace(trgt);
             }
 
             
+            // for removing an index i and adding depending on its prior move
+            // used in reverting a move
+            // NOTE i should not equal last.toIndex();
+            // i is assumed to be in our control
+            void handleMoved(boardIndex i, Move last) {
+                assert(i != last.toIndex()); // bad usage
+                auto it = movedPieces.find(i); 
+                assert(it != movedPieces.end());
+                if (last.toIndex() != 300) {
+                    // has prior movement history
+                    movedPieces.emplace_hint(it, last.toIndex());
+                }
+                movedPieces.extract(it);
+            }   
+        public:
+            bool canPlai = false;
+            Player(Colour c) :
+            clr(c) {
+                genPieces();                
+            }
+
+            PieceColour colour() {
+                return clr;
+            }
+
+            vector<const reference_wrapper<set<boardIndex>>> getPieces() {
+                return pieces;
+            }
 
             // updates data to be consistent with a move
             // strategy design
-            // returns true if and only if the move ended with our piece being captured
+            // returns the captured piece type if a capture was handled else empty piecetype
             PieceType update(Move m) {
                 // check whether we are being taken or taking someone else
                 set<boardIndex> fromSet = pieces[indexFromType(m.fromPiece())];
@@ -210,7 +242,7 @@ namespace player {
 
                 } else if(m.isPromotion()) {
                     // we are moving + promoting
-                    set<boardIndex> toSet = pieces[indexFromType(m.toPiece())];
+                    set<boardIndex> toSet = pieces[indexFromType(m.promotionPiece())];
                     // remove moved piece
 
                     fromSet.erase(fromIt);
@@ -223,6 +255,22 @@ namespace player {
                     }
                     movedPieces.emplace(m.toIndex());
 
+                } else if (m.isEnPeasant()) {
+                    boardIndex changeTo = shiftOne(m.toIndex(), getUp(m.fromColour()));
+                    fromSet.emplace_hint(fromIt, changeTo);
+                    fromSet.extract(fromIt);
+
+                } else if (m.isCastling()) {
+                    int dif = m.toIndex() - m.fromIndex();
+                    int absDif = abs(dif);
+                    if (absDif == 3 || absDif == 48) {
+                        // queenside castle
+                        fromSet.emplace_hint(fromIt, m.fromIndex() + (dif / 3 * 2));
+                    } else {
+                        // kingside castle
+                        fromSet.emplace_hint(fromIt, m.fromIndex() + dif);
+                    }
+                    fromSet.extract(fromIt);
                 } else {
                     // we are moving 
                     fromSet.extract(fromIt);
@@ -238,49 +286,105 @@ namespace player {
                 return PieceType::EMPTY;
             }
             // updates data to remove a move
-            // takes a move to remove and a bool indicating whether the moved index after returning was moved at that time
-            void revert(Move m, bool movedBefore) {
-                if (m.fromColour() != colour && !m.isCapture()) {
+            // takes a move to remove and the previous moves of the involved indices
+            void revert(Move m, Move &fromPrev, Move &toPrev) {
+                if (m.fromColour() != clr && !m.isCapture()) {
                     return;
                 }
-                if (m.fromColour() != colour && m.isCapture()) {
+                if (m.fromColour() != clr && m.isCapture()) {
                     // our piece could've been taken
                     // if this triggers then m has not been set properly after being played
                     assert(
                         m.capturedPiece() != PieceType::EMPTY || m.capturedPiece() != PieceType::BLOCK
-                        && m.capturedColour() != PieceColour::NONE);
+                        && m.capturedColour() != PieceColour::NONE
+                    );
                     
-                    if (m.capturedColour() == colour) { 
+                    if (m.capturedColour() == clr) { 
                         // our piece is returned
                         auto pieceSet = pieces[indexFromType(m.capturedPiece())];
                         pieceSet.get().emplace(m.fromIndex());
-                        
+                        if (toPrev.toIndex() == 300) {
+                            return;                    
+                        }
+                        movedPieces.emplace(m.toIndex());
                     }
                     
                     return;
                 }
-                if (m.fromColour() == colour && m.isPromotion()) {
+                if (m.isPromotion()) {
                     // remove from promoted set 
-                    set<boardIndex> &toSet = pieces[indexFromType(m.toPiece())];
+                    set<boardIndex> &toSet = pieces[indexFromType(m.promotionPiece())];
                     auto fromIt = toSet.find(m.fromIndex());
                     assert(fromIt != toSet.end());
                     toSet.extract(fromIt);
                     // return to original set
                     set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())];
                     fromSet.emplace(m.fromIndex());
+
+                    if (fromPrev.fromIndex() == 300) {
+                        return;
+                    }
+                    handleMoved(m.toIndex(), fromPrev);
                     return;
-                }
-                if (m.fromColour() == colour) {
+                } else if (m.isCastling()) {
+                    assert(m.fromColour() == clr);
+                    // clear both rook and king squares
+                    boardIndex tmp = m.fromIndex();
+                    Direction d = getDirection(m.fromIndex(), m.toIndex());
+                    bool rookFound = false;
+                    bool kingFound = false;
+                    while (tmp != m.toIndex() && !(rookFound && kingFound)) {
+                        auto tmpIt = rooks.find(tmp);
+                        if (tmpIt != rooks.end()) {
+                            // found our rook
+                            handleMoved(tmp, toPrev);
+                            rooks.emplace_hint(tmpIt, m.toIndex());
+                            rooks.extract(tmpIt);
+                            rookFound = true;
+                        }
+                        tmpIt = kings.find(tmp);
+                        if (tmpIt != kings.end()) {
+                            handleMoved(tmp, fromPrev);
+                            kings.emplace_hint(tmpIt, m.toIndex());
+                            kings.extract(tmpIt);
+                            kingFound = true;
+                        }
+                        tmp = shiftOne(tmp, d);
+                    }
+                } else if (m.isEnPeasant()) {
+                    boardIndex remove = shiftOne(m.toIndex(), getUp(m.fromColour()));
+                    auto it = pawns.find(remove);
+                    // the pawn to be removed must exist
+                    assert(it != pawns.end());
+                    pawns.emplace_hint(it, m.fromIndex());
+                    pawns.extract(it);
+                    handleMoved(remove, fromPrev);
+                } else {
                     // change index
                     set<boardIndex> &pieceSet = pieces[indexFromType(m.fromPiece())];
                     auto it = pieceSet.find(m.toIndex());
                     assert(it != pieceSet.end());
                     pieceSet.extract(it);
                     pieceSet.emplace(m.fromIndex());
+                 
+                    if (fromPrev.fromIndex() == 300) {
+                        return;
+                    }
+
+                    handleMoved(m.toIndex(), fromPrev);
                     return;
                 }
             }
+            
+            // returns whether in the current game state the index is in the players game data
+            bool indexInData(boardIndex i, PieceType p) {
+                set<boardIndex> &pieceSet = pieces[indexFromType(p)];
+                return pieceSet.find(i) != pieceSet.end();
+            }
 
+            bool indexHasMoved(boardIndex i) {
+                return (movedPieces.find(i) != movedPieces.end());
+            }
 
     };
 }

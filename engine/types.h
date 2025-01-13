@@ -1,8 +1,13 @@
 #include<memory>
 #include<iostream>
+#include<cassert>
+#include<exception>
+
+using namespace std;
 
 #ifndef TYPES_H
 #define TYPES_H
+
 namespace types {
     using boardIndex = std::uint16_t;
 
@@ -42,39 +47,62 @@ namespace types {
         LIGHT,
     };
 
-    class Square : public Piece{
+    class Square {
         private:
-            SquareColour squareColour;
-            
+            bool canAccess;
+            PieceType pieceType;
+            PieceColour pieceColour;
         public:
-            Square(SquareColour sc = SquareColour::DARK, PieceColour pc = PieceColour::NONE, PieceType pt = PieceType::BLOCK, bool moved = false) :
-            Piece(pc, pt, moved), squareColour(sc) {
+            Square() :
+            canAccess(false), pieceType(PieceType::EMPTY), pieceColour(PieceColour::NONE) {                
             }
-            bool isCapturble(Piece _p) {
-                return type == PieceType::EMPTY || pieceColour != _p.pieceColour;
+            Square(bool access, PieceType type, PieceColour col) :
+            canAccess(access), pieceType(type), pieceColour(col) {
+                if ((!access && (type != PieceType::BLOCK || col != PieceColour::NONE)) || 
+                (access && type == PieceType::BLOCK)) {
+                    throw invalid_argument("incorrect configuration for calling square constructor");
+                }
             }
-            // sets type and colour to p type and colour
-            void setPiece(Piece p) {
-                type = p.type;
-                pieceColour = p.pieceColour;
+
+            bool isAccessible() {
+                return canAccess;
             }
-            SquareColour getSquareColour() {
-                return squareColour;
+
+            bool isEmpty() {
+                return pieceType == PieceType::EMPTY && pieceColour == PieceColour::NONE;
             }
             
+            void setPiece(PieceType t, PieceColour c) {
+                assert(canAccess);
+                pieceType = t;
+                pieceColour = c;
+            }
+
+            PieceType type() {
+                return pieceType;
+            }
+
+            PieceColour colour() {
+                return pieceColour;
+            }
+
     };
 
     // move is a container for squares and indices
     class Move {
         private:
+            // board data represents the involved pieces
+            // board
             boardIndex fromI;
             boardIndex toI;
             PieceColour fromC;
+            PieceType fromP;
             // capture
             PieceType capturedP;
             PieceColour capturedC;
+            // special move defined as a castling or en peasant move
+            bool special;
             // promotion
-            PieceType fromP;
             PieceType toP;
 
         public:
@@ -85,26 +113,32 @@ namespace types {
             fromI(300), toI(300), 
             totalMoves(0), fromC(PieceColour::NONE),
             capturedP(PieceType::EMPTY), capturedC(PieceColour::NONE),
-            fromP(PieceType::EMPTY), toP(PieceType::EMPTY)  {
+            fromP(PieceType::EMPTY), toP(PieceType::EMPTY),
+            special(false)  {
             }
 
+            // regular non promotion
             Move(const boardIndex fi, const boardIndex ti, 
-            const int total = 0, const PieceColour fromCol, 
-            const PieceType captured, const PieceColour capturedCol) :
+            const int total, const PieceColour fromCol, 
+            const PieceType captured, const PieceColour capturedCol,
+            bool isSpecial = false) :
 
             fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
             capturedP(captured), capturedC(capturedCol), 
-            fromP(PieceType::EMPTY), toP(PieceType::EMPTY) {
+            fromP(PieceType::EMPTY), toP(PieceType::EMPTY),
+            special(isSpecial) {
             }
 
+            // promotion
             Move(const boardIndex fi, const boardIndex ti, 
-            const int total, const PieceColour fromCol,
+            const int total, 
+            const PieceType fp, const PieceColour fromCol,
             const PieceType captured, const PieceColour capturedCol, 
-            const PieceType fp, const PieceType tp = PieceType::EMPTY) : 
+            const PieceType tp = PieceType::EMPTY, bool isSpecial = false) : 
 
             fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
             capturedP(captured), capturedC(capturedCol),
-            fromP(fp), toP(tp) {
+            fromP(fp), toP(tp), special(isSpecial) {
             }
 
             Move(Move &m) {
@@ -112,8 +146,9 @@ namespace types {
                 toI = m.toIndex();
                 capturedP = m.capturedPiece();
                 fromP = m.fromPiece();
-                toP = m.toPiece();
+                toP = m.promotionPiece();
                 capturedC = m.capturedColour();
+                special = m.isSpecial();
             }
 
             const bool isPromotion() {
@@ -121,6 +156,15 @@ namespace types {
             }
             const bool isCapture() {
                 return capturedP != PieceType::EMPTY && capturedP != PieceType::BLOCK;
+            }
+            const bool isSpecial() {
+                return special;
+            }
+            const bool isCastling() {
+                return special && fromC == capturedC && fromP == PieceType::KING && capturedP == PieceType::ROOK;
+            }
+            const bool isEnPeasant() {
+                return special && fromC != capturedC && capturedC == PieceColour::NONE && capturedP == PieceType::EMPTY && fromP == PieceType::PAWN;
             }
             PieceType capturedPiece() {
                 return capturedP;
@@ -137,11 +181,14 @@ namespace types {
             const PieceType fromPiece() {
                 return fromP;
             }
-            const PieceType toPiece() {
+            const PieceType promotionPiece() {
                 return  toP;
             }
             const PieceColour fromColour() {
                 return fromC;
+            }
+            void setTotal(int t) {
+                totalMoves = t;
             }
     };
 

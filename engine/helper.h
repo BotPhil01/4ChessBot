@@ -10,7 +10,6 @@ using namespace std;
 namespace helper
 {
     
-    
     const PieceColour RED = PieceColour::RED;
     const PieceColour BLUE = PieceColour::BLUE;
     const PieceColour YELLOW = PieceColour::YELLOW;
@@ -56,9 +55,10 @@ namespace helper
     const Direction GREENUPLEFT = Direction::SOUTHWEST;
     const Direction GREENDOWNRIGHT = Direction::NORTHEAST;
     const Direction GREENDOWNLEFT = Direction::SOUTHEAST;
-
-    const std::vector<PieceColour> playableColours {PieceColour::RED, PieceColour::BLUE, PieceColour::YELLOW, PieceColour::GREEN};
-    const vector<PieceType> playableTypes {PieceType::PAWN, PieceType::ROOK, PieceType::KNIGHT, PieceType::BISHOP, PieceType::QUEEN, PieceType::KING};
+    const char PADDEDCOLS = 16;
+    const char PADDEDROWS = 18;
+    const std::vector<PieceColour> playableColours {RED, BLUE, YELLOW, GREEN};
+    const vector<PieceType> playablePieces {PieceType::PAWN, PieceType::ROOK, PieceType::KNIGHT, PieceType::BISHOP, PieceType::QUEEN, PieceType::KING};
 
     const std::vector<boardIndex> cornerIndices = {
         33, 34, 35, 49, 50, 51, 65, 66, 67,           // sw
@@ -68,13 +68,31 @@ namespace helper
 
     const PieceColour initailTurn = PieceColour::RED;
 
+
+
     const int indexFromType(PieceType t) {
-        for (int i = 0; i < playableTypes.size(); ++i) {
-            if (playableTypes[i] == t) {
+        for (int i = 0; i < playablePieces.size(); ++i) {
+            if (playablePieces[i] == t) {
                 return i;
             }
         }
         throw invalid_argument("Wrong type provided to indexFromType");
+    }
+
+    const int indexFromColour(PieceColour c) {
+        switch (c){
+            case RED:
+                return 0;
+            case BLUE:
+                return 1;
+            case YELLOW:
+                return 2;
+            case GREEN:
+                return 3;
+            default:
+                return -1;
+        }
+        return -1;
     }
 
     const Direction getLeft(PieceColour c)
@@ -178,6 +196,20 @@ namespace helper
             return REDUPLEFT;
         }
     }
+    
+    const bool indexInCorners(boardIndex i) {
+        for (auto index : cornerIndices) {
+            if (index == i) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    const bool indexOnBoard(boardIndex i) {
+        int rem = i % 16;
+        return (i > 35 && i < 252 && rem != 0 && rem != 15 && !indexInCorners(i));
+    }
 
     bool isRedStart(short i)
     {
@@ -254,7 +286,6 @@ namespace helper
 
     Square generateSquare(short i)
     {
-        // using namespace boardInit;
         SquareColour sc = i % 2 == 0 ? SquareColour::DARK : SquareColour::LIGHT;
         // assign colour
         PieceColour pc = PieceColour ::NONE;
@@ -271,7 +302,7 @@ namespace helper
         pt = isPawnStart(i) ? PieceType::PAWN : isKingStart(i) ? PieceType::KING
                                             : isQueenStart(i)  ? PieceType::QUEEN
                                                                : pt;
-        return Square(sc, pc, pt);
+        return Square(pt != PieceType::BLOCK, pt, pc);
     };
 
     template <typename T>
@@ -435,7 +466,20 @@ namespace helper
         }
         return PieceColour::NONE;
     }
-
+    // assumes there is a valid non diagonal straight path towards tgt from src
+    Direction getDirection(boardIndex src, boardIndex tgt) {
+        short diff = tgt - src;
+        if (diff > 0) {
+            if (diff > PADDEDCOLS) {
+                return Direction::NORTH;
+            }
+            return Direction::EAST;
+        }
+        if (-diff > PADDEDCOLS) {
+            return Direction::SOUTH;
+        }
+        return Direction::WEST;
+    }
     // takes vector of length 4 a colour to has with and a value to place in vector
     void placeAtColourIndex(std::vector<float> * const ve, PieceColour c, float va) {
         (*ve)[getColourIndex(c)] = va;

@@ -74,6 +74,7 @@ namespace engine {
                 }
                 auto moves = generateLegalMoves(getCurrentTurn());
                 for (auto move : moves) {
+                    move.setTotal(moves.size());
                     playMove(move);
                     float res = alphaBetaMin(alpha, beta, depth-1, commonEnemy);
                     if (res > alpha && res < beta) { // found a better move
@@ -95,8 +96,10 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 } 
-                auto moves = generateLegalMoves(getCurrentTurn());
+                Move moves = generateLegalMoves(getCurrentTurn());
+                
                 for (auto move : moves) {
+                    move.setTotal(moves.size());
                     playMove(move);
                     float res = alphaBetaMax(alpha, beta, depth-1, commonEnemy);
                     if (res < beta) {
