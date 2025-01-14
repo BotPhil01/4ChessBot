@@ -55,8 +55,10 @@ namespace helper
     const Direction GREENUPLEFT = Direction::SOUTHWEST;
     const Direction GREENDOWNRIGHT = Direction::NORTHEAST;
     const Direction GREENDOWNLEFT = Direction::SOUTHEAST;
+    
     const char PADDEDCOLS = 16;
     const char PADDEDROWS = 18;
+    
     const std::vector<PieceColour> playableColours {RED, BLUE, YELLOW, GREEN};
     const vector<PieceType> playablePieces {PieceType::PAWN, PieceType::ROOK, PieceType::KNIGHT, PieceType::BISHOP, PieceType::QUEEN, PieceType::KING};
 
