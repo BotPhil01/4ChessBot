@@ -8,3 +8,7 @@ engine/notes.txt
 *.sh
 export/
 helper/
+**/debug.cpp
+**/a.out
+ 
+engine/tests/e
