@@ -225,8 +225,9 @@ namespace helper
 
     bool isBlueStart(short i)
     {
-        i = i % 16;
-        return i == 1 || i == 2;
+        
+        short rem = i % 16;
+        return (rem == 1 || rem == 2) && i < 192 && i > 80;
     }
 
     bool isGreenStart(short i)
@@ -323,7 +324,7 @@ namespace helper
     std::vector<T> layer(std::vector<T> v1, std::vector<T> v2) {
         const size_t s1 = v1.size();
         const size_t s2 = v2.size();
-        assert(s1 == s2 && s1 == 4);
+        assert(s1 == s2);
         for (int i = 0; i < v1.size(); i++) {
             v1[i] += v2[i];
         }
@@ -436,6 +437,7 @@ namespace helper
     //     std::cout << "\n";
     // }
 
+    // TODO DELETE AND REFACTOR
     char getColourIndex(PieceColour c) {
         switch (c) {
             case PieceColour::RED:
@@ -482,6 +484,8 @@ namespace helper
         }
         return Direction::WEST;
     }
+
+    // TODO DELETE AND REFACTOR
     // takes vector of length 4 a colour to has with and a value to place in vector
     void placeAtColourIndex(std::vector<float> * const ve, PieceColour c, float va) {
         (*ve)[getColourIndex(c)] = va;

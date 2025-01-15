@@ -118,31 +118,33 @@ namespace types {
             }
 
             // regular non promotion
-            Move(const boardIndex fi, const boardIndex ti, 
-            const int total, const PieceColour fromCol, 
-            const PieceType captured, const PieceColour capturedCol,
-            bool isSpecial = false) :
+            // Move(const boardIndex fi, const boardIndex ti, 
+            // const int total, 
+            // const PieceType fp, const PieceColour fromCol, 
+            // const PieceType captured, const PieceColour capturedCol,
+            // bool isSpecial = false) :
 
-            fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
-            capturedP(captured), capturedC(capturedCol), 
-            fromP(PieceType::EMPTY), toP(PieceType::EMPTY),
-            special(isSpecial) {
-            }
+            // fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
+            // capturedP(captured), capturedC(capturedCol), 
+            // fromP(fp), toP(PieceType::EMPTY),
+            // special(isSpecial) {
+            // }
 
-            // promotion
+            // generic move
             Move(const boardIndex fi, const boardIndex ti, 
             const int total, 
             const PieceType fp, const PieceColour fromCol,
             const PieceType captured, const PieceColour capturedCol, 
             const PieceType tp = PieceType::EMPTY, bool isSpecial = false) : 
 
-            fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
+            fromI(fi), toI(ti), totalMoves(total), fromP(fp), fromC(fromCol),
             capturedP(captured), capturedC(capturedCol),
-            fromP(fp), toP(tp), special(isSpecial) {
+            toP(tp), special(isSpecial) {
             }
 
             Move(Move &m) {
                 fromI = m.fromIndex();
+                fromC = m.fromColour();
                 toI = m.toIndex();
                 capturedP = m.capturedPiece();
                 fromP = m.fromPiece();

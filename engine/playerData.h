@@ -26,7 +26,7 @@ namespace player {
             set<boardIndex> kings;
             set<boardIndex> movedPieces;
             // for iteration through pieces
-            vector<const reference_wrapper<set<boardIndex>>> pieces;
+            vector<reference_wrapper<set<boardIndex>>> pieces;
             
 
             set<Move> playedMoves;
@@ -37,18 +37,23 @@ namespace player {
                     case RED:
                         lo = 52;
                         hi = 60;
+                        break;
                     case YELLOW:
                         lo = 228;
                         hi = 236;
+                        break;
                     case BLUE:
                         lo = 81;
                         hi = 210;
+                        break;
                     case GREEN:
                         lo = 93;
                         hi = 221;
+                        break;
                     default:
                         lo = 0;
                         hi = 0;
+                        break;
                 }
                 if (clr == RED || clr == YELLOW) {
                     for (; lo < hi; ++lo) {
@@ -156,7 +161,7 @@ namespace player {
             }
         
             // gets the piecetype that the set is handling
-            PieceType getSetType(set<boardIndex> & const address) {
+            PieceType getSetType(set<boardIndex> & address) {
                 int i = 0;
                 for (; i < pieces.size(); ++i) {
                     auto s = pieces.at(i);
@@ -195,6 +200,7 @@ namespace player {
                     movedPieces.emplace_hint(it, last.toIndex());
                 }
                 movedPieces.extract(it);
+                cout << "balls\n";
             }   
         public:
             bool canPlai = false;
@@ -207,7 +213,7 @@ namespace player {
                 return clr;
             }
 
-            vector<const reference_wrapper<set<boardIndex>>> getPieces() {
+            vector<reference_wrapper<set<boardIndex>>> getPieces() {
                 return pieces;
             }
 
@@ -216,7 +222,7 @@ namespace player {
             // returns the captured piece type if a capture was handled else empty piecetype
             PieceType update(Move m) {
                 // check whether we are being taken or taking someone else
-                set<boardIndex> fromSet = pieces[indexFromType(m.fromPiece())];
+                set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())].get();
                 auto fromIt = fromSet.find(m.fromIndex()); // Log(n)
 
                 if (fromIt == fromSet.end() && !m.isCapture()) {
@@ -287,7 +293,7 @@ namespace player {
             }
             // updates data to remove a move
             // takes a move to remove and the previous moves of the involved indices
-            void revert(Move m, Move &fromPrev, Move &toPrev) {
+            void revert(Move m, Move &fromPrev, Move &captPrev) {
                 if (m.fromColour() != clr && !m.isCapture()) {
                     return;
                 }
@@ -303,7 +309,7 @@ namespace player {
                         // our piece is returned
                         auto pieceSet = pieces[indexFromType(m.capturedPiece())];
                         pieceSet.get().emplace(m.fromIndex());
-                        if (toPrev.toIndex() == 300) {
+                        if (captPrev.toIndex() == 300) {
                             return;                    
                         }
                         movedPieces.emplace(m.toIndex());
@@ -337,7 +343,7 @@ namespace player {
                         auto tmpIt = rooks.find(tmp);
                         if (tmpIt != rooks.end()) {
                             // found our rook
-                            handleMoved(tmp, toPrev);
+                            handleMoved(tmp, captPrev);
                             rooks.emplace_hint(tmpIt, m.toIndex());
                             rooks.extract(tmpIt);
                             rookFound = true;
@@ -361,15 +367,11 @@ namespace player {
                     handleMoved(remove, fromPrev);
                 } else {
                     // change index
-                    set<boardIndex> &pieceSet = pieces[indexFromType(m.fromPiece())];
+                    set<boardIndex> &pieceSet = pieces[indexFromType(m.fromPiece())].get();
                     auto it = pieceSet.find(m.toIndex());
                     assert(it != pieceSet.end());
                     pieceSet.extract(it);
                     pieceSet.emplace(m.fromIndex());
-                 
-                    if (fromPrev.fromIndex() == 300) {
-                        return;
-                    }
 
                     handleMoved(m.toIndex(), fromPrev);
                     return;
@@ -378,8 +380,8 @@ namespace player {
             
             // returns whether in the current game state the index is in the players game data
             bool indexInData(boardIndex i, PieceType p) {
-                set<boardIndex> &pieceSet = pieces[indexFromType(p)];
-                return pieceSet.find(i) != pieceSet.end();
+                set<boardIndex> &pieceSet = pieces[indexFromType(p)].get();
+                return pieceSet.contains(i);
             }
 
             bool indexHasMoved(boardIndex i) {
