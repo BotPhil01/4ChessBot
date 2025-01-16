@@ -5,18 +5,10 @@
 #include<exception>
 #include"board.h"
 #include"helper.h"
-// using namespace std;
-// main things:
-// encoding:
-// pieces 
-// board (piece or square centric) -> modified bitboard
-// square 
-// evaluation algorithm
-// search algorithm -> minimax -> alpha beta
-// pseudo legal move generation
-// legal move generation 
+
 using namespace board;
 using namespace helper;
+using namespace std;
 
 #ifndef ENGINE_H
 #define ENGINE_h
@@ -50,13 +42,12 @@ namespace engine {
             // vector in form {r, b, y, g}
             const std::vector<float> evaluateMobility() {
                 std::vector<float> out;
-                
                 for (PieceColour c : helper::playableColours) {
-                    auto move = getLastMove(c);
-                    if (move.fromSquare.pieceColour != c) { // failed to find move
+                    if (!movesPlayed()) { // failed to find move
                         out.emplace_back((float) generateLegalMoves(c).size());
+                        continue;
                     }
-                    out.emplace_back(move.totalMoves);
+                    out.emplace_back(getLastMove(c).totalMoves);
                 }
                 return out;
             }
@@ -96,7 +87,7 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 } 
-                Move moves = generateLegalMoves(getCurrentTurn());
+                auto moves = generateLegalMoves(getCurrentTurn());
                 
                 for (auto move : moves) {
                     move.setTotal(moves.size());
@@ -125,9 +116,8 @@ namespace engine {
             }
 
             // returns a next move 
-            using::Board::printBoard;
-            using::Board::playMove;
-            Move chooseNextMove() { // return the next move or an empty move from default move constructor if unable to find one
+            Move chooseNextMove() { 
+                // return the next move or an empty move from default move constructor if unable to find one
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS -> want the algorithm to be able to check mid way through whether a new player becomes the strongest
                 // main idea could be after an upper bound of advantage gained it reevaluates
                 // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
@@ -172,7 +162,6 @@ namespace engine {
                 auto mobility = evaluateMobility();
                 // auto position = evaluatePosition();
                 auto advantages = layer(material, mobility); // combine into singular valus
-                // std::cout << "self " << PieceColourToString(self) << "\n";
                 char selfIndex = getColourIndex(self);
                 char maxAdvantageIndex = 0; // index of max advantage
                 for (char i = 0; i < advantages.size(); i++) {

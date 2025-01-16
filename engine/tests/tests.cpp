@@ -1,6 +1,9 @@
 #include"../types.h"
 #include"../helper.h"
 #include"../playerData.h"
+#include"../board.h"
+#include"../engine.h"
+
 #include<catch2/catch_test_macros.hpp>
 #include<cstdint>
 #include<vector>
@@ -9,6 +12,8 @@
 using namespace types;
 using namespace helper;
 using namespace player;
+using namespace board;
+using namespace engine;
 
 Move emptyMove() {
     return Move();
@@ -120,6 +125,10 @@ TEST_CASE("Helper tests", "[helper]") {
     CHECK(shiftOne(180, Direction::WEST) == 179);
     CHECK(shiftOne(220, Direction::NORTHWEST) == 235);
 
+    CHECK(toIndex(0, 0) == 0);
+    CHECK(toIndex(2, 5) == 82);
+    CHECK(to16RC(toIndex(12, 2)).first == 12);
+    CHECK(to16RC(toIndex(12, 2)).second == 2);
 }
 
 TEST_CASE("Player Data tests", "[player]") {
@@ -151,10 +160,38 @@ TEST_CASE("Player Data tests", "[player]") {
 }
 
 TEST_CASE("Board tests", "[board]") {
-    
+    Board b = Board();
+    CHECK(b.getCurrentTurn() == PieceColour::RED);
+    for (auto c : playableColours) {
+        CHECK(b.getCurrentTurn() == c);
+        auto moves = b.generateLegalMoves(c);
+        CHECK(moves.size() == 20);
+        CHECK_FALSE(b.isKingInCheck(c));
+        b.playMove(moves[0]);
+        auto last = b.getLastMove(c);
+        CHECK(last.fromColour() == moves[0].fromColour());
+        CHECK(last.fromIndex() == moves[0].fromIndex());
+        
+        CHECK_FALSE(b.isKingInCheck(c));
+    }
+    b.unPlayMove();
+    PieceColour fromC = b.getLastMove(PieceColour::GREEN).fromColour(); 
+    CHECK_FALSE(fromC == PieceColour::GREEN);
+
 }
 
 TEST_CASE("Engine tests", "[engine]") {
+    Engine re = Engine(PieceColour::RED);
+    Engine be = Engine(PieceColour::BLUE);
+    Engine ye = Engine(PieceColour::YELLOW);
+    Engine ge = Engine(PieceColour::GREEN);
+    
+    auto m = re.chooseNextMove();
+    REQUIRE(m.fromColour() == PieceColour::RED);
+    REQUIRE(m.fromIndex() != 300);
+    REQUIRE(m.toIndex() != 300);
+    REQUIRE_FALSE(re.evaluateBoard().first == PieceColour::NONE);
+    
     
 }
 

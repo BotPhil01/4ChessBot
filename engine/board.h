@@ -16,6 +16,7 @@ using namespace std;
 namespace board {
     // board is padded to 16x18
     class Board {
+
         private:
             std::vector<Square> boardVector; 
             
@@ -28,7 +29,7 @@ namespace board {
             Player yellowPlayer = Player(YELLOW);
             Player greenPlayer = Player(GREEN);
 
-            vector<reference_wrapper<Player &>> players;
+            vector<reference_wrapper<Player>> players;
 
             std::vector<Move> getMoveHistory() {
                 return moveVector;
@@ -76,9 +77,9 @@ namespace board {
 
             // bulk creates moves from one index to a list of other indices
             // indices are assumed to be valid
-            std::vector<Move> bulkCreateMove(boardIndex src, std::vector<boardIndex> trgts) {
+            vector<Move> bulkCreateMove(boardIndex src, std::vector<boardIndex> trgts) {
                 assert(indexOnBoard(src));
-                std::vector<Move> out {};
+                vector<Move> out {};
                 for (boardIndex t : trgts) {
                     
                     if (boardVector[src].type() == PieceType::PAWN && willPromote(t, boardVector[src].colour())) {
@@ -95,7 +96,7 @@ namespace board {
                             src, t, 0,
                             boardVector[src].type(), boardVector[src].colour(), 
                             boardVector[t].type(), boardVector[t].colour(),
-                            true
+                            PieceType::EMPTY, true
                         );
                         continue;
                     }
@@ -109,12 +110,14 @@ namespace board {
 
             // generates pseudo legal moves
             // moves in returned vector have all except the totalMoves guaranteed to be filled
-            std::vector<Move> generatePseudoLegalMoves(Player player) {
+            std::vector<Move> generatePseudoLegalMoves(PieceColour c) {
+                Player player = players[indexFromColour(c)];
                 std::vector<Move> out {};
                 out.reserve(60);
                 auto pieces = player.getPieces();
                 int i = 0;
-                for (set<boardIndex> &set : pieces) {
+                for (int i = 0; i < pieces.size(); ++i) {
+                    set<boardIndex> &set = pieces[i].get();
                     for (auto index : set)
                         switch (playablePieces[i]) {
                             case PieceType::PAWN:
@@ -127,7 +130,7 @@ namespace board {
                             out = concat(out, bulkCreateMove(index, knightShift(index)));
                             break;
                         case PieceType::BISHOP:
-                            out = concat(out, bulkCreateMove(i, bishopShift(index)));
+                            out = concat(out, bulkCreateMove(index, bishopShift(index)));
                             break;
                         case PieceType::KING:
                             out = concat(out, bulkCreateMove(index, kingShift(index)));
@@ -250,7 +253,7 @@ namespace board {
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(eastWest, Direction::NORTHWEST);
+                diag = shiftOne(eastWest, Direction::SOUTHEAST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
@@ -260,7 +263,7 @@ namespace board {
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(eastWest, Direction::SOUTHEAST);
+                diag = shiftOne(eastWest, Direction::SOUTHWEST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
@@ -268,7 +271,7 @@ namespace board {
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(eastWest, Direction::SOUTHWEST);
+                diag = shiftOne(eastWest, Direction::NORTHWEST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
@@ -406,7 +409,7 @@ namespace board {
                     boardVector.emplace_back(generateSquare(i));
                 }
                 turn = initailTurn;
-                moveVector = std::vector<Move> ();
+                moveVector = vector<Move> {};
                 playableColours = {true, true, true, true};
                 players.emplace_back(redPlayer);
                 players.emplace_back(bluePlayer);
@@ -447,7 +450,9 @@ namespace board {
             }
 
             // asks whether c's king is in check in current board position
-            bool isKingInCheck(Player player) {
+            bool isKingInCheck(PieceColour c) {
+                assert(c != PieceColour::NONE);
+                Player player = players[indexFromColour(c)];
                 // BUG this does not adequately check whether the king is in check
                 // knight just fucking takes the blue king
                 // idea
@@ -508,23 +513,33 @@ namespace board {
                 return false;
             }
 
+            // TODO change test so that generateLegalMoves is not called before the move prediciton algo
+            // ALTERNATIVELY change this function so that it works in a virtual environemnt
+            // where it is assumed that the player can play even if they cant
+            // might help with debugging?
+            // also requires creating a different version of playMove / turn
+
             // generates the colours legal moves
             // returned moves can be guaranteed to be legal and all information except totalMoves to be correct
-            std::vector<Move> generateLegalMoves(Player player) {
-                std::vector<Move> out;
-                auto moves = generatePseudoLegalMoves(player);
+            vector<Move> generateLegalMoves(PieceColour c) {
+                vector<Move> out;
+                auto moves = generatePseudoLegalMoves(c);
                 for (auto m : moves) {
-                    playMove(m);
-                    if (!isKingInCheck(player)) {
+                    virtualPlayMove(m);
+                    if (!isKingInCheck(c)) {
                         out.emplace_back(m);
                     }
-                    unPlayMove();
+                    virtualUnPlayMove();
+                    
                 }
                 return out;
             }
 
-            void playMove(Move m) {
-                // runtime check that everything is working smoothly
+            // plays the move without checking whether the current turn is accurate to the move being played
+            // should only be used when generating legal moves to see if the king is in check
+            // this is because sometimes legal moves want to be created out of move order
+            // also does not increment or decrement the turn clock
+            void virtualPlayMove(Move m) {
                 if ((boardVector[m.fromIndex()].type() != m.fromPiece()) || (boardVector[m.toIndex()].type() != m.promotionPiece())) {
                     printBoard();
                     std::string s = "Move is poorly formed: board square does not match move square data. Board type: " 
@@ -533,15 +548,6 @@ namespace board {
                     throw std::invalid_argument(s);
                 }
 
-                if (boardVector[m.fromIndex()].colour() != turn) {
-                    std::string s = "It is not the given move's turn. Turn: " + std::string(PieceColourToString(turn)) 
-                        + " colour: " + std::string(PieceColourToString(m.fromColour())) + " board piece colour: " 
-                        + std::string(PieceColourToString(boardVector[m.fromIndex()].colour())) + " move: "
-                        + moveToString(m) + "\n";
-                    throw std::invalid_argument(s);
-                }
-
-                turn = getNextTurn(turn);
 
                 // update player data
                 players[indexFromColour(m.fromColour())].get().update(m);
@@ -598,11 +604,31 @@ namespace board {
                 boardVector[m.toIndex()].setPiece(m.fromPiece(), m.fromColour());
                 boardVector[m.fromIndex()].setPiece(PieceType::EMPTY, PieceColour::NONE);
                 moveVector.emplace_back(m);
+
             }
 
-            // unplays the last played move
-            void unPlayMove() {
+            void playMove(Move m) {
+                // runtime check that everything is working smoothly
                 
+
+                if (boardVector[m.fromIndex()].colour() != turn) {
+                    std::string s = "It is not the given move's turn. Turn: " + std::string(PieceColourToString(turn)) 
+                        + " colour: " + std::string(PieceColourToString(m.fromColour())) + " board piece colour: " 
+                        + std::string(PieceColourToString(boardVector[m.fromIndex()].colour())) + " move: "
+                        + moveToString(m) + "\n";
+                    throw std::invalid_argument(s);
+                }
+
+                turn = getNextTurn(turn);
+                virtualPlayMove(m);
+            }
+
+            // virtually unplays the last move
+            // unplays last move in the mvoestack
+            // does not change the turn clock
+            // 
+            void virtualUnPlayMove() {
+
                 // handle board data
                 Move lastMove = moveVector.back(); //retreive last elem 
                 // clear special move squares (Squares altered outside of src and trgt)
@@ -621,7 +647,6 @@ namespace board {
                 }
                 boardVector[lastMove.toIndex()].setPiece(lastMove.capturedPiece(), lastMove.capturedColour()); //return data to state
                 boardVector[lastMove.fromIndex()].setPiece(lastMove.fromPiece(), lastMove.fromColour()); 
-                turn = getPrevTurn(turn);// reset turn counter
                 moveVector.pop_back(); //remove from stack
                 
                 // handle player data
@@ -640,6 +665,12 @@ namespace board {
                 for (auto p : players) {
                     p.get().revert(lastMove, fromPrevMove, toPrevMove);
                 }
+            }
+
+            // unplays the last played move
+            void unPlayMove() {
+                turn = getPrevTurn(turn);// reset turn counter
+                virtualUnPlayMove();
             }
     
             // gets the current material value of a colour 
@@ -665,34 +696,15 @@ namespace board {
                 return res;            
             }   
 
-            bool canPlay(PieceColour c) {
-                switch(c) {
-                    case PieceColour::RED:
-                        return playableColours[0];
-                    case PieceColour::BLUE:
-                        return playableColours[0];
-                    case PieceColour::YELLOW:
-                        return playableColours[0];
-                    case PieceColour::GREEN:
-                        return playableColours[0];
-                    default:
-                        throw std::invalid_argument("PieceColour provided is not valid in board::canPlay(): " +  std::string(PieceColourToString(c)));
-                }
-                throw std::invalid_argument("Shouldn't have reached here in canPlay()");
-            }
+            bool movesPlayed() {
+                return moveVector.size() != 0;
+            }            
         
 
     };
 
-    boardIndex toIndex( unsigned char c, unsigned char r) { // returns boardIndex from 16 * 18  coordinates
-        return (r * 16 + c);
-    }
+    
 
-    // translates a boardIndex to a padded row column pair
-    std::pair<int, int> to16RC(boardIndex i) {
-        int x = (i % 16);
-        int y = (i - x) / 16;
-        return std::pair(x,y);
-    }
+    
 };
 #endif

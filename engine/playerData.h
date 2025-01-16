@@ -43,7 +43,7 @@ namespace player {
                         hi = 236;
                         break;
                     case BLUE:
-                        lo = 81;
+                        lo = 82;
                         hi = 210;
                         break;
                     case GREEN:
@@ -70,15 +70,19 @@ namespace player {
                     case RED:
                         rooks.emplace(36);
                         rooks.emplace(43);
+                        break;
                     case BLUE:
                         rooks.emplace(81);
                         rooks.emplace(193);
+                        break;
                     case YELLOW:
                         rooks.emplace(244);
                         rooks.emplace(251);
+                        break;
                     case GREEN:
                         rooks.emplace(94);
                         rooks.emplace(206);
+                        break;
                     default:
                         return;
                 }
@@ -88,15 +92,19 @@ namespace player {
                     case RED:
                         knights.emplace(37);
                         knights.emplace(42);
+                        break;
                     case BLUE:
                         knights.emplace(97);
                         knights.emplace(177);
+                        break;
                     case YELLOW:
                         knights.emplace(245);
                         knights.emplace(250);
+                        break;
                     case GREEN:
                         knights.emplace(110);
                         knights.emplace(190);
+                        break;
                     default:
                         return;
                 }
@@ -106,15 +114,19 @@ namespace player {
                     case RED:
                         bishops.emplace(38);
                         bishops.emplace(41);
+                        break;
                     case BLUE:
                         bishops.emplace(113);
                         bishops.emplace(161);
+                        break;
                     case YELLOW:
                         bishops.emplace(246);
                         bishops.emplace(249);
+                        break;
                     case GREEN:
                         bishops.emplace(126);
                         bishops.emplace(174);
+                        break;
                     default:
                         return;
                 }
@@ -123,12 +135,16 @@ namespace player {
                 switch(clr) {
                     case RED:
                         queens.emplace(39);
+                        break;
                     case BLUE:
                         queens.emplace(129);
+                        break;
                     case YELLOW:
                         queens.emplace(248);
+                        break;
                     case GREEN:
                         queens.emplace(158);
+                        break;
                     default:
                         return;
                 }
@@ -137,16 +153,21 @@ namespace player {
                 switch(clr) {
                     case RED:
                         kings.emplace(40);
+                        break;
                     case BLUE:
                         kings.emplace(145);
+                        break;
                     case YELLOW:
                         kings.emplace(247);
+                        break;
                     case GREEN:
                         kings.emplace(142);
+                        break;
                     default:
                         return;
                 }
             }
+
             void genPieces() {
 
                 // assigns objects into vectors
@@ -200,7 +221,7 @@ namespace player {
                     movedPieces.emplace_hint(it, last.toIndex());
                 }
                 movedPieces.extract(it);
-                cout << "balls\n";
+                
             }   
         public:
             bool canPlai = false;

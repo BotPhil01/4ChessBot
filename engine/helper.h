@@ -1,6 +1,7 @@
-#include "types.h"
+#include"types.h"
 #include<cassert>
-#include <vector>
+#include<vector>
+#include<utility>
 using namespace types;
 using namespace std;
 #ifndef HELPER_H
@@ -215,25 +216,24 @@ namespace helper
 
     bool isRedStart(short i)
     {
-        return i > 35 && i < 60;
+        return i > 35 && i < 44 || i > 51 && i < 60;
     }
 
     bool isYellowStart(short i)
     {
-        return i > 227 && i < 252;
+        return i > 227 && i < 236 || i > 243 && i < 252;
     }
 
     bool isBlueStart(short i)
     {
-        
         short rem = i % 16;
-        return (rem == 1 || rem == 2) && i < 192 && i > 80;
+        return (rem == 1 || rem == 2) && i < 195 && i > 80;
     }
 
     bool isGreenStart(short i)
     {
-        i = i % 16;
-        return i == 13 || i == 14;
+        short rem = i % 16;
+        return (rem == 13 || rem == 14) && i > 92 && i < 207;
     }
 
     bool isPawnStart(short i)
@@ -289,7 +289,6 @@ namespace helper
 
     Square generateSquare(short i)
     {
-        SquareColour sc = i % 2 == 0 ? SquareColour::DARK : SquareColour::LIGHT;
         // assign colour
         PieceColour pc = PieceColour ::NONE;
         pc = isRedStart(i) ? PieceColour::RED : isBlueStart(i) ? PieceColour::BLUE
@@ -512,6 +511,18 @@ namespace helper
             default:
                 return i;
         };
+    }
+
+    // returns boardIndex from 16 * 18  coordinates
+    boardIndex toIndex( unsigned char c, unsigned char r) { 
+        return (r * 16 + c);
+    }
+
+    // translates a boardIndex to a padded row column pair
+    pair<int, int> to16RC(boardIndex i) {
+        int x = (i % 16);
+        int y = (i - x) / 16;
+        return std::pair(x,y);
     }
 
 };

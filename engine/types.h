@@ -9,7 +9,7 @@ using namespace std;
 #define TYPES_H
 
 namespace types {
-    using boardIndex = std::uint16_t;
+    using boardIndex = uint16_t;
 
     // piece enums
     enum class PieceType { // not set to class to allow for indeexing into pieceTypes[]
@@ -109,13 +109,29 @@ namespace types {
             int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
             
             Move() : 
-
             fromI(300), toI(300), 
             totalMoves(0), fromC(PieceColour::NONE),
             capturedP(PieceType::EMPTY), capturedC(PieceColour::NONE),
             fromP(PieceType::EMPTY), toP(PieceType::EMPTY),
             special(false)  {
             }
+
+            // Move() = default;
+            Move(const Move &m) = default;
+            Move(Move &&m) = default;
+            Move& operator=(const Move&) = default;
+
+            // Move(Move &m) {
+            //     fromI = m.fromIndex();
+            //     toI = m.toIndex();
+            //     totalMoves = m.totalMoves;
+            //     fromP = m.fromPiece();
+            //     fromC = m.fromColour();
+            //     capturedP = m.capturedPiece();
+            //     capturedC = m.capturedColour();
+            //     toP = m.promotionPiece();
+            //     special = m.isSpecial();
+            // }
 
             // regular non promotion
             // Move(const boardIndex fi, const boardIndex ti, 
@@ -142,16 +158,6 @@ namespace types {
             toP(tp), special(isSpecial) {
             }
 
-            Move(Move &m) {
-                fromI = m.fromIndex();
-                fromC = m.fromColour();
-                toI = m.toIndex();
-                capturedP = m.capturedPiece();
-                fromP = m.fromPiece();
-                toP = m.promotionPiece();
-                capturedC = m.capturedColour();
-                special = m.isSpecial();
-            }
 
             const bool isPromotion() {
                 return fromP != PieceType::EMPTY && toP != PieceType::EMPTY;
