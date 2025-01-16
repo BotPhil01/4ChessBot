@@ -108,8 +108,15 @@ namespace engine {
 
         public:
             bool hasFinished;
-            Engine(PieceColour p = PieceColour::RED, int depth = 2, bool finished = false) :
-            self(p), DEPTH(depth), hasFinished(finished), Board(){
+            Engine(
+                PieceColour p = PieceColour::RED, 
+                int depth = 2, 
+                bool finished = false) :
+            Board(),
+            self(p), 
+            DEPTH(depth), 
+            hasFinished(finished)
+            {
                 
             }
             PieceColour getColour() {

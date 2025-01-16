@@ -649,19 +649,14 @@ namespace board {
                 if (lastMove.isEnPeasant()) {
                     boardVector[shiftOne(lastMove.toIndex(), getUp(lastMove.fromColour()))].setPiece(PieceType::EMPTY, PieceColour::NONE);                    
                 }
-                // $89 = {fromI = 68, toI = 83, fromC = types::PieceColour::RED, fromP = types::PieceType::PAWN, 
-                // capturedP = types::PieceType::PAWN, capturedC = types::PieceColour::BLUE, special = false, 
-                // toP = types::PieceType::EMPTY, totalMoves = 0}
                 boardVector[lastMove.toIndex()].setPiece(lastMove.capturedPiece(), lastMove.capturedColour()); //return data to state
                 boardVector[lastMove.fromIndex()].setPiece(lastMove.fromPiece(), lastMove.fromColour()); 
                 moveVector.pop_back(); //remove from stack
                 
                 // handle player data
                 // find the involved pieces last move 
-                Move fromPrevMove; // fromI = 52, toI = 68, fromC = types::PieceColour::RED, fromP = types::PieceType::PAWN, capturedP = types::PieceType::EMPTY, capturedC = types::PieceColour::NONE, 
-    // special = false, toP = types::PieceType::EMPTY, totalMoves = 0},
-                Move toPrevMove; // {fromI = 82, toI = 83, fromC = types::PieceColour::BLUE, fromP = types::PieceType::PAWN, capturedP = types::PieceType::EMPTY, 
-    // capturedC = types::PieceColour::NONE, special = false, toP = types::PieceType::EMPTY, totalMoves = 20},
+                Move fromPrevMove; 
+                Move toPrevMove; 
                 for (Move m : moveVector) {
                     if (m.toIndex() == lastMove.fromIndex()) {
                         fromPrevMove = m;

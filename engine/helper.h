@@ -216,12 +216,12 @@ namespace helper
 
     bool isRedStart(short i)
     {
-        return i > 35 && i < 44 || i > 51 && i < 60;
+        return (i > 35 && i < 44) || (i > 51 && i < 60);
     }
 
     bool isYellowStart(short i)
     {
-        return i > 227 && i < 236 || i > 243 && i < 252;
+        return (i > 227 && i < 236) || (i > 243 && i < 252);
     }
 
     bool isBlueStart(short i)

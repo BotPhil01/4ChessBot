@@ -98,8 +98,8 @@ namespace types {
             PieceColour fromC;
             PieceType fromP;
             // capture
-            PieceType capturedP;
             PieceColour capturedC;
+            PieceType capturedP;
             // special move defined as a castling or en peasant move
             bool special;
             // promotion
@@ -109,11 +109,15 @@ namespace types {
             int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
             
             Move() : 
-            fromI(300), toI(300), 
-            totalMoves(0), fromC(PieceColour::NONE),
-            capturedP(PieceType::EMPTY), capturedC(PieceColour::NONE),
-            fromP(PieceType::EMPTY), toP(PieceType::EMPTY),
-            special(false)  {
+            fromI(300), 
+            toI(300), 
+            fromC(PieceColour::NONE), 
+            fromP(PieceType::EMPTY),
+            capturedC(PieceColour::NONE),
+            capturedP(PieceType::EMPTY), 
+            special(false), 
+            toP(PieceType::EMPTY),
+            totalMoves(0)  {
             }
 
             // Move() = default;
@@ -122,15 +126,27 @@ namespace types {
             Move& operator=(const Move&) = default;
 
             // generic move
-            Move(const boardIndex fi, const boardIndex ti, 
+            Move(
+            const boardIndex fi, 
+            const boardIndex ti, 
             const int total, 
-            const PieceType fp, const PieceColour fromCol,
-            const PieceType captured, const PieceColour capturedCol, 
-            const PieceType tp = PieceType::EMPTY, bool isSpecial = false) : 
+            const PieceType fp, 
+            const PieceColour fromCol,
+            const PieceType captured, 
+            const PieceColour capturedCol, 
+            const PieceType tp = PieceType::EMPTY, 
+            bool isSpecial = false) : 
 
-            fromI(fi), toI(ti), totalMoves(total), fromP(fp), fromC(fromCol),
-            capturedP(captured), capturedC(capturedCol),
-            toP(tp), special(isSpecial) {
+            fromI(fi), 
+            toI(ti), 
+            fromC(fromCol),
+            fromP(fp), 
+            capturedC(capturedCol),
+            capturedP(captured), 
+            special(isSpecial), 
+            toP(tp), 
+            totalMoves(total) 
+            {
             }
 
 
