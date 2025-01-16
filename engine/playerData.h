@@ -328,8 +328,8 @@ namespace player {
                     
                     if (m.capturedColour() == clr) { 
                         // our piece is returned
-                        auto pieceSet = pieces[indexFromType(m.capturedPiece())];
-                        pieceSet.get().emplace(m.fromIndex());
+                        set<boardIndex> &pieceSet = pieces[indexFromType(m.capturedPiece())].get();
+                        pieceSet.emplace(m.toIndex());
                         if (captPrev.toIndex() == 300) {
                             return;                    
                         }

@@ -8,15 +8,19 @@ using namespace board;
 
 class EngineProcess {
     private:
-        Board rBoard; // for generating legal moves
-        Engine bEngine; // for predicting moves
-        Engine yEngine;
-        Engine gEngine;
+        // for generating legal moves
+        // for predicting moves
+        
+        Board rBoard = Board();
+        Engine bEngine = Engine(PieceColour::BLUE);
+        Engine yEngine = Engine(PieceColour::YELLOW);
+        Engine gEngine = Engine(PieceColour::GREEN);
         // takes a javascript move and converts it to an engine move
         // difference is that js move has 0, 0 as top left cpp has bottom left
+        // fromx|fromy|tox|toy
+        
         Move parseInput(string jMove) {
             // extract from string
-            // fromx|fromy|tox|toy
             assert(jMove.size() > 6);
             vector<int> coordinates;
             size_t i = jMove.find('|', 0);
@@ -44,9 +48,7 @@ class EngineProcess {
             boardIndex from = toIndex(coordinates[0], coordinates[1]);
             boardIndex to = toIndex(coordinates[2], coordinates[3]);
             
-            Move m = rBoard.createMove(from, to);
-        
-            return m;
+            return rBoard.indicesToMove(from, to);
         }
 
         // converts 16x18 coords to javascript coords
@@ -60,8 +62,8 @@ class EngineProcess {
         // gives a js output for a cppp move
         string parseOutput(Move m) {
             stringstream stream;
-            pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex));
-            pair<int, int> toCoords =  toJCoords(to16RC(m.toIndex));
+            pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex()));
+            pair<int, int> toCoords =  toJCoords(to16RC(m.toIndex()));
             
             stream << fromCoords.first << "|" << fromCoords.second << "|" << toCoords.first << "|" << toCoords.second << "#";
             return stream.str();
@@ -86,10 +88,7 @@ class EngineProcess {
 
     public:
         EngineProcess() {
-            rBoard = Board();
-            bEngine = Engine(PieceColour::BLUE);
-            yEngine = Engine(PieceColour::YELLOW);
-            gEngine = Engine(PieceColour::GREEN);
+            
         }
         bool startLoop() {
             string input;
@@ -102,30 +101,39 @@ class EngineProcess {
                 updateGameState(m);
                 if (!bEngine.hasFinished) {
                     Move bm = bEngine.chooseNextMove();
-                    if (bm.fromIndex != 300 || bm.toIndex != 300) {
-                        updateGameState(bm);
+                    if (bm.fromIndex() == 300 || bm.toIndex() == 300) {
+                        cout << parseOutput(bEngine) << endl;
+                    } else {
+                        updateGameState(bm); // here yEngine has correct turn
+                        cout << parseOutput(bm) << endl;
                     }
-                    cout << parseOutput(bm) << endl;
                 } else {
                     cout << parseOutput(bEngine) << endl;
                 }
                 if (!yEngine.hasFinished) {
-                    Move ym = yEngine.chooseNextMove();
-                    if (ym.fromIndex != 300 || ym.toIndex != 300) {
+                    Move ym = yEngine.chooseNextMove(); // here
+                    if (ym.fromIndex() == 300 || ym.toIndex() == 300) {
+                        cout << parseOutput(yEngine) << endl;
+                    } else {
                         updateGameState(ym);
+                        cout << parseOutput(ym) << endl;
                     }
-                    cout << parseOutput(ym) << endl;
                 } else {
                     cout << parseOutput(yEngine) << endl;
                 }
                 if (!gEngine.hasFinished) {
                     Move gm = gEngine.chooseNextMove();
-                    if (gm.fromIndex != 300 || gm.toIndex != 300) {
+                    if (gm.fromIndex() == 300 || gm.toIndex() == 300) {
+                        cout << parseOutput(gEngine) << endl;
+                    } else {
                         updateGameState(gm);
+                        cout << parseOutput(gm) << endl;
                     }
-                    cout << parseOutput(gm) << endl;
                 } else {
                     cout << parseOutput(gEngine) << endl;
+                }
+                if(bEngine.hasFinished && yEngine.hasFinished && gEngine.hasFinished) {
+                    cout << "^" << endl;
                 }
                 
                 cout.flush();
@@ -136,7 +144,7 @@ class EngineProcess {
 };
 
 int main() {
-    EngineProcess ep;
+    EngineProcess ep = EngineProcess();
     return ep.startLoop();
 }
 

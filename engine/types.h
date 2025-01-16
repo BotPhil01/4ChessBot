@@ -121,31 +121,6 @@ namespace types {
             Move(Move &&m) = default;
             Move& operator=(const Move&) = default;
 
-            // Move(Move &m) {
-            //     fromI = m.fromIndex();
-            //     toI = m.toIndex();
-            //     totalMoves = m.totalMoves;
-            //     fromP = m.fromPiece();
-            //     fromC = m.fromColour();
-            //     capturedP = m.capturedPiece();
-            //     capturedC = m.capturedColour();
-            //     toP = m.promotionPiece();
-            //     special = m.isSpecial();
-            // }
-
-            // regular non promotion
-            // Move(const boardIndex fi, const boardIndex ti, 
-            // const int total, 
-            // const PieceType fp, const PieceColour fromCol, 
-            // const PieceType captured, const PieceColour capturedCol,
-            // bool isSpecial = false) :
-
-            // fromI(fi), toI(ti), totalMoves(total), fromC(fromCol),
-            // capturedP(captured), capturedC(capturedCol), 
-            // fromP(fp), toP(PieceType::EMPTY),
-            // special(isSpecial) {
-            // }
-
             // generic move
             Move(const boardIndex fi, const boardIndex ti, 
             const int total, 
@@ -183,7 +158,7 @@ namespace types {
             const boardIndex fromIndex() {
                 return fromI;
             }
-            const boardIndex toIndex() {
+            constexpr boardIndex toIndex() {
                 return toI;
             }
             const PieceType fromPiece() {

@@ -14,7 +14,7 @@ using namespace std;
 #define ENGINE_h
 
 namespace engine {
-    class Engine : Board {
+    class Engine : public Board {
         private:
             PieceColour self;
             int DEPTH = 2;
@@ -109,7 +109,8 @@ namespace engine {
         public:
             bool hasFinished;
             Engine(PieceColour p = PieceColour::RED, int depth = 2, bool finished = false) :
-            self(p), DEPTH(depth), hasFinished(finished) {
+            self(p), DEPTH(depth), hasFinished(finished), Board(){
+                
             }
             PieceColour getColour() {
                 return self;
@@ -160,6 +161,9 @@ namespace engine {
                 auto material = evaluateMaterial();
                 multiplyValues(&material, (float) 10); // weightings
                 auto mobility = evaluateMobility();
+                if (mobility[indexFromColour(self)] == 0) {
+                    return pair(PieceColour::NONE, -999.0);
+                }
                 // auto position = evaluatePosition();
                 auto advantages = layer(material, mobility); // combine into singular valus
                 char selfIndex = getColourIndex(self);
@@ -171,6 +175,8 @@ namespace engine {
                 }
                 return std::pair<PieceColour, float> (getColourFromIndex(maxAdvantageIndex), advantages[selfIndex] - advantages[maxAdvantageIndex]);
             }
+
+            
     };
 };
 #endif
