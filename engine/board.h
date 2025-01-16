@@ -115,7 +115,6 @@ namespace board {
                 std::vector<Move> out {};
                 out.reserve(60);
                 auto pieces = player.getPieces();
-                int i = 0;
                 for (int i = 0; i < pieces.size(); ++i) {
                     set<boardIndex> &set = pieces[i].get();
                     for (auto index : set)
