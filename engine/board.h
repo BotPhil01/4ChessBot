@@ -111,10 +111,10 @@ namespace board {
             // generates pseudo legal moves
             // moves in returned vector have all except the totalMoves guaranteed to be filled
             std::vector<Move> generatePseudoLegalMoves(PieceColour c) {
-                Player player = players[indexFromColour(c)];
+                Player &player = players[indexFromColour(c)].get();
                 std::vector<Move> out {};
                 out.reserve(60);
-                auto pieces = player.getPieces();
+                vector<reference_wrapper<set<boardIndex>>> pieces = player.getPieces();
                 for (int i = 0; i < pieces.size(); ++i) {
                     set<boardIndex> &set = pieces[i].get();
                     for (auto index : set)
@@ -283,8 +283,11 @@ namespace board {
             }
             // returns the list of on board ray indices in a given direction from a given src
             std::vector<boardIndex> getRay(boardIndex src, Direction d) {
+                // src = 193
+                // d = NORTH
                 std::vector<boardIndex> out {};
                 boardIndex next = shiftOne(src, d);
+                // next = 209
                 while (boardVector[next].type() == PieceType::EMPTY) {
                     out.emplace_back(next);
                     next = shiftOne(next, d);

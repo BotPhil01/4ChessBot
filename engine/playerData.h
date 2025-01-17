@@ -234,7 +234,7 @@ namespace player {
                 return clr;
             }
 
-            vector<reference_wrapper<set<boardIndex>>> getPieces() {
+            const vector<reference_wrapper<set<boardIndex>>> getPieces() {
                 return pieces;
             }
 

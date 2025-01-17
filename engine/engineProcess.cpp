@@ -12,9 +12,9 @@ class EngineProcess {
         // for predicting moves
         
         Board rBoard = Board();
-        Engine bEngine = Engine(PieceColour::BLUE);
-        Engine yEngine = Engine(PieceColour::YELLOW);
-        Engine gEngine = Engine(PieceColour::GREEN);
+        Engine bEngine = Engine(rBoard, PieceColour::BLUE);
+        Engine yEngine = Engine(rBoard, PieceColour::YELLOW);
+        Engine gEngine = Engine(rBoard, PieceColour::GREEN);
         // takes a javascript move and converts it to an engine move
         // difference is that js move has 0, 0 as top left cpp has bottom left
         // fromx|fromy|tox|toy
@@ -79,9 +79,9 @@ class EngineProcess {
 
         void updateGameState(Move m) { // plays a move across the whole process
             rBoard.playMove(m);
-            bEngine.playMove(m);
-            yEngine.playMove(m);
-            gEngine.playMove(m);
+            // bEngine.playMove(m);
+            // yEngine.playMove(m);
+            // gEngine.playMove(m);
             return;
         }
 

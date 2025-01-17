@@ -37,8 +37,16 @@ namespace types {
         PieceType type;
         bool hasMoved;
         boardIndex positionIndex;
-        Piece(PieceColour c = PieceColour::NONE, PieceType t = PieceType::EMPTY, bool m = false, boardIndex i = 300) :
-        pieceColour(c), type(t), hasMoved(m), positionIndex(i) {
+        Piece(
+            PieceColour c = PieceColour::NONE, 
+            PieceType t = PieceType::EMPTY, 
+            bool m = false, 
+            boardIndex i = 300
+        ) :
+        pieceColour(c), 
+        type(t), 
+        hasMoved(m), 
+        positionIndex(i) {
         }
     };
 
@@ -64,11 +72,11 @@ namespace types {
                 }
             }
 
-            bool isAccessible() {
+            bool isAccessible() const {
                 return canAccess;
             }
 
-            bool isEmpty() {
+            bool isEmpty() const {
                 return pieceType == PieceType::EMPTY && pieceColour == PieceColour::NONE;
             }
             
@@ -78,11 +86,11 @@ namespace types {
                 pieceColour = c;
             }
 
-            PieceType type() {
+            PieceType type() const {
                 return pieceType;
             }
 
-            PieceColour colour() {
+            PieceColour colour() const {
                 return pieceColour;
             }
 
@@ -150,44 +158,41 @@ namespace types {
             }
 
 
-            const bool isPromotion() {
+            const bool isPromotion() const {
                 return fromP != PieceType::EMPTY && toP != PieceType::EMPTY;
             }
-            const bool isCapture() {
+            const bool isCapture() const {
                 return capturedP != PieceType::EMPTY && capturedP != PieceType::BLOCK;
             }
-            const bool isSpecial() {
+            const bool isSpecial() const {
                 return special;
             }
-            const bool isCastling() {
+            const bool isCastling() const {
                 return special && fromC == capturedC && fromP == PieceType::KING && capturedP == PieceType::ROOK;
             }
-            const bool isEnPeasant() {
+            const bool isEnPeasant() const {
                 return special && fromC != capturedC && capturedC == PieceColour::NONE && capturedP == PieceType::EMPTY && fromP == PieceType::PAWN;
             }
-            PieceType capturedPiece() {
+            PieceType capturedPiece() const {
                 return capturedP;
             }
-            PieceColour capturedColour() {
+            PieceColour capturedColour() const {
                 return capturedC;
             }
-            const boardIndex fromIndex() {
+            const boardIndex fromIndex() const {
                 return fromI;
             }
-            constexpr boardIndex toIndex() {
+            constexpr boardIndex toIndex() const {
                 return toI;
             }
-            const PieceType fromPiece() {
+            const PieceType fromPiece() const {
                 return fromP;
             }
-            const PieceType promotionPiece() {
+            const PieceType promotionPiece() const {
                 return  toP;
             }
-            const PieceColour fromColour() {
+            const PieceColour fromColour() const {
                 return fromC;
-            }
-            void setTotal(int t) {
-                totalMoves = t;
             }
     };
 

@@ -82,7 +82,7 @@ namespace helper
         throw invalid_argument("Wrong type provided to indexFromType");
     }
 
-    const int indexFromColour(PieceColour c) {
+    constexpr int indexFromColour(PieceColour const c) {
         switch (c){
             case RED:
                 return 0;
@@ -98,7 +98,7 @@ namespace helper
         return -1;
     }
 
-    const Direction getLeft(PieceColour c)
+    constexpr Direction getLeft(PieceColour const c)
     {
         switch (c)
         {
@@ -115,7 +115,7 @@ namespace helper
         }
     }
 
-    const Direction getRight(PieceColour c)
+    constexpr Direction getRight(PieceColour const c)
     {
         switch (c)
         {
@@ -132,7 +132,7 @@ namespace helper
         }
     }
 
-    const Direction getUp(PieceColour c)
+    constexpr Direction getUp(PieceColour const c)
     {
         switch (c)
         {
@@ -149,7 +149,7 @@ namespace helper
         }
     }
 
-    const Direction getDown(PieceColour c)
+    constexpr Direction getDown(PieceColour const c)
     {
         switch (c)
         {
@@ -166,7 +166,7 @@ namespace helper
         }
     }
 
-    const Direction getUpRight(PieceColour c)
+    constexpr Direction getUpRight(PieceColour const c)
     {
         switch (c)
         {
@@ -183,7 +183,7 @@ namespace helper
         }
     }
 
-    const Direction getUpLeft(PieceColour c)
+    constexpr Direction getUpLeft(PieceColour const c)
     {
         switch (c)
         {
@@ -209,34 +209,34 @@ namespace helper
         return false;
     }
     
-    const bool indexOnBoard(boardIndex i) {
+    constexpr bool indexOnBoard(boardIndex const i) {
         int rem = i % 16;
         return (i > 35 && i < 252 && rem != 0 && rem != 15 && !indexInCorners(i));
     }
 
-    bool isRedStart(short i)
+    constexpr bool isRedStart(boardIndex const i)
     {
         return (i > 35 && i < 44) || (i > 51 && i < 60);
     }
 
-    bool isYellowStart(short i)
+    constexpr bool isYellowStart(boardIndex const i)
     {
         return (i > 227 && i < 236) || (i > 243 && i < 252);
     }
 
-    bool isBlueStart(short i)
+    constexpr bool isBlueStart(boardIndex const i)
     {
         short rem = i % 16;
         return (rem == 1 || rem == 2) && i < 195 && i > 80;
     }
 
-    bool isGreenStart(short i)
+    constexpr bool isGreenStart(boardIndex const i)
     {
         short rem = i % 16;
         return (rem == 13 || rem == 14) && i > 92 && i < 207;
     }
 
-    bool isPawnStart(short i)
+    constexpr bool isPawnStart(boardIndex const i)
     {
         if ((i > 51 && i < 60) || (i > 227 && i < 236))
         { // red and yellow
@@ -246,39 +246,40 @@ namespace helper
         return (i > 81 && i < 207 && (rem == 13 || rem == 2));
     }
 
-    bool isRookStart(short i)
+    constexpr bool isRookStart(boardIndex const i)
     {
         return i == 36 || i == 43 || i == 81 || i == 94 || i == 193 || i == 206 || i == 244 || i == 251;
     }
 
-    bool isKnightStart(short i)
+    constexpr bool isKnightStart(boardIndex const i)
     {
         return i == 37 || i == 42 || i == 97 || i == 110 || i == 177 || i == 190 || i == 245 || i == 250;
     }
 
-    bool isBishopStart(short i)
+    constexpr bool isBishopStart(boardIndex const i)
     {
         return i == 38 || i == 41 || i == 113 || i == 126 || i == 161 || i == 174 || i == 246 || i == 249;
     }
 
-    bool isQueenStart(short i)
+    constexpr bool isQueenStart(boardIndex const i)
     {
         return i == 39 || i == 129 || i == 158 || i == 248;
     }
 
-    bool isKingStart(short i)
+    constexpr bool isKingStart(boardIndex const i)
     {
         return i == 40 || i == 145 || i == 142 || i == 247;
     }
 
-    bool isEmptyStart(short i)
+    const bool isEmptyStart(boardIndex const i)
     {
         short tmp = i % 16;
         bool in14Square = (i > 32 && i < 255 && tmp != 15 && tmp != 0);
         bool notInCorners = true;
-        for (boardIndex j : cornerIndices)
-        {
-            if (i == j)
+        
+        for (int j = 0; j < cornerIndices.size() ; ++j) {
+            boardIndex tmpIndex = cornerIndices[j];
+            if (i == tmpIndex)
             {
                 notInCorners = false;
                 break;

@@ -14,19 +14,19 @@ using namespace std;
 #define ENGINE_h
 
 namespace engine {
-    class Engine : public Board {
+    class Engine {
         private:
+            Board &board;
             PieceColour self;
-            int DEPTH = 2;
-
+            int DEPTH;
             // returns material evaluation for all colours 
             // vector in form {r, b, y, g}
             const std::vector<float> evaluateMaterial() {
                 std::vector<float> weightings {
-                    getMaterial(PieceColour::RED), 
-                    getMaterial(PieceColour::BLUE), 
-                    getMaterial(PieceColour::YELLOW), 
-                    getMaterial(PieceColour::GREEN)}; //r b y g
+                    board.getMaterial(PieceColour::RED), 
+                    board.getMaterial(PieceColour::BLUE), 
+                    board.getMaterial(PieceColour::YELLOW), 
+                    board.getMaterial(PieceColour::GREEN)}; //r b y g
                 return weightings;   
             }
 
@@ -43,11 +43,11 @@ namespace engine {
             const std::vector<float> evaluateMobility() {
                 std::vector<float> out;
                 for (PieceColour c : helper::playableColours) {
-                    if (!movesPlayed()) { // failed to find move
-                        out.emplace_back((float) generateLegalMoves(c).size());
+                    if (!board.movesPlayed()) { // failed to find move
+                        out.emplace_back((float) board.generateLegalMoves(c).size());
                         continue;
                     }
-                    out.emplace_back(getLastMove(c).totalMoves);
+                    out.emplace_back(board.getLastMove(c).totalMoves);
                 }
                 return out;
             }
@@ -63,18 +63,18 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 }
-                auto moves = generateLegalMoves(getCurrentTurn());
+                auto moves = board.generateLegalMoves(board.getCurrentTurn());
                 for (auto move : moves) {
-                    move.setTotal(moves.size());
-                    playMove(move);
+                    move.totalMoves = moves.size();
+                    board.playMove(move);
                     float res = alphaBetaMin(alpha, beta, depth-1, commonEnemy);
                     if (res > alpha && res < beta) { // found a better move
                         alpha = res; // new lower bound is our best move
                     } else if (res > alpha && res >= beta) { // our better move wont be considered by the opponent
-                        unPlayMove();
+                        board.unPlayMove();
                         return beta;
                     }
-                    unPlayMove();
+                    board.unPlayMove();
                 }
                 return alpha;
             }
@@ -87,20 +87,20 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 } 
-                auto moves = generateLegalMoves(getCurrentTurn());
+                auto moves = board.generateLegalMoves(board.getCurrentTurn());
                 
-                for (auto move : moves) {
-                    move.setTotal(moves.size());
-                    playMove(move);
+                for (Move move : moves) {
+                    move.totalMoves = moves.size();
+                    board.playMove(move);
                     float res = alphaBetaMax(alpha, beta, depth-1, commonEnemy);
                     if (res < beta) {
                         beta = res; // new min found
                         if (res < alpha) { // wont be considered
-                            unPlayMove();
+                            board.unPlayMove();
                             return alpha;
                         }
                     }
-                    unPlayMove();
+                    board.unPlayMove();
                 }
                 return beta;
             }
@@ -109,10 +109,11 @@ namespace engine {
         public:
             bool hasFinished;
             Engine(
+                Board &b,
                 PieceColour p = PieceColour::RED, 
                 int depth = 2, 
                 bool finished = false) :
-            Board(),
+            board(b),
             self(p), 
             DEPTH(depth), 
             hasFinished(finished)
@@ -130,7 +131,7 @@ namespace engine {
                 // main idea could be after an upper bound of advantage gained it reevaluates
                 // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
                 // generate legal moves
-                auto moves = generateLegalMoves(self);
+                auto moves = board.generateLegalMoves(self);
                 if (moves.size() == 0) {
                     hasFinished = true;
                     return Move();
@@ -144,17 +145,17 @@ namespace engine {
                 Move bestMove = moves[0];
                 for (Move m : moves) {
                     // m.totalMoves = movesLength;
-                    playMove(m);
+                    board.playMove(m);
                     float eval = alphaBetaMax(-9999, 9999, DEPTH, strongest);
                     if (eval > bestEval) {
                         bestEval = eval;
                         bestMove = m;
                         if (eval > bestCutOff) {
-                            unPlayMove();
+                            board.unPlayMove();
                             break;
                         }
                     }
-                    unPlayMove();
+                    board.unPlayMove();
                 }
                 bestMove.totalMoves = moves.size();
                 return bestMove;
