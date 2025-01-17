@@ -242,6 +242,9 @@ namespace player {
             // strategy design
             // returns the captured piece type if a capture was handled else empty piecetype
             PieceType update(Move m) {
+                // m = fromI = 148, toI: = 132, fromC = types::PieceColour::YELLOW, fromP = types::PieceType::PAWN, capturedC = types::PieceColour::NONE, capturedP = types::PieceType::EMPTY, special = false, 
+                // toP = types:PieceType::QUEEN, totalMoves = 0
+
                 // check whether we are being taken or taking someone else
                 set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())].get();
                 auto fromIt = fromSet.find(m.fromIndex()); // Log(n)
@@ -269,10 +272,10 @@ namespace player {
 
                 } else if(m.isPromotion()) {
                     // we are moving + promoting
-                    set<boardIndex> toSet = pieces[indexFromType(m.promotionPiece())];
+                    set<boardIndex> &toSet = pieces[indexFromType(m.promotionPiece())].get();
                     // remove moved piece
 
-                    fromSet.erase(fromIt);
+                    fromSet.extract(fromIt);
                     toSet.emplace(m.toIndex());
 
                     // update moved pieces list
@@ -340,12 +343,12 @@ namespace player {
                 }
                 if (m.isPromotion()) {
                     // remove from promoted set 
-                    set<boardIndex> &toSet = pieces[indexFromType(m.promotionPiece())];
-                    auto fromIt = toSet.find(m.fromIndex());
-                    assert(fromIt != toSet.end());
-                    toSet.extract(fromIt);
+                    set<boardIndex> &toSet = pieces[indexFromType(m.promotionPiece())].get();
+                    auto toIt = toSet.find(m.toIndex());
+                    assert(toIt != toSet.end());
+                    toSet.extract(toIt);
                     // return to original set
-                    set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())];
+                    set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())].get();
                     fromSet.emplace(m.fromIndex());
 
                     if (fromPrev.fromIndex() == 300) {
