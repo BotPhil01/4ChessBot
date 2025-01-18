@@ -86,7 +86,7 @@ namespace types {
                 pieceColour = c;
             }
 
-            PieceType type() const {
+            PieceType type() {
                 return pieceType;
             }
 

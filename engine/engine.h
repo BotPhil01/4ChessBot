@@ -51,6 +51,9 @@ namespace engine {
                 }
                 return out;
             }
+
+            // TODO this algorithm doesn't make sense
+            // we need to maximise if the current enemy isnt us and minimise if the commonEnemy is us
             // search to a depth
             // alpha =  lower bound
             // beta = upper bound
@@ -64,6 +67,10 @@ namespace engine {
                     return evaluateBoard().second;
                 }
                 auto moves = board.generateLegalMoves(board.getCurrentTurn());
+                if (moves.size() == 0) {
+                    // no moves able to be generated
+                    return evaluateBoard().second;
+                }
                 for (auto move : moves) {
                     move.totalMoves = moves.size();
                     board.playMove(move);
@@ -87,7 +94,11 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 } 
-                auto moves = board.generateLegalMoves(board.getCurrentTurn());
+                auto moves = board.generateLegalMoves(board.getCurrentTurn()); 
+                if (moves.size() == 0) {
+                    // no moves able to be generated
+                    return evaluateBoard().second;
+                }
                 
                 for (Move move : moves) {
                     move.totalMoves = moves.size();
@@ -107,7 +118,6 @@ namespace engine {
 
 
         public:
-            bool hasFinished;
             Engine(
                 Board &b,
                 PieceColour p = PieceColour::RED, 
@@ -115,8 +125,7 @@ namespace engine {
                 bool finished = false) :
             board(b),
             self(p), 
-            DEPTH(depth), 
-            hasFinished(finished)
+            DEPTH(depth)
             {
                 
             }
@@ -131,9 +140,12 @@ namespace engine {
                 // main idea could be after an upper bound of advantage gained it reevaluates
                 // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
                 // generate legal moves
+                if (board.isPlayerCheckmate(self)) {
+                    return Move();
+                }
                 auto moves = board.generateLegalMoves(self);
                 if (moves.size() == 0) {
-                    hasFinished = true;
+                    board.setPlayerCheckmate(self);
                     return Move();
                 }
                 PieceColour strongest = evaluateBoard().first;
@@ -167,16 +179,16 @@ namespace engine {
             // returns the common enemy and the advantage difference
             std::pair<PieceColour, float> evaluateBoard() {
                 auto material = evaluateMaterial();
-                multiplyValues(&material, (float) 10); // weightings
+                multiplyValues(material, (float) 10); // weightings
                 auto mobility = evaluateMobility();
                 if (mobility[indexFromColour(self)] == 0) {
                     return pair(PieceColour::NONE, -999.0);
                 }
                 // auto position = evaluatePosition();
                 auto advantages = layer(material, mobility); // combine into singular valus
-                char selfIndex = getColourIndex(self);
-                char maxAdvantageIndex = 0; // index of max advantage
-                for (char i = 0; i < advantages.size(); i++) {
+                unsigned int selfIndex = getColourIndex(self);
+                unsigned int maxAdvantageIndex = 0; // index of max advantage
+                for (unsigned int i = 0; i < advantages.size(); i++) {
                     if (selfIndex != i && advantages[i] > advantages[maxAdvantageIndex]) {
                         maxAdvantageIndex = i;
                     }

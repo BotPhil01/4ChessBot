@@ -59,16 +59,19 @@ namespace board {
                 return isOnBoard(trgt) && trgtSqu.colour() != srcSqu.colour() && !trgtSqu.isEmpty() && trgtSqu.isAccessible();
             }            
 
-            bool willPromote(boardIndex target, PieceColour playerCol) {
-                switch (playerCol) {
+            bool isPromotion(boardIndex from, boardIndex to) {
+                if (boardVector[from].type() != PieceType::PAWN) {
+                    return false;
+                }
+                switch (boardVector[from].colour()) {
                     case PieceColour::RED:
-                        return target > 128;
+                        return to > 128;
                     case PieceColour::BLUE:
-                        return target % 16 >= 8;
+                        return to % 16 >= 8;
                     case PieceColour::YELLOW:
-                        return target < 143;
+                        return to < 143;
                     case PieceColour::GREEN:
-                        return target <= 7;
+                        return to <= 7;
                     default:
                         return false;
                 }
@@ -82,7 +85,7 @@ namespace board {
                 vector<Move> out {};
                 for (boardIndex t : trgts) {
                     
-                    if (boardVector[src].type() == PieceType::PAWN && willPromote(t, boardVector[src].colour())) {
+                    if (boardVector[src].type() == PieceType::PAWN && isPromotion(src, t)) {
                         out.emplace_back(
                             src, t, 0,
                             boardVector[src].type(), boardVector[src].colour(), 
@@ -115,27 +118,27 @@ namespace board {
                 std::vector<Move> out {};
                 out.reserve(60);
                 vector<reference_wrapper<set<boardIndex>>> pieces = player.getPieces();
-                for (int i = 0; i < pieces.size(); ++i) {
+                for (unsigned int i = 0; i < pieces.size(); ++i) {
                     set<boardIndex> &set = pieces[i].get();
                     for (auto index : set)
                         switch (playablePieces[i]) {
                             case PieceType::PAWN:
-                            out = concat(out, bulkCreateMove(index, pawnShift(index)));
+                            concat(out, bulkCreateMove(index, pawnShift(index)));
                             break;
                         case PieceType::ROOK:
-                            out = concat(out, bulkCreateMove(index, rookShift(index)));
+                            concat(out, bulkCreateMove(index, rookShift(index)));
                             break;
                         case PieceType::KNIGHT:
-                            out = concat(out, bulkCreateMove(index, knightShift(index)));
+                            concat(out, bulkCreateMove(index, knightShift(index)));
                             break;
                         case PieceType::BISHOP:
-                            out = concat(out, bulkCreateMove(index, bishopShift(index)));
+                            concat(out, bulkCreateMove(index, bishopShift(index)));
                             break;
                         case PieceType::KING:
-                            out = concat(out, bulkCreateMove(index, kingShift(index)));
+                            concat(out, bulkCreateMove(index, kingShift(index)));
                             break;
                         case PieceType::QUEEN:
-                            out = concat(out, bulkCreateMove(index, queenShift(index)));
+                            concat(out, bulkCreateMove(index, queenShift(index)));
                             break;
                         default:
                             continue;
@@ -184,7 +187,8 @@ namespace board {
             }
         
             std::vector<boardIndex> pawnShift(boardIndex index) {
-                auto out = concat(pawnQuietShift(index), pawnCaptureShift(index));
+                std::vector<boardIndex> out = pawnQuietShift(index);
+                concat(out, pawnCaptureShift(index));
                 return out;
             }
 
@@ -316,7 +320,9 @@ namespace board {
             }
 
             std::vector<boardIndex> queenShift(boardIndex src) {
-                return concat(rookShift(src), bishopShift(src));
+                std::vector<boardIndex> out = rookShift(src);
+                concat(out, bishopShift(src));
+                return out;
             } 
 
             std::vector<boardIndex> kingShift(boardIndex src) {
@@ -423,6 +429,9 @@ namespace board {
                 return turn;
             }
 
+            void setPlayerCheckmate(PieceColour c) {
+                players[indexFromColour(c)].get().setIsCheckmate(true);
+            }
             // returns (c)'s last move if no move is found it returns the last move played
             Move & getLastMove(PieceColour c) {
                 assert(moveVector.size() > 0);
@@ -515,17 +524,9 @@ namespace board {
                 return false;
             }
 
-            // TODO change test so that generateLegalMoves is not called before the move prediciton algo
-            // ALTERNATIVELY change this function so that it works in a virtual environemnt
-            // where it is assumed that the player can play even if they cant
-            // might help with debugging?
-            // also requires creating a different version of playMove / turn
-
             // generates the colours legal moves
             // returned moves can be guaranteed to be legal and all information except totalMoves to be correct
             vector<Move> generateLegalMoves(PieceColour c) {
-                // BUG THIS IS NOT RESETTING TO THE CORRECT PLACE
-                // CALL HAPPENS AFTER ALPHABETAMAX GNEERATELEGALMOVES
                 vector<Move> out;
                 auto moves = generatePseudoLegalMoves(c);
                 for (auto m : moves) {
@@ -538,6 +539,52 @@ namespace board {
                 return out;
             }
 
+            // gets the next colour such that the next colour's player is not checkmate
+            // if there are no more players that aren't in checkmate it returns the provided colour
+            // takes the colour to increment and the iteration counter
+            // iteration should start on 0
+            PieceColour getPrevTurn(PieceColour c, unsigned int iteration) {
+                if (iteration == 4) {
+                    return c;
+                }
+                switch (c) {
+                    case PieceColour::BLUE:
+                        return players[indexFromColour(PieceColour::RED)].get().isCheckmate() ? getPrevTurn(PieceColour::RED, ++iteration) : PieceColour::RED;
+                    case PieceColour::YELLOW:
+                        return players[indexFromColour(PieceColour::BLUE)].get().isCheckmate() ? getPrevTurn(PieceColour::BLUE, ++iteration) : PieceColour::BLUE;
+                    case PieceColour::GREEN:
+                        return players[indexFromColour(PieceColour::YELLOW)].get().isCheckmate() ? getPrevTurn(PieceColour::YELLOW, ++iteration) : PieceColour::YELLOW;
+                    case PieceColour::RED:
+                        return players[indexFromColour(PieceColour::GREEN)].get().isCheckmate() ? getPrevTurn(PieceColour::GREEN, ++iteration) : PieceColour::GREEN;
+                    default:
+                        return PieceColour::NONE;
+                }
+                return PieceColour::NONE;
+            }
+
+            // gets the next colour such that the next colour's player is not checkmate
+            // if there are no more players that aren't in checkmate it returns the provided colour
+            // takes the colour to increment and the iteration counter
+            // iteration should start on 0
+            PieceColour getNextTurn(PieceColour c, unsigned int iteration) {
+                if (iteration == 4) {
+                    return c;
+                }
+                switch (c) {
+                    case PieceColour::RED:
+                        return players[indexFromColour(PieceColour::BLUE)].get().isCheckmate() ? getNextTurn(PieceColour::BLUE, ++iteration) : PieceColour::BLUE;
+                    case PieceColour::BLUE:
+                        return players[indexFromColour(PieceColour::YELLOW)].get().isCheckmate() ? getNextTurn(PieceColour::YELLOW, ++iteration) : PieceColour::YELLOW;
+                    case PieceColour::YELLOW:
+                        return players[indexFromColour(PieceColour::GREEN)].get().isCheckmate() ? getNextTurn(PieceColour::GREEN, ++iteration) : PieceColour::GREEN;
+                    case PieceColour::GREEN:
+                        return players[indexFromColour(PieceColour::RED)].get().isCheckmate() ? getNextTurn(PieceColour::RED, ++iteration) : PieceColour::RED;
+                    default:
+                        return PieceColour::NONE;
+                }
+                return PieceColour::NONE;
+            }
+            
             // plays the move without checking whether the current turn is accurate to the move being played
             // should only be used when generating legal moves to see if the king is in check
             // this is because sometimes legal moves want to be created out of move order
@@ -546,10 +593,10 @@ namespace board {
 
 
                 // update player data
-                int pIndex = indexFromColour(m.fromColour());
+                unsigned int pIndex = indexFromColour(m.fromColour());
                 players[pIndex].get().update(m);
                 if (m.isCapture()) {
-                    for (int i = 0; i < players.size(); ++i) {
+                    for (unsigned int i = 0; i < players.size(); ++i) {
                         if (pIndex != i) {
                             Player &p = players[i].get();
                             if (p.update(m) != PieceType::EMPTY) {
@@ -626,7 +673,7 @@ namespace board {
                     throw std::invalid_argument(s);
                 }
 
-                turn = getNextTurn(turn);
+                turn = getNextTurn(turn, 0);
                 virtualPlayMove(m);
             }
 
@@ -675,7 +722,7 @@ namespace board {
 
             // unplays the last played move
             void unPlayMove() {
-                turn = getPrevTurn(turn);// reset turn counter
+                turn = getPrevTurn(turn, 0);// reset turn counter
                 virtualUnPlayMove();
             }
     
@@ -693,7 +740,7 @@ namespace board {
             // returns the position of the given colour
             std::vector<std::pair<Square, boardIndex>> getPosition(PieceColour c) {
                 std::vector<std::pair<Square, boardIndex>> res;
-                for (int i = 0; i < boardVector.size(); ++i) {
+                for (unsigned int i = 0; i < boardVector.size(); ++i) {
                     Square square = boardVector[i];
                     if (square.colour() == c) {
                         res.emplace_back(std::pair<Square, boardIndex> {square, i});
@@ -707,14 +754,38 @@ namespace board {
             }            
         
             Move indicesToMove(boardIndex from, boardIndex to) {
-                PieceType promotionType = willPromote(from, boardVector[from].colour()) ? PieceType::QUEEN : PieceType::EMPTY;
+                PieceType promotionType = isPromotion(from, to) ? PieceType::QUEEN : PieceType::EMPTY;
+            
                 bool special = isCastling(from, to) || isEnPeasant(from, to);
                 return Move(from, to, 0, 
                 boardVector[from].type(), boardVector[from].colour(),
                 boardVector[to].type(), boardVector[to].colour(),
                 promotionType, special);
             }
+            
+            // generates the appropriate shift of the given index
+            vector<boardIndex> genShift(boardIndex from) {
+                switch (boardVector[from].type()) {
+                    case PieceType::PAWN:
+                        return pawnShift(from);
+                    case PieceType::ROOK:
+                        return rookShift(from);
+                    case PieceType::KNIGHT:
+                        return knightShift(from);
+                    case PieceType::BISHOP:
+                        return bishopShift(from);
+                    case PieceType::KING:
+                        return kingShift(from);
+                    case PieceType::QUEEN:
+                        return queenShift(from);
+                    default:
+                        return {};
+                }
+            }
 
+            bool isPlayerCheckmate(PieceColour c) {
+                return players[indexFromColour(c)].get().isCheckmate();
+            }
     };
 
     

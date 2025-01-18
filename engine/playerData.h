@@ -17,6 +17,7 @@ namespace player {
     class Player {
         private: 
             Colour clr;
+            bool isMate = false;
             
             set<boardIndex> pawns;
             set<boardIndex> rooks;
@@ -183,7 +184,7 @@ namespace player {
         
             // gets the piecetype that the set is handling
             PieceType getSetType(set<boardIndex> & address) {
-                int i = 0;
+                unsigned int i = 0;
                 for (; i < pieces.size(); ++i) {
                     auto s = pieces.at(i);
                     if (s.get() == address) {
@@ -224,10 +225,17 @@ namespace player {
                 
             }   
         public:
-            bool canPlai = false;
             Player(Colour c) :
             clr(c) {
                 genPieces();                
+            }
+
+            constexpr bool isCheckmate() const {
+                return isMate;
+            }
+
+            void setIsCheckmate(bool b) {
+                isMate = b;
             }
 
             PieceColour colour() {
@@ -242,9 +250,7 @@ namespace player {
             // strategy design
             // returns the captured piece type if a capture was handled else empty piecetype
             PieceType update(Move m) {
-                // m = fromI = 148, toI: = 132, fromC = types::PieceColour::YELLOW, fromP = types::PieceType::PAWN, capturedC = types::PieceColour::NONE, capturedP = types::PieceType::EMPTY, special = false, 
-                // toP = types:PieceType::QUEEN, totalMoves = 0
-
+                
                 // check whether we are being taken or taking someone else
                 set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())].get();
                 auto fromIt = fromSet.find(m.fromIndex()); // Log(n)
@@ -325,7 +331,7 @@ namespace player {
                     // our piece could've been taken
                     // if this triggers then m has not been set properly after being played
                     assert(
-                        m.capturedPiece() != PieceType::EMPTY || m.capturedPiece() != PieceType::BLOCK
+                        (m.capturedPiece() != PieceType::EMPTY || m.capturedPiece() != PieceType::BLOCK)
                         && m.capturedColour() != PieceColour::NONE
                     );
                     

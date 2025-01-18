@@ -74,7 +74,7 @@ namespace helper
 
 
     const int indexFromType(PieceType t) {
-        for (int i = 0; i < playablePieces.size(); ++i) {
+        for (unsigned int i = 0; i < playablePieces.size(); ++i) {
             if (playablePieces[i] == t) {
                 return i;
             }
@@ -277,7 +277,7 @@ namespace helper
         bool in14Square = (i > 32 && i < 255 && tmp != 15 && tmp != 0);
         bool notInCorners = true;
         
-        for (int j = 0; j < cornerIndices.size() ; ++j) {
+        for (unsigned int j = 0; j < cornerIndices.size() ; ++j) {
             boardIndex tmpIndex = cornerIndices[j];
             if (i == tmpIndex)
             {
@@ -309,32 +309,29 @@ namespace helper
     };
 
     template <typename T>
-    std::vector<T> concat(std::vector<T> v1, std::vector<T> v2)
+    void concat(std::vector<T> &v1, std::vector<T> v2)
     {
         for (T i : v2)
         {
             v1.emplace_back(i);
         }
-        return v1;
     }
 
     template <typename T>
     // layers vectors ontop of each other with + 
     // vectors must have same size
     std::vector<T> layer(std::vector<T> v1, std::vector<T> v2) {
-        const size_t s1 = v1.size();
-        const size_t s2 = v2.size();
-        assert(s1 == s2);
-        for (int i = 0; i < v1.size(); i++) {
+        assert(v1.size() == v2.size());
+        for (unsigned int i = 0; i < v1.size(); i++) {
             v1[i] += v2[i];
         }
         return v1;
     }
 
     template<typename T>
-    void multiplyValues(std::vector<T> *v, T f) {
-        for (int i = 0; i < (*v).size(); ++i) {
-            (*v)[i] *= f;
+    void multiplyValues(std::vector<T> &v, T f) {
+        for (unsigned int i = 0; i < v.size(); ++i) {
+            v[i] *= f;
         }
     }
 
@@ -397,38 +394,6 @@ namespace helper
         return s;
     }
 
-    PieceColour getPrevTurn(PieceColour current) {
-        switch (current) {
-            case PieceColour::BLUE:
-                return PieceColour::RED;
-            case PieceColour::YELLOW:
-                return PieceColour::BLUE;
-            case PieceColour::GREEN:
-                return PieceColour::YELLOW;
-            case PieceColour::RED:
-                return PieceColour::GREEN;
-            default:
-                return PieceColour::NONE;
-        }
-        return PieceColour::NONE;
-    }
-
-    PieceColour getNextTurn(PieceColour current) {
-        switch (current) {
-            case PieceColour::RED:
-                return PieceColour::BLUE;
-            case PieceColour::BLUE:
-                return PieceColour::YELLOW;
-            case PieceColour::YELLOW:
-                return PieceColour::GREEN;
-            case PieceColour::GREEN:
-                return PieceColour::RED;
-            default:
-                return PieceColour::NONE;
-        }
-        return PieceColour::NONE;
-    }
-    
     // void printMoveVector(std::vector<Move> mvs) {
     //     std::cout << "Moves: ";
     //     for (Move m : mvs) {
@@ -438,7 +403,7 @@ namespace helper
     // }
 
     // TODO DELETE AND REFACTOR
-    char getColourIndex(PieceColour c) {
+    unsigned int getColourIndex(PieceColour c) {
         switch (c) {
             case PieceColour::RED:
                 return 0;

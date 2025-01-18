@@ -2,6 +2,8 @@
 #include"board.h"
 #include<cassert>
 #include<sstream>
+#include<string>
+#include<array>
 using namespace engine;
 using namespace std;
 using namespace board;
@@ -19,9 +21,9 @@ class EngineProcess {
         // difference is that js move has 0, 0 as top left cpp has bottom left
         // fromx|fromy|tox|toy
         
-        Move parseInput(string jMove) {
+        Move parseMove(string jMove) {
             // extract from string
-            assert(jMove.size() > 6);
+            assert(jMove.size() > 3);
             vector<int> coordinates;
             size_t i = jMove.find('|', 0);
             while (i != jMove.npos) {
@@ -51,6 +53,10 @@ class EngineProcess {
             return rBoard.indicesToMove(from, to);
         }
 
+        // translates jcoordinates into c++ coords
+        pair<int, int> fromJCoords(int x, int y) {
+            return pair<int, int> {x + 1, (13 - y) + 2};
+        }
         // converts 16x18 coords to javascript coords
         pair<int, int> toJCoords(pair <int, int> coords) {
             coords.first -= 1;
@@ -71,7 +77,7 @@ class EngineProcess {
 
         // gives js output for a finished engine
         string parseOutput(Engine e) {
-            assert(e.hasFinished);
+            assert(rBoard.isPlayerCheckmate(e.getColour()));
             stringstream stream;
             stream << PieceColourToString(e.getColour()) << "#";
             return stream.str();
@@ -79,12 +85,25 @@ class EngineProcess {
 
         void updateGameState(Move m) { // plays a move across the whole process
             rBoard.playMove(m);
-            // bEngine.playMove(m);
-            // yEngine.playMove(m);
-            // gEngine.playMove(m);
             return;
         }
 
+        void parseSquare(string jSquare) {
+            // in form [0-9]+|[0-9]+
+            unsigned int t = jSquare.find("|");
+            assert(t != jSquare.npos);
+            pair<int, int> coords = fromJCoords(stoi(jSquare.substr(0, t)), stoi(jSquare.substr(t+1, jSquare.length())));
+            boardIndex i = toIndex(coords.first, coords.second);
+            // get indices
+            vector<boardIndex> indices = rBoard.genShift(i);
+            // output the indices converted to jcoords
+            string s = "@";
+            for (boardIndex i : indices) {
+                pair<int, int> p = toJCoords(to16RC(i));
+                s = s + to_string(p.first) + "|" + to_string(p.second) + "#";
+            }
+            cout << s << endl;
+        }
 
     public:
         EngineProcess() {
@@ -97,44 +116,40 @@ class EngineProcess {
                     cout << "Comparison success exiting..." << "\n";
                     break;
                 }
-                Move m = parseInput(input);
+                assert(input.length() != 0);
+                if (input[0] == '@') {
+                    parseSquare(input.substr(1, input.length()));
+                    cout.flush();
+                    continue;
+                }
+                Move m = parseMove(input);
                 updateGameState(m);
-                if (!bEngine.hasFinished) {
-                    Move bm = bEngine.chooseNextMove();
-                    if (bm.fromIndex() == 300 || bm.toIndex() == 300) {
-                        cout << parseOutput(bEngine) << endl;
-                    } else {
-                        updateGameState(bm); // here yEngine has correct turn
-                        cout << parseOutput(bm) << endl;
-                    }
-                } else {
+                Move bm = bEngine.chooseNextMove();
+                if (bm.fromIndex() == 300 || bm.toIndex() == 300) {
                     cout << parseOutput(bEngine) << endl;
-                }
-                if (!yEngine.hasFinished) {
-                    Move ym = yEngine.chooseNextMove(); // here
-                    if (ym.fromIndex() == 300 || ym.toIndex() == 300) {
-                        cout << parseOutput(yEngine) << endl;
-                    } else {
-                        updateGameState(ym);
-                        cout << parseOutput(ym) << endl;
-                    }
                 } else {
+                    updateGameState(bm); // here yEngine has correct turn
+                    cout << parseOutput(bm) << endl;
+                }
+                Move ym = yEngine.chooseNextMove(); // here
+                if (ym.fromIndex() == 300 || ym.toIndex() == 300) {
                     cout << parseOutput(yEngine) << endl;
-                }
-                if (!gEngine.hasFinished) {
-                    Move gm = gEngine.chooseNextMove();
-                    if (gm.fromIndex() == 300 || gm.toIndex() == 300) {
-                        cout << parseOutput(gEngine) << endl;
-                    } else {
-                        updateGameState(gm);
-                        cout << parseOutput(gm) << endl;
-                    }
                 } else {
+                    updateGameState(ym);
+                    cout << parseOutput(ym) << endl;
+                }
+        
+                Move gm = gEngine.chooseNextMove();
+                if (gm.fromIndex() == 300 || gm.toIndex() == 300) {
                     cout << parseOutput(gEngine) << endl;
+                } else {
+                    updateGameState(gm);
+                    cout << parseOutput(gm) << endl;
                 }
-                if(bEngine.hasFinished && yEngine.hasFinished && gEngine.hasFinished) {
-                    cout << "^" << endl;
-                }
+                
+                // if(bEngine.hasFinished && yEngine.hasFinished && gEngine.hasFinished) {
+                //     cout << "^" << endl;
+                // }
                 
                 cout.flush();
             }
