@@ -1,9 +1,4 @@
-#include<memory>
-#include<iostream>
 #include<cassert>
-#include<exception>
-
-using namespace std;
 
 #ifndef TYPES_H
 #define TYPES_H
@@ -66,10 +61,10 @@ namespace types {
             }
             Square(bool access, PieceType type, PieceColour col) :
             canAccess(access), pieceType(type), pieceColour(col) {
-                if ((!access && (type != PieceType::BLOCK || col != PieceColour::NONE)) || 
-                (access && type == PieceType::BLOCK)) {
-                    throw invalid_argument("incorrect configuration for calling square constructor");
-                }
+                assert (
+                    (!access && (type != PieceType::BLOCK || col != PieceColour::NONE)) || 
+                    (access && type == PieceType::BLOCK)
+                );
             }
 
             bool isAccessible() const {

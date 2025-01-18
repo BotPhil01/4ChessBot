@@ -5,72 +5,67 @@
 #include<vector>
 #include<string>
 
-using namespace helper;
-using namespace types;
-using namespace player;
-using namespace std;
-
 #ifndef BOARD_H
 #define BOARD_H
 
 namespace board {
     // board is padded to 16x18
     class Board {
-        std::vector<Square> boardVector; 
+        std::vector<types::Square> boardVector; 
         
-        PieceColour turn;
-        std::vector<Move> moveVector; 
+        types::PieceColour turn;
+        std::vector<types::Move> moveVector; 
         std::vector<bool> playableColours; // r b y g
 
-        Player redPlayer = Player(RED);
-        Player bluePlayer = Player(BLUE);
-        Player yellowPlayer = Player(YELLOW);
-        Player greenPlayer = Player(GREEN);
+        player::Player redPlayer = player::Player(types::PieceColour::RED);
+        player::Player bluePlayer = player::Player(types::PieceColour::BLUE);
+        player::Player yellowPlayer = player::Player(types::PieceColour::YELLOW);
+        player::Player greenPlayer = player::Player(types::PieceColour::GREEN);
 
-        vector<reference_wrapper<Player>> players;
+        std::vector<std::reference_wrapper<player::Player>> players;
 
         private:
 
-            std::vector<Move> getMoveHistory() {
+            std::vector<types::Move> getMoveHistory() {
                 return moveVector;
             }
-            Square & getSquare(boardIndex r, boardIndex c) { // from 14x14
+            types::Square & getSquare(types::boardIndex r, types::boardIndex c) { // from 14x14
                 short a1 = 33;
-                return boardVector.at(r * PADDEDCOLS + (c + 1) + a1);
+                return boardVector.at(r * helper::PADDEDCOLS + (c + 1) + a1);
             }
-            // Square & getSquareByType(COLUMN c, short r) {}
-            Square & getSquarePadded(boardIndex r, boardIndex c) { // from 16x18
+            // types::Square & getSquareByType(COLUMN c, short r) {}
+            types::Square & getSquarePadded(types::boardIndex r, types::boardIndex c) { // from 16x18
                 return boardVector.at(r * 16 + c);
             }
             // helper function to query board if the piece at s can capture at t also checking if t exists (can be anything on board as long as diff colours)
             // note this is pseudo legal and hence should not be used as a definitive answer
             // assume src is a valid piece ie not empty
             // checks if target is on the board
-            bool existsCapturable(boardIndex src, boardIndex trgt) {
+            bool existsCapturable(types::boardIndex src, types::boardIndex trgt) {
 
-                Square srcSqu = boardVector.at(src);
-                Square trgtSqu = boardVector.at(trgt);
+                types::Square srcSqu = boardVector.at(src);
+                types::Square trgtSqu = boardVector.at(trgt);
                 return isOnBoard(trgt) && trgtSqu.colour() != srcSqu.colour() && trgtSqu.isAccessible();
             }
             // STRICTER THAN existsCapturable
-            bool existsEnemyPiece(boardIndex src, boardIndex trgt) {
-                Square trgtSqu = boardVector.at(trgt);
-                Square srcSqu = boardVector.at(src);
+            bool existsEnemyPiece(types::boardIndex src, types::boardIndex trgt) {
+                types::Square trgtSqu = boardVector.at(trgt);
+                types::Square srcSqu = boardVector.at(src);
                 return isOnBoard(trgt) && trgtSqu.colour() != srcSqu.colour() && !trgtSqu.isEmpty() && trgtSqu.isAccessible();
             }            
 
-            bool isPromotion(boardIndex from, boardIndex to) {
-                if (boardVector[from].type() != PieceType::PAWN) {
+            bool isPromotion(types::boardIndex from, types::boardIndex to) {
+                if (boardVector[from].type() != types::PieceType::PAWN) {
                     return false;
                 }
                 switch (boardVector[from].colour()) {
-                    case PieceColour::RED:
+                    case types::PieceColour::RED:
                         return to > 128;
-                    case PieceColour::BLUE:
+                    case types::PieceColour::BLUE:
                         return to % 16 >= 8;
-                    case PieceColour::YELLOW:
+                    case types::PieceColour::YELLOW:
                         return to < 143;
-                    case PieceColour::GREEN:
+                    case types::PieceColour::GREEN:
                         return to <= 7;
                     default:
                         return false;
@@ -80,17 +75,17 @@ namespace board {
 
             // bulk creates moves from one index to a list of other indices
             // indices are assumed to be valid
-            vector<Move> bulkCreateMove(boardIndex src, std::vector<boardIndex> trgts) {
-                assert(indexOnBoard(src));
-                vector<Move> out {};
-                for (boardIndex t : trgts) {
+            std::vector<types::Move> bulkCreateMove(types::boardIndex src, std::vector<types::boardIndex> trgts) {
+                assert(helper::indexOnBoard(src));
+                std::vector<types::Move> out {};
+                for (types::boardIndex t : trgts) {
                     
-                    if (boardVector[src].type() == PieceType::PAWN && isPromotion(src, t)) {
+                    if (boardVector[src].type() == types::PieceType::PAWN && isPromotion(src, t)) {
                         out.emplace_back(
                             src, t, 0,
                             boardVector[src].type(), boardVector[src].colour(), 
                             boardVector[t].type(), boardVector[t].colour(),
-                            PieceType::QUEEN
+                            types::PieceType::QUEEN
                         );
                         continue;
                     } 
@@ -99,7 +94,7 @@ namespace board {
                             src, t, 0,
                             boardVector[src].type(), boardVector[src].colour(), 
                             boardVector[t].type(), boardVector[t].colour(),
-                            PieceType::EMPTY, true
+                            types::PieceType::EMPTY, true
                         );
                         continue;
                     }
@@ -112,33 +107,33 @@ namespace board {
             }
 
             // generates pseudo legal moves
-            // moves in returned vector have all except the totalMoves guaranteed to be filled
-            std::vector<Move> generatePseudoLegalMoves(PieceColour c) {
-                Player &player = players[indexFromColour(c)].get();
-                std::vector<Move> out {};
+            // moves in returned std::vector have all except the totalMoves guaranteed to be filled
+            std::vector<types::Move> generatePseudoLegalMoves(types::PieceColour c) {
+                player::Player &player = players[helper::indexFromColour(c)].get();
+                std::vector<types::Move> out {};
                 out.reserve(60);
-                vector<reference_wrapper<set<boardIndex>>> pieces = player.getPieces();
+                std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces = player.getPieces();
                 for (unsigned int i = 0; i < pieces.size(); ++i) {
-                    set<boardIndex> &set = pieces[i].get();
-                    for (auto index : set)
-                        switch (playablePieces[i]) {
-                            case PieceType::PAWN:
-                            concat(out, bulkCreateMove(index, pawnShift(index)));
+                    std::set<types::boardIndex> &s = pieces[i].get();
+                    for (auto index : s)
+                        switch (helper::playablePieces[i]) {
+                            case types::PieceType::PAWN:
+                            helper::concat(out, bulkCreateMove(index, pawnShift(index)));
                             break;
-                        case PieceType::ROOK:
-                            concat(out, bulkCreateMove(index, rookShift(index)));
+                        case types::PieceType::ROOK:
+                            helper::concat(out, bulkCreateMove(index, rookShift(index)));
                             break;
-                        case PieceType::KNIGHT:
-                            concat(out, bulkCreateMove(index, knightShift(index)));
+                        case types::PieceType::KNIGHT:
+                            helper::concat(out, bulkCreateMove(index, knightShift(index)));
                             break;
-                        case PieceType::BISHOP:
-                            concat(out, bulkCreateMove(index, bishopShift(index)));
+                        case types::PieceType::BISHOP:
+                            helper::concat(out, bulkCreateMove(index, bishopShift(index)));
                             break;
-                        case PieceType::KING:
-                            concat(out, bulkCreateMove(index, kingShift(index)));
+                        case types::PieceType::KING:
+                            helper::concat(out, bulkCreateMove(index, kingShift(index)));
                             break;
-                        case PieceType::QUEEN:
-                            concat(out, bulkCreateMove(index, queenShift(index)));
+                        case types::PieceType::QUEEN:
+                            helper::concat(out, bulkCreateMove(index, queenShift(index)));
                             break;
                         default:
                             continue;
@@ -151,13 +146,13 @@ namespace board {
 
             // get colour's last move 
             // returns valid iterator if move exists otherwise returns .end() iterator
-            std::vector<Move>::iterator getLastMoveIterator(PieceColour colour) {
+            std::vector<types::Move>::iterator getLastMoveIterator(types::PieceColour colour) {
                 const size_t vs = moveVector.size();
                 unsigned char min = std::min(vs, (const size_t) 4); 
-                std::vector<Move>::iterator iterator = moveVector.end() - 1;
+                std::vector<types::Move>::iterator iterator = moveVector.end() - 1;
                 for (int i = 0; i < min; ++i) {
                     if (vs - i > 0 && vs - i < moveVector.size()) {
-                        Move m = moveVector[vs - i]; 
+                        types::Move m = moveVector[vs - i]; 
                         if (m.fromColour() == colour) {
                             return iterator - i;
                         }
@@ -166,72 +161,72 @@ namespace board {
                 return moveVector.end();
             }
             // check if a square is empty by index
-            bool isEmpty(boardIndex i) {
-                return boardVector[i].type() == PieceType::EMPTY;
+            bool isEmpty(types::boardIndex i) {
+                return boardVector[i].type() == types::PieceType::EMPTY;
             }
 
-            bool isOnBoard(boardIndex i) {
-                for (boardIndex c : cornerIndices) { // not in corners
+            bool isOnBoard(types::boardIndex i) {
+                for (types::boardIndex c : helper::cornerIndices) { // not in corners
                     if (c == i) {
                         return false;
                     }
                 }
-                boardIndex rem = i % 16;
+                types::boardIndex rem = i % 16;
                 return rem != 0 && rem != 15 && i < 252 && i > 35;
             }
 
-            bool hasMoved(boardIndex i) {
+            bool hasMoved(types::boardIndex i) {
                 auto c = boardVector[i].colour();
-                Player p = players[indexFromColour(c)];
+                player::Player p = players[helper::indexFromColour(c)];
                 return p.indexHasMoved(i);
             }
         
-            std::vector<boardIndex> pawnShift(boardIndex index) {
-                std::vector<boardIndex> out = pawnQuietShift(index);
-                concat(out, pawnCaptureShift(index));
+            std::vector<types::boardIndex> pawnShift(types::boardIndex index) {
+                std::vector<types::boardIndex> out = pawnQuietShift(index);
+                helper::concat(out, pawnCaptureShift(index));
                 return out;
             }
 
             // Quiet move shift checks if on the board
-            std::vector<boardIndex> pawnQuietShift(boardIndex index) {
-                std::vector<boardIndex> out = {};
-                boardIndex m = shiftOne(index, helper::getUp(turn));
+            std::vector<types::boardIndex> pawnQuietShift(types::boardIndex index) {
+                std::vector<types::boardIndex> out = {};
+                types::boardIndex m = helper::shiftOne(index, helper::getUp(turn));
                 if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
-                if (!isPawnStart(index)) {
+                if (!helper::isPawnStart(index)) {
                     return out;
                 }
-                m = shiftOne(m, helper::getUp(turn));
+                m = helper::shiftOne(m, helper::getUp(turn));
                 if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
                 return out;
             }
 
             // includes en peasant
-            std::vector<boardIndex> pawnCaptureShift(boardIndex index) {
+            std::vector<types::boardIndex> pawnCaptureShift(types::boardIndex index) {
                 // check if there exists a capturable piece beside 
                 // TODO optimise later
-                std::vector<boardIndex> out = std::vector<boardIndex> {}; // en peasant is unlikely 
+                std::vector<types::boardIndex> out = std::vector<types::boardIndex> {}; // en peasant is unlikely 
                 // regular captures
-                boardIndex target = shiftOne(index, getUpRight(boardVector[index].colour()));
+                types::boardIndex target = helper::shiftOne(index, helper::getUpRight(boardVector[index].colour()));
                 bool upRightEmpty = isEmpty(target);
                 if (existsEnemyPiece(index, target)) {
                     out.emplace_back(target);
                 }
 
-                target = shiftOne(index, getUpLeft(boardVector[index].colour())); // go to next possible capture
+                target = helper::shiftOne(index, helper::getUpLeft(boardVector[index].colour())); // go to next possible capture
                 bool upLeftEmpty = isEmpty(target);
                 if (existsEnemyPiece(index, target)) {
                     out.emplace_back(target);
                 }
 
                 // en peasant
-                target = shiftOne(index, getLeft(boardVector[index].colour()));
-                PieceColour targetColour = boardVector[target].colour(); 
-                std::vector<Move>::iterator lastMoveIterator = getLastMoveIterator(targetColour);
+                target = helper::shiftOne(index, helper::getLeft(boardVector[index].colour()));
+                types::PieceColour targetColour = boardVector[target].colour(); 
+                std::vector<types::Move>::iterator lastMoveIterator = getLastMoveIterator(targetColour);
                 if (upLeftEmpty && (lastMoveIterator != moveVector.end()) && (lastMoveIterator->toIndex() == target) && existsEnemyPiece(index, target)) { 
                     out.emplace_back(target);
                 }
 
-                target = shiftOne(index, getRight(boardVector[index].colour()));
+                target = helper::shiftOne(index, helper::getRight(boardVector[index].colour()));
                 targetColour = boardVector[target].colour();
                 lastMoveIterator = getLastMoveIterator(targetColour);
                 if (upRightEmpty && (lastMoveIterator != moveVector.end()) && (lastMoveIterator->toIndex() == target) && existsEnemyPiece(index, target)) {
@@ -240,41 +235,41 @@ namespace board {
                 return out;
             }
 
-            std::vector<boardIndex> knightShift(boardIndex index) {
-                std::vector<boardIndex> out {}; 
-                boardIndex northSouth = shiftOne(index, Direction::NORTH);
-                boardIndex eastWest = shiftOne(index, Direction::EAST);
-                boardIndex diag = shiftOne(northSouth, Direction::NORTHEAST);
+            std::vector<types::boardIndex> knightShift(types::boardIndex index) {
+                std::vector<types::boardIndex> out {}; 
+                types::boardIndex northSouth = helper::shiftOne(index, types::Direction::NORTH);
+                types::boardIndex eastWest = helper::shiftOne(index, types::Direction::EAST);
+                types::boardIndex diag = helper::shiftOne(northSouth, types::Direction::NORTHEAST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(eastWest, Direction::NORTHEAST);
+                diag = helper::shiftOne(eastWest, types::Direction::NORTHEAST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(northSouth, Direction::NORTHWEST);
+                diag = helper::shiftOne(northSouth, types::Direction::NORTHWEST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(eastWest, Direction::SOUTHEAST);
+                diag = helper::shiftOne(eastWest, types::Direction::SOUTHEAST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                eastWest = shiftOne(index, Direction::WEST);
-                northSouth = shiftOne(index, Direction::SOUTH);
-                diag = shiftOne(northSouth, Direction::SOUTHEAST);
+                eastWest = helper::shiftOne(index, types::Direction::WEST);
+                northSouth = helper::shiftOne(index, types::Direction::SOUTH);
+                diag = helper::shiftOne(northSouth, types::Direction::SOUTHEAST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(eastWest, Direction::SOUTHWEST);
+                diag = helper::shiftOne(eastWest, types::Direction::SOUTHWEST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(northSouth, Direction::SOUTHWEST);
+                diag = helper::shiftOne(northSouth, types::Direction::SOUTHWEST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
-                diag = shiftOne(eastWest, Direction::NORTHWEST);
+                diag = helper::shiftOne(eastWest, types::Direction::NORTHWEST);
                 if (existsCapturable(index, diag)) {
                     out.emplace_back(diag);
                 }
@@ -282,19 +277,19 @@ namespace board {
             }
 
             // returns if the piece at i is a blocker
-            bool isBlocker(boardIndex i) {
-                return boardVector[i].type() != PieceType::EMPTY;
+            bool isBlocker(types::boardIndex i) {
+                return boardVector[i].type() != types::PieceType::EMPTY;
             }
             // returns the list of on board ray indices in a given direction from a given src
-            std::vector<boardIndex> getRay(boardIndex src, Direction d) {
+            std::vector<types::boardIndex> getRay(types::boardIndex src, types::Direction d) {
                 // src = 193
                 // d = NORTH
-                std::vector<boardIndex> out {};
-                boardIndex next = shiftOne(src, d);
+                std::vector<types::boardIndex> out {};
+                types::boardIndex next = helper::shiftOne(src, d);
                 // next = 209
-                while (boardVector[next].type() == PieceType::EMPTY) {
+                while (boardVector[next].type() == types::PieceType::EMPTY) {
                     out.emplace_back(next);
-                    next = shiftOne(next, d);
+                    next = helper::shiftOne(next, d);
                 }
                 // found blocker
                 // add if capturable (blocker can be an out of bounds block piece)
@@ -303,34 +298,34 @@ namespace board {
                 }
                 return out;
             }
-            std::vector<boardIndex> bishopShift(boardIndex src) {
-                std::vector<boardIndex> out = getRay(src, Direction::NORTHEAST);
-                concat(out, getRay(src, Direction::NORTHWEST));
-                concat(out, getRay(src, Direction::SOUTHEAST));
-                concat(out, getRay(src, Direction::SOUTHWEST));
+            std::vector<types::boardIndex> bishopShift(types::boardIndex src) {
+                std::vector<types::boardIndex> out = getRay(src, types::Direction::NORTHEAST);
+                helper::concat(out, getRay(src, types::Direction::NORTHWEST));
+                helper::concat(out, getRay(src, types::Direction::SOUTHEAST));
+                helper::concat(out, getRay(src, types::Direction::SOUTHWEST));
                 return out;
             }
 
-            std::vector<boardIndex> rookShift(boardIndex src) {
-                std::vector<boardIndex> out = getRay(src, Direction::NORTH);
-                concat(out, getRay(src, Direction::EAST));
-                concat(out, getRay(src, Direction::SOUTH));
-                concat(out, getRay(src, Direction::WEST));
+            std::vector<types::boardIndex> rookShift(types::boardIndex src) {
+                std::vector<types::boardIndex> out = getRay(src, types::Direction::NORTH);
+                helper::concat(out, getRay(src, types::Direction::EAST));
+                helper::concat(out, getRay(src, types::Direction::SOUTH));
+                helper::concat(out, getRay(src, types::Direction::WEST));
                 return out;
             }
 
-            std::vector<boardIndex> queenShift(boardIndex src) {
-                std::vector<boardIndex> out = rookShift(src);
-                concat(out, bishopShift(src));
+            std::vector<types::boardIndex> queenShift(types::boardIndex src) {
+                std::vector<types::boardIndex> out = rookShift(src);
+                helper::concat(out, bishopShift(src));
                 return out;
             } 
 
-            std::vector<boardIndex> kingShift(boardIndex src) {
-                std::vector<Direction> directions = {Direction::NORTH, Direction::NORTHEAST, Direction::EAST, Direction::SOUTHEAST, Direction::SOUTH, Direction::SOUTHWEST, Direction::WEST, Direction::NORTHWEST};
-                std::vector<boardIndex> out;
-                boardIndex tmp;
-                for (Direction d : directions) {
-                    tmp = shiftOne(src, d);
+            std::vector<types::boardIndex> kingShift(types::boardIndex src) {
+                std::vector<types::Direction> directions = {types::Direction::NORTH, types::Direction::NORTHEAST, types::Direction::EAST, types::Direction::SOUTHEAST, types::Direction::SOUTH, types::Direction::SOUTHWEST, types::Direction::WEST, types::Direction::NORTHWEST};
+                std::vector<types::boardIndex> out;
+                types::boardIndex tmp;
+                for (types::Direction d : directions) {
+                    tmp = helper::shiftOne(src, d);
                     if (existsCapturable(src, tmp)) {
                         out.emplace_back(tmp);
                     }
@@ -340,18 +335,18 @@ namespace board {
                 if (hasMoved(src)) {
                     return out;
                 }
-                auto leftRay = getRay(src, getLeft(boardVector[src].colour()));
-                auto rightRay = getRay(src, getRight(boardVector[src].colour())); 
+                auto leftRay = getRay(src, helper::getLeft(boardVector[src].colour()));
+                auto rightRay = getRay(src, helper::getRight(boardVector[src].colour())); 
 
                 if (leftRay.size() > 0) {
                     auto endLeftIndex = leftRay.back();
-                    if (boardVector[endLeftIndex].type() == PieceType::ROOK && hasMoved(endLeftIndex) == false) {
+                    if (boardVector[endLeftIndex].type() == types::PieceType::ROOK && hasMoved(endLeftIndex) == false) {
                         out.emplace_back(endLeftIndex);
                     }
                 }
                 if (rightRay.size() > 0) {
                     auto endRightIndex = rightRay.back();
-                    if (boardVector[endRightIndex].type() == PieceType::ROOK && hasMoved(endRightIndex) == false) {
+                    if (boardVector[endRightIndex].type() == types::PieceType::ROOK && hasMoved(endRightIndex) == false) {
                         out.emplace_back(endRightIndex);
                     }
                 }
@@ -359,10 +354,10 @@ namespace board {
             }
 
             // indices passed into this should be verified that no other piece blocks the path between them
-            bool isCastling(boardIndex src, boardIndex tgt) {
-                Square s = boardVector[src];
-                Square t = boardVector[tgt];
-                if (!(s.type() == PieceType::KING && t.type() == PieceType::ROOK && s.colour() == t.colour())) {
+            bool isCastling(types::boardIndex src, types::boardIndex tgt) {
+                types::Square s = boardVector[src];
+                types::Square t = boardVector[tgt];
+                if (!(s.type() == types::PieceType::KING && t.type() == types:: PieceType::ROOK && s.colour() == t.colour())) {
                     return false;
                 }
 
@@ -375,34 +370,34 @@ namespace board {
             
 
             // checks whether 2 indices constitute an enPeasant move
-            bool isEnPeasant(boardIndex src, boardIndex trgt) {
-                if (trgt != shiftOne(src, getLeft(boardVector[src].colour())) || 
-                    trgt != shiftOne(src, getRight(boardVector[src].colour()))) {
+            bool isEnPeasant(types::boardIndex src, types::boardIndex trgt) {
+                if (trgt != helper::shiftOne(src, helper::getLeft(boardVector[src].colour())) || 
+                    trgt != helper::shiftOne(src, helper::getRight(boardVector[src].colour()))) {
                     return false;
                 }
-                if (boardVector[src].type() != PieceType::PAWN || boardVector[trgt].type() != PieceType::PAWN) {
+                if (boardVector[src].type() != types::PieceType::PAWN || boardVector[trgt].type() != types:: PieceType::PAWN) {
                     return false;
                 }
                 return true;
             }
 
-            std::vector<Square> getBoard() {
+            std::vector<types::Square> getBoard() {
                 return boardVector;
             }
             
-            int getValue(PieceType t) {
+            int getValue(types::PieceType t) {
                 switch (t) {
-                    case PieceType::PAWN:
+                    case types::PieceType::PAWN:
                         return 1;
-                    case PieceType::ROOK:
+                    case types::PieceType::ROOK:
                         return 5;
-                    case PieceType::BISHOP:
+                    case types::PieceType::BISHOP:
                         return 3;
-                    case PieceType::KNIGHT:
+                    case types::PieceType::KNIGHT:
                         return 3;
-                    case PieceType::QUEEN:
+                    case types::PieceType::QUEEN:
                         return 9;
-                    case PieceType::KING:
+                    case types::PieceType::KING:
                         return 200;
                     default:
                         return 0;
@@ -414,26 +409,26 @@ namespace board {
             Board() {
                 // construct to initial position
                 for (short i = 0; i < 288; ++i) {
-                    boardVector.emplace_back(generateSquare(i));
+                    boardVector.emplace_back(helper::generateSquare(i));
                 }
-                turn = initailTurn;
-                moveVector = vector<Move> {};
+                turn = helper::initailTurn;
+                moveVector = std::vector<types::Move> {};
                 playableColours = {true, true, true, true};
-                players.push_back(ref(redPlayer));
-                players.push_back(ref(bluePlayer));
-                players.push_back(ref(yellowPlayer));
-                players.push_back(ref(greenPlayer));
+                players.push_back(std::ref(redPlayer));
+                players.push_back(std::ref(bluePlayer));
+                players.push_back(std::ref(yellowPlayer));
+                players.push_back(std::ref(greenPlayer));
             }
             
-            PieceColour getCurrentTurn() {
+            types::PieceColour getCurrentTurn() {
                 return turn;
             }
 
-            void setPlayerCheckmate(PieceColour c) {
-                players[indexFromColour(c)].get().setIsCheckmate(true);
+            void setPlayerCheckmate(types::PieceColour c) {
+                players[helper::indexFromColour(c)].get().setIsCheckmate(true);
             }
             // returns (c)'s last move if no move is found it returns the last move played
-            Move & getLastMove(PieceColour c) {
+            types::Move & getLastMove(types::PieceColour c) {
                 assert(moveVector.size() > 0);
                 for (int i = 1; i < 5; i++) {
                     int index = moveVector.size() - i;
@@ -451,46 +446,46 @@ namespace board {
                 // TODO Change to unicode characters see https://www.chessprogramming.org/Pieces
                 // algo is weird but prints correctly according to red
                 // orientation in order NESW = YGRB
-                for (short i = PADDEDROWS - 1; i >= 0; --i) {
-                    for (int j = 0; j < PADDEDCOLS; ++j) {
-                        PieceType type = boardVector[16 * i + j].type();
-                        std::cout << PieceTypeToString(type).substr(0, 2) << " ";
+                for (short i = helper::PADDEDROWS - 1; i >= 0; --i) {
+                    for (int j = 0; j < helper::PADDEDCOLS; ++j) {
+                        types::PieceType type = boardVector[16 * i + j].type();
+                        std::cout << helper::PieceTypeToString(type).substr(0, 2) << " ";
                     }
                     std::cout << '\n';
                 }
             }
 
             // asks whether c's king is in check in current board position
-            bool isKingInCheck(PieceColour c) {
-                assert(c != PieceColour::NONE);
-                Player player = players[indexFromColour(c)];
+            bool isKingInCheck(types::PieceColour c) {
+                assert(c != types::PieceColour::NONE);
+                player::Player player = players[helper::indexFromColour(c)];
                 // BUG this does not adequately check whether the king is in check
                 // knight just fucking takes the blue king
                 // idea
                 // get king index
-                set<boardIndex> s = player.getPieces()[indexFromType(PieceType::KING)].get();
+                std::set<types::boardIndex> s = player.getPieces()[helper::indexFromType(types::PieceType::KING)].get();
                 auto node = s.extract(s.begin());
                 assert(!node.empty());
-                boardIndex kingIndex = node.value();
+                types::boardIndex kingIndex = node.value();
 
                 // generate possible attacks
 
                 // check ray attacks () and 
-                std::vector<Direction> diags {Direction::NORTHEAST, Direction::SOUTHEAST, Direction::SOUTHWEST, Direction::NORTHWEST};
-                std::vector<Direction> upDowns {Direction::NORTH, Direction::EAST, Direction::SOUTH, Direction::WEST};
-                for (Direction d : diags) {
+                std::vector<types::Direction> diags {types::Direction::NORTHEAST, types::Direction::SOUTHEAST, types::Direction::SOUTHWEST, types::Direction::NORTHWEST};
+                std::vector<types::Direction> upDowns {types::Direction::NORTH, types::Direction::EAST, types::Direction::SOUTH, types::Direction::WEST};
+                for (types::Direction d : diags) {
                     // sliding piece check
                     auto ray = getRay(kingIndex, d);
                     if (ray.size() > 0) {
                         auto last = ray.back();
-                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type() == PieceType::BISHOP || boardVector.at(last).type() == PieceType::QUEEN)) {
+                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type() == types::PieceType::BISHOP || boardVector.at(last).type() == types:: PieceType::QUEEN)) {
                             return true;
                         }
                     }
 
                     // pawn check
-                    auto diagIndex = shiftOne(kingIndex, d);
-                    if (existsEnemyPiece(kingIndex, diagIndex) && (boardVector.at(diagIndex).type() == PieceType::PAWN)) {
+                    auto diagIndex = helper::shiftOne(kingIndex, d);
+                    if (existsEnemyPiece(kingIndex, diagIndex) && (boardVector.at(diagIndex).type() == types::PieceType::PAWN)) {
                         // get the pawn shift
                         // if the result of the pawn shift is the kignIndex then return true 
                         auto pawnAttacks = pawnCaptureShift(diagIndex);
@@ -502,11 +497,11 @@ namespace board {
                     }
                 }
 
-                for (Direction d : upDowns) {
+                for (types::Direction d : upDowns) {
                     auto ray = getRay(kingIndex, d);
                     if (ray.size() > 0) {
                         auto last = ray.back();
-                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type() == PieceType::ROOK || boardVector.at(last).type() == PieceType::QUEEN)) {
+                        if (existsEnemyPiece(kingIndex, last) && (boardVector.at(last).type() == types::PieceType::ROOK || boardVector.at(last).type() == types:: PieceType::QUEEN)) {
                             return true;
                         }
                     }
@@ -515,8 +510,8 @@ namespace board {
                 // check knight
                 auto knightRays = knightShift(kingIndex);
                 assert(knightRays.size() < 9);
-                for (boardIndex i : knightRays) {
-                    if (existsEnemyPiece(kingIndex, i) && boardVector.at(i).type() == PieceType::KNIGHT) {
+                for (types::boardIndex i : knightRays) {
+                    if (existsEnemyPiece(kingIndex, i) && boardVector.at(i).type() == types::PieceType::KNIGHT) {
                         // std::cout << "knight ray found\n";
                         return true;
                     }
@@ -526,8 +521,8 @@ namespace board {
 
             // generates the colours legal moves
             // returned moves can be guaranteed to be legal and all information except totalMoves to be correct
-            vector<Move> generateLegalMoves(PieceColour c) {
-                vector<Move> out;
+            std::vector<types::Move> generateLegalMoves(types::PieceColour c) {
+                std::vector<types::Move> out;
                 auto moves = generatePseudoLegalMoves(c);
                 for (auto m : moves) {
                     virtualPlayMove(m);
@@ -543,63 +538,63 @@ namespace board {
             // if there are no more players that aren't in checkmate it returns the provided colour
             // takes the colour to increment and the iteration counter
             // iteration should start on 0
-            PieceColour getPrevTurn(PieceColour c, unsigned int iteration) {
+            types::PieceColour getPrevTurn(types::PieceColour c, unsigned int iteration) {
                 if (iteration == 4) {
                     return c;
                 }
                 switch (c) {
-                    case PieceColour::BLUE:
-                        return players[indexFromColour(PieceColour::RED)].get().isCheckmate() ? getPrevTurn(PieceColour::RED, ++iteration) : PieceColour::RED;
-                    case PieceColour::YELLOW:
-                        return players[indexFromColour(PieceColour::BLUE)].get().isCheckmate() ? getPrevTurn(PieceColour::BLUE, ++iteration) : PieceColour::BLUE;
-                    case PieceColour::GREEN:
-                        return players[indexFromColour(PieceColour::YELLOW)].get().isCheckmate() ? getPrevTurn(PieceColour::YELLOW, ++iteration) : PieceColour::YELLOW;
-                    case PieceColour::RED:
-                        return players[indexFromColour(PieceColour::GREEN)].get().isCheckmate() ? getPrevTurn(PieceColour::GREEN, ++iteration) : PieceColour::GREEN;
+                    case types::PieceColour::BLUE:
+                        return players[helper::indexFromColour(types::PieceColour::RED)].get().isCheckmate() ? getPrevTurn(types::PieceColour::RED, ++iteration) : types::PieceColour::RED;
+                    case types::PieceColour::YELLOW:
+                        return players[helper::indexFromColour(types::PieceColour::BLUE)].get().isCheckmate() ? getPrevTurn(types::PieceColour::BLUE, ++iteration) : types::PieceColour::BLUE;
+                    case types::PieceColour::GREEN:
+                        return players[helper::indexFromColour(types::PieceColour::YELLOW)].get().isCheckmate() ? getPrevTurn(types::PieceColour::YELLOW, ++iteration) : types::PieceColour::YELLOW;
+                    case types::PieceColour::RED:
+                        return players[helper::indexFromColour(types::PieceColour::GREEN)].get().isCheckmate() ? getPrevTurn(types::PieceColour::GREEN, ++iteration) : types::PieceColour::GREEN;
                     default:
-                        return PieceColour::NONE;
+                        return types::PieceColour::NONE;
                 }
-                return PieceColour::NONE;
+                return types::PieceColour::NONE;
             }
 
             // gets the next colour such that the next colour's player is not checkmate
             // if there are no more players that aren't in checkmate it returns the provided colour
             // takes the colour to increment and the iteration counter
             // iteration should start on 0
-            PieceColour getNextTurn(PieceColour c, unsigned int iteration) {
+            types::PieceColour getNextTurn(types::PieceColour c, unsigned int iteration) {
                 if (iteration == 4) {
                     return c;
                 }
                 switch (c) {
-                    case PieceColour::RED:
-                        return players[indexFromColour(PieceColour::BLUE)].get().isCheckmate() ? getNextTurn(PieceColour::BLUE, ++iteration) : PieceColour::BLUE;
-                    case PieceColour::BLUE:
-                        return players[indexFromColour(PieceColour::YELLOW)].get().isCheckmate() ? getNextTurn(PieceColour::YELLOW, ++iteration) : PieceColour::YELLOW;
-                    case PieceColour::YELLOW:
-                        return players[indexFromColour(PieceColour::GREEN)].get().isCheckmate() ? getNextTurn(PieceColour::GREEN, ++iteration) : PieceColour::GREEN;
-                    case PieceColour::GREEN:
-                        return players[indexFromColour(PieceColour::RED)].get().isCheckmate() ? getNextTurn(PieceColour::RED, ++iteration) : PieceColour::RED;
+                    case types::PieceColour::RED:
+                        return players[helper::indexFromColour(types::PieceColour::BLUE)].get().isCheckmate() ? getNextTurn(types::PieceColour::BLUE, ++iteration) : types::PieceColour::BLUE;
+                    case types::PieceColour::BLUE:
+                        return players[helper::indexFromColour(types::PieceColour::YELLOW)].get().isCheckmate() ? getNextTurn(types::PieceColour::YELLOW, ++iteration) : types::PieceColour::YELLOW;
+                    case types::PieceColour::YELLOW:
+                        return players[helper::indexFromColour(types::PieceColour::GREEN)].get().isCheckmate() ? getNextTurn(types::PieceColour::GREEN, ++iteration) : types::PieceColour::GREEN;
+                    case types::PieceColour::GREEN:
+                        return players[helper::indexFromColour(types::PieceColour::RED)].get().isCheckmate() ? getNextTurn(types::PieceColour::RED, ++iteration) : types::PieceColour::RED;
                     default:
-                        return PieceColour::NONE;
+                        return types::PieceColour::NONE;
                 }
-                return PieceColour::NONE;
+                return types::PieceColour::NONE;
             }
             
             // plays the move without checking whether the current turn is accurate to the move being played
             // should only be used when generating legal moves to see if the king is in check
             // this is because sometimes legal moves want to be created out of move order
             // also does not increment or decrement the turn clock
-            void virtualPlayMove(Move m) {
+            void virtualPlayMove(types::Move m) {
 
 
                 // update player data
-                unsigned int pIndex = indexFromColour(m.fromColour());
+                unsigned int pIndex = helper::indexFromColour(m.fromColour());
                 players[pIndex].get().update(m);
                 if (m.isCapture()) {
                     for (unsigned int i = 0; i < players.size(); ++i) {
                         if (pIndex != i) {
-                            Player &p = players[i].get();
-                            if (p.update(m) != PieceType::EMPTY) {
+                            player::Player &p = players[i].get();
+                            if (p.update(m) != types::PieceType::EMPTY) {
                                 // after calling the above with m = 68, 83 the 83 from blue has not been removed
                                 break;
                             }
@@ -611,7 +606,7 @@ namespace board {
                 // promotion
                 if (m.isPromotion()) {
                     boardVector[m.toIndex()].setPiece(m.promotionPiece(), m.fromColour());
-                    boardVector[m.fromIndex()].setPiece(PieceType::EMPTY, PieceColour::NONE);
+                    boardVector[m.fromIndex()].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);
                     
                     moveVector.emplace_back(m);
                     return;
@@ -619,10 +614,10 @@ namespace board {
 
                 if (m.isEnPeasant()) {
                     // NOTE enpeasant is encoded as src = pawn location and trgt = location of the adjascent pawn
-                    boardIndex tmp = shiftOne(m.toIndex(), getUp(m.fromColour()));
+                    types::boardIndex tmp = helper::shiftOne(m.toIndex(), helper::getUp(m.fromColour()));
                     boardVector[tmp].setPiece(m.fromPiece(), m.fromColour());
-                    boardVector[m.fromIndex()].setPiece(PieceType::EMPTY, PieceColour::NONE);
-                    boardVector[m.toIndex()].setPiece(PieceType::EMPTY, PieceColour::NONE);
+                    boardVector[m.fromIndex()].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);
+                    boardVector[m.toIndex()].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);
                     moveVector.emplace_back(m);
                     return;
                 }
@@ -639,8 +634,8 @@ namespace board {
                         boardVector[m.fromIndex() + dif].setPiece(m.fromPiece(), m.fromColour());
                     }
                     boardVector[m.toIndex() - dif].setPiece(m.capturedPiece(), m.capturedColour());
-                    boardVector[m.fromIndex()].setPiece(PieceType::EMPTY, PieceColour::NONE);
-                    boardVector[m.toIndex()].setPiece(PieceType::EMPTY, PieceColour::NONE);
+                    boardVector[m.fromIndex()].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);
+                    boardVector[m.toIndex()].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);
 
                     
                     moveVector.emplace_back(m);
@@ -648,28 +643,28 @@ namespace board {
                 }
 
                 // quiet moves
-                assert (indexOnBoard(m.fromIndex()) && indexOnBoard(m.toIndex()));
+                assert (helper::indexOnBoard(m.fromIndex()) && helper::indexOnBoard(m.toIndex()));
                 boardVector[m.toIndex()].setPiece(m.fromPiece(), m.fromColour());
-                boardVector[m.fromIndex()].setPiece(PieceType::EMPTY, PieceColour::NONE);
+                boardVector[m.fromIndex()].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);
                 moveVector.emplace_back(m);
 
             }
 
-            void playMove(Move m) {
+            void playMove(types::Move m) {
                 // runtime check that everything is working smoothly
                 if ((boardVector[m.fromIndex()].type() != m.fromPiece()) || (boardVector[m.toIndex()].type() != m.capturedPiece())) {
                     printBoard();
-                    std::string s = "Move is poorly formed: board square does not match move square data. Board type: " 
-                    + std::string(PieceTypeToString(boardVector[m.fromIndex()].type())) + "(" + to_string(m.fromIndex()) + ")" 
-                    + ", " + std::string(PieceTypeToString(m.fromPiece())) + "(" + to_string(m.fromIndex()) + ")" + "\n";
+                    std::string s = "types::Move is poorly formed: board square does not match move square data. Board type: " 
+                    + std::string(helper::PieceTypeToString(boardVector[m.fromIndex()].type())) + "(" + std::to_string(m.fromIndex()) + ")" 
+                    + ", " + std::string(helper::PieceTypeToString(m.fromPiece())) + "(" + std::to_string(m.fromIndex()) + ")" + "\n";
                     throw std::invalid_argument(s);
                 }
 
                 if (boardVector[m.fromIndex()].colour() != turn) {
-                    std::string s = "It is not the given move's turn. Turn: " + std::string(PieceColourToString(turn)) 
-                        + " colour: " + std::string(PieceColourToString(m.fromColour())) + " board piece colour: " 
-                        + std::string(PieceColourToString(boardVector[m.fromIndex()].colour())) + " move: "
-                        + moveToString(m) + "\n";
+                    std::string s = "It is not the given move's turn. Turn: " + std::string(helper::PieceColourToString(turn)) 
+                        + " colour: " + std::string(helper::PieceColourToString(m.fromColour())) + " board piece colour: " 
+                        + std::string(helper::PieceColourToString(boardVector[m.fromIndex()].colour())) + " move: "
+                        + helper::moveToString(m) + "\n";
                     throw std::invalid_argument(s);
                 }
 
@@ -683,20 +678,20 @@ namespace board {
             void virtualUnPlayMove() {
                 
                 // handle board data
-                Move lastMove = moveVector.back(); //retreive last elem 
+                types::Move lastMove = moveVector.back(); //retreive last elem 
                 // clear special move squares (Squares altered outside of src and trgt)
                 if (lastMove.isCastling()) {
                     // clear everything inbetween
-                    Direction d = getDirection(lastMove.fromIndex(), lastMove.toIndex());
-                    boardIndex tmp = lastMove.fromIndex();
+                    types::Direction d = helper::getDirection(lastMove.fromIndex(), lastMove.toIndex());
+                    types::boardIndex tmp = lastMove.fromIndex();
                     while (tmp != lastMove.toIndex()) {
                         assert(isOnBoard(tmp));
-                        boardVector[tmp].setPiece(PieceType::EMPTY, PieceColour::NONE);
-                        tmp = shiftOne(tmp, d);
+                        boardVector[tmp].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);
+                        tmp = helper::shiftOne(tmp, d);
                     }
                 }
                 if (lastMove.isEnPeasant()) {
-                    boardVector[shiftOne(lastMove.toIndex(), getUp(lastMove.fromColour()))].setPiece(PieceType::EMPTY, PieceColour::NONE);                    
+                    boardVector[helper::shiftOne(lastMove.toIndex(), helper::getUp(lastMove.fromColour()))].setPiece(types::PieceType::EMPTY, types::PieceColour::NONE);                    
                 }
                 boardVector[lastMove.toIndex()].setPiece(lastMove.capturedPiece(), lastMove.capturedColour()); //return data to state
                 boardVector[lastMove.fromIndex()].setPiece(lastMove.fromPiece(), lastMove.fromColour()); 
@@ -704,9 +699,9 @@ namespace board {
                 
                 // handle player data
                 // find the involved pieces last move 
-                Move fromPrevMove; 
-                Move toPrevMove; 
-                for (Move m : moveVector) {
+                types::Move fromPrevMove; 
+                types::Move toPrevMove; 
+                for (types::Move m : moveVector) {
                     if (m.toIndex() == lastMove.fromIndex()) {
                         fromPrevMove = m;
                     }
@@ -722,12 +717,12 @@ namespace board {
 
             // unplays the last played move
             void unPlayMove() {
-                turn = getPrevTurn(turn, 0);// reset turn counter
+                turn = getPrevTurn(turn, 0);// restd::set turn counter
                 virtualUnPlayMove();
             }
     
             // gets the current material value of a colour 
-            float getMaterial(PieceColour c) {
+            float getMaterial(types::PieceColour c) {
                 float res = 0;
                 for (auto square : boardVector) {
                     if (square.colour() == c) {
@@ -738,12 +733,12 @@ namespace board {
             }
 
             // returns the position of the given colour
-            std::vector<std::pair<Square, boardIndex>> getPosition(PieceColour c) {
-                std::vector<std::pair<Square, boardIndex>> res;
+            std::vector<std::pair<types::Square, types::boardIndex>> getPosition(types::PieceColour c) {
+                std::vector<std::pair<types::Square, types::boardIndex>> res;
                 for (unsigned int i = 0; i < boardVector.size(); ++i) {
-                    Square square = boardVector[i];
+                    types::Square square = boardVector[i];
                     if (square.colour() == c) {
-                        res.emplace_back(std::pair<Square, boardIndex> {square, i});
+                        res.emplace_back(std::pair<types::Square, types::boardIndex> {square, i});
                     }
                 }    
                 return res;            
@@ -753,38 +748,38 @@ namespace board {
                 return moveVector.size() != 0;
             }            
         
-            Move indicesToMove(boardIndex from, boardIndex to) {
-                PieceType promotionType = isPromotion(from, to) ? PieceType::QUEEN : PieceType::EMPTY;
+            types::Move indicesToMove(types::boardIndex from, types::boardIndex to) {
+                types::PieceType promotionType = isPromotion(from, to) ? types::PieceType::QUEEN : types:: PieceType::EMPTY;
             
                 bool special = isCastling(from, to) || isEnPeasant(from, to);
-                return Move(from, to, 0, 
+                return types::Move(from, to, 0, 
                 boardVector[from].type(), boardVector[from].colour(),
                 boardVector[to].type(), boardVector[to].colour(),
                 promotionType, special);
             }
             
             // generates the appropriate shift of the given index
-            vector<boardIndex> genShift(boardIndex from) {
+            std::vector<types::boardIndex> genShift(types::boardIndex from) {
                 switch (boardVector[from].type()) {
-                    case PieceType::PAWN:
+                    case types::PieceType::PAWN:
                         return pawnShift(from);
-                    case PieceType::ROOK:
+                    case types::PieceType::ROOK:
                         return rookShift(from);
-                    case PieceType::KNIGHT:
+                    case types::PieceType::KNIGHT:
                         return knightShift(from);
-                    case PieceType::BISHOP:
+                    case types::PieceType::BISHOP:
                         return bishopShift(from);
-                    case PieceType::KING:
+                    case types::PieceType::KING:
                         return kingShift(from);
-                    case PieceType::QUEEN:
+                    case types::PieceType::QUEEN:
                         return queenShift(from);
                     default:
                         return {};
                 }
             }
 
-            bool isPlayerCheckmate(PieceColour c) {
-                return players[indexFromColour(c)].get().isCheckmate();
+            bool isPlayerCheckmate(types::PieceColour c) {
+                return players[helper::indexFromColour(c)].get().isCheckmate();
             }
     };
 

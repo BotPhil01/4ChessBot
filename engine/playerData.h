@@ -1,5 +1,4 @@
 #include"helper.h"
-#include"types.h"
 
 #include<vector>
 #include<set>
@@ -9,45 +8,42 @@
 
 
 
-namespace player {    
-    using namespace std;
-    using namespace helper;
-    using namespace types;
-    using Colour = PieceColour;
+namespace player {
+    using Colour = types::PieceColour;
     class Player {
         private: 
             Colour clr;
             bool isMate = false;
             
-            set<boardIndex> pawns;
-            set<boardIndex> rooks;
-            set<boardIndex> knights;
-            set<boardIndex> bishops;
-            set<boardIndex> queens;
-            set<boardIndex> kings;
-            set<boardIndex> movedPieces;
+            std::set<types::boardIndex> pawns;
+            std::set<types::boardIndex> rooks;
+            std::set<types::boardIndex> knights;
+            std::set<types::boardIndex> bishops;
+            std::set<types::boardIndex> queens;
+            std::set<types::boardIndex> kings;
+            std::set<types::boardIndex> movedPieces;
             // for iteration through pieces
-            vector<reference_wrapper<set<boardIndex>>> pieces;
+            std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces;
             
 
-            set<Move> playedMoves;
+            std::set<types::Move> playedMoves;
             void genPawns() {
                 int lo = 0;
                 int hi = 0;
                 switch(clr) {
-                    case RED:
+                    case types::PieceColour::RED:
                         lo = 52;
                         hi = 60;
                         break;
-                    case YELLOW:
+                    case types::PieceColour::YELLOW:
                         lo = 228;
                         hi = 236;
                         break;
-                    case BLUE:
+                    case types::PieceColour::BLUE:
                         lo = 82;
                         hi = 210;
                         break;
-                    case GREEN:
+                    case types::PieceColour::GREEN:
                         lo = 93;
                         hi = 221;
                         break;
@@ -56,31 +52,31 @@ namespace player {
                         hi = 0;
                         break;
                 }
-                if (clr == RED || clr == YELLOW) {
+                if (clr == types::PieceColour::RED || clr == types::PieceColour::YELLOW) {
                     for (; lo < hi; ++lo) {
                         pawns.emplace(lo);
                     }
-                } else if(clr == BLUE || clr == GREEN) {
-                    for (; lo < hi; lo = shiftOne(lo, NORTH)) {
+                } else if(clr == types::PieceColour::BLUE || clr == types::PieceColour::GREEN) {
+                    for (; lo < hi; lo = helper::shiftOne(lo, helper::NORTH)) {
                         pawns.emplace(lo);
                     }
                 }
             }
             void genRooks() {
                 switch(clr) {
-                    case RED:
+                    case types::PieceColour::RED:
                         rooks.emplace(36);
                         rooks.emplace(43);
                         break;
-                    case BLUE:
+                    case types::PieceColour::BLUE:
                         rooks.emplace(81);
                         rooks.emplace(193);
                         break;
-                    case YELLOW:
+                    case types::PieceColour::YELLOW:
                         rooks.emplace(244);
                         rooks.emplace(251);
                         break;
-                    case GREEN:
+                    case types::PieceColour::GREEN:
                         rooks.emplace(94);
                         rooks.emplace(206);
                         break;
@@ -90,19 +86,19 @@ namespace player {
             }
             void genKnights() {
                 switch(clr) {
-                    case RED:
+                    case types::PieceColour::RED:
                         knights.emplace(37);
                         knights.emplace(42);
                         break;
-                    case BLUE:
+                    case types::PieceColour::BLUE:
                         knights.emplace(97);
                         knights.emplace(177);
                         break;
-                    case YELLOW:
+                    case types::PieceColour::YELLOW:
                         knights.emplace(245);
                         knights.emplace(250);
                         break;
-                    case GREEN:
+                    case types::PieceColour::GREEN:
                         knights.emplace(110);
                         knights.emplace(190);
                         break;
@@ -112,19 +108,19 @@ namespace player {
             }
             void genBishops() {
                 switch(clr) {
-                    case RED:
+                    case types::PieceColour::RED:
                         bishops.emplace(38);
                         bishops.emplace(41);
                         break;
-                    case BLUE:
+                    case types::PieceColour::BLUE:
                         bishops.emplace(113);
                         bishops.emplace(161);
                         break;
-                    case YELLOW:
+                    case types::PieceColour::YELLOW:
                         bishops.emplace(246);
                         bishops.emplace(249);
                         break;
-                    case GREEN:
+                    case types::PieceColour::GREEN:
                         bishops.emplace(126);
                         bishops.emplace(174);
                         break;
@@ -134,16 +130,16 @@ namespace player {
             }
             void genQueens() {
                 switch(clr) {
-                    case RED:
+                    case types::PieceColour::RED:
                         queens.emplace(39);
                         break;
-                    case BLUE:
+                    case types::PieceColour::BLUE:
                         queens.emplace(129);
                         break;
-                    case YELLOW:
+                    case types::PieceColour::YELLOW:
                         queens.emplace(248);
                         break;
-                    case GREEN:
+                    case types::PieceColour::GREEN:
                         queens.emplace(158);
                         break;
                     default:
@@ -152,16 +148,16 @@ namespace player {
             }
             void genKings() {
                 switch(clr) {
-                    case RED:
+                    case types::PieceColour::RED:
                         kings.emplace(40);
                         break;
-                    case BLUE:
+                    case types::PieceColour::BLUE:
                         kings.emplace(145);
                         break;
-                    case YELLOW:
+                    case types::PieceColour::YELLOW:
                         kings.emplace(247);
                         break;
-                    case GREEN:
+                    case types::PieceColour::GREEN:
                         kings.emplace(142);
                         break;
                     default:
@@ -183,7 +179,7 @@ namespace player {
             }
         
             // gets the piecetype that the set is handling
-            PieceType getSetType(set<boardIndex> & address) {
+            types::PieceType getSetType(std::set<types::boardIndex> & address) {
                 unsigned int i = 0;
                 for (; i < pieces.size(); ++i) {
                     auto s = pieces.at(i);
@@ -192,13 +188,13 @@ namespace player {
                     }
                 }
                 assert(i < pieces.size());
-                return playablePieces[i];
+                return helper::playablePieces[i];
             }
             
             // for updating an index from src to trgt
             // src is assumed to be in our control
             // used in updating for a move
-            void handleMoved(boardIndex src, boardIndex trgt) {
+            void handleMoved(types::boardIndex src, types::boardIndex trgt) {
                 auto it = movedPieces.find(src);
                 if (it != movedPieces.end()) {
                     movedPieces.emplace_hint(it, trgt);
@@ -213,7 +209,7 @@ namespace player {
             // used in reverting a move
             // NOTE i should not equal last.toIndex();
             // i is assumed to be in our control
-            void handleMoved(boardIndex i, Move last) {
+            void handleMoved(types::boardIndex i, types::Move last) {
                 assert(i != last.toIndex()); // bad usage
                 auto it = movedPieces.find(i); 
                 assert(it != movedPieces.end());
@@ -238,31 +234,31 @@ namespace player {
                 isMate = b;
             }
 
-            PieceColour colour() {
+            types::PieceColour colour() {
                 return clr;
             }
 
-            const vector<reference_wrapper<set<boardIndex>>> getPieces() {
+            const std::vector<std::reference_wrapper<std::set<types::boardIndex>>> getPieces() {
                 return pieces;
             }
 
             // updates data to be consistent with a move
             // strategy design
             // returns the captured piece type if a capture was handled else empty piecetype
-            PieceType update(Move m) {
+            types::PieceType update(types::Move m) {
                 
                 // check whether we are being taken or taking someone else
-                set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())].get();
+                std::set<types::boardIndex> &fromSet = pieces[helper::indexFromType(m.fromPiece())].get();
                 auto fromIt = fromSet.find(m.fromIndex()); // Log(n)
 
                 if (fromIt == fromSet.end() && !m.isCapture()) {
                     // someone elses move
-                    return PieceType::EMPTY;
+                    return types::PieceType::EMPTY;
 
                 } else if (fromIt == fromSet.end() && m.isCapture()) {
                     // our piece could be getting taken
                     // check our sets for the taken piece
-                    for (set<boardIndex> &pieceSet : pieces) {
+                    for (std::set<types::boardIndex> &pieceSet : pieces) {
                         auto iterator = pieceSet.find(m.toIndex());
                         if (iterator != pieceSet.end()) {
                             // found our piece
@@ -278,7 +274,7 @@ namespace player {
 
                 } else if(m.isPromotion()) {
                     // we are moving + promoting
-                    set<boardIndex> &toSet = pieces[indexFromType(m.promotionPiece())].get();
+                    std::set<types::boardIndex> &toSet = pieces[helper::indexFromType(m.promotionPiece())].get();
                     // remove moved piece
 
                     fromSet.extract(fromIt);
@@ -292,7 +288,7 @@ namespace player {
                     movedPieces.emplace(m.toIndex());
 
                 } else if (m.isEnPeasant()) {
-                    boardIndex changeTo = shiftOne(m.toIndex(), getUp(m.fromColour()));
+                    types::boardIndex changeTo = helper::shiftOne(m.toIndex(), helper::getUp(m.fromColour()));
                     fromSet.emplace_hint(fromIt, changeTo);
                     fromSet.extract(fromIt);
 
@@ -319,11 +315,11 @@ namespace player {
                     movedPieces.emplace(m.toIndex());
                 }
 
-                return PieceType::EMPTY;
+                return types::PieceType::EMPTY;
             }
             // updates data to remove a move
             // takes a move to remove and the previous moves of the involved indices
-            void revert(Move m, Move &fromPrev, Move &captPrev) {
+            void revert(types::Move m, types::Move &fromPrev, types::Move &captPrev) {
                 if (m.fromColour() != clr && !m.isCapture()) {
                     return;
                 }
@@ -331,13 +327,13 @@ namespace player {
                     // our piece could've been taken
                     // if this triggers then m has not been set properly after being played
                     assert(
-                        (m.capturedPiece() != PieceType::EMPTY || m.capturedPiece() != PieceType::BLOCK)
-                        && m.capturedColour() != PieceColour::NONE
+                        (m.capturedPiece() != types::PieceType::EMPTY || m.capturedPiece() != types::PieceType::BLOCK)
+                        && m.capturedColour() != types::PieceColour::NONE
                     );
                     
                     if (m.capturedColour() == clr) { 
                         // our piece is returned
-                        set<boardIndex> &pieceSet = pieces[indexFromType(m.capturedPiece())].get();
+                        std::set<types::boardIndex> &pieceSet = pieces[helper::indexFromType(m.capturedPiece())].get();
                         pieceSet.emplace(m.toIndex());
                         if (captPrev.toIndex() == 300) {
                             return;                    
@@ -349,12 +345,12 @@ namespace player {
                 }
                 if (m.isPromotion()) {
                     // remove from promoted set 
-                    set<boardIndex> &toSet = pieces[indexFromType(m.promotionPiece())].get();
+                    std::set<types::boardIndex> &toSet = pieces[helper::indexFromType(m.promotionPiece())].get();
                     auto toIt = toSet.find(m.toIndex());
                     assert(toIt != toSet.end());
                     toSet.extract(toIt);
                     // return to original set
-                    set<boardIndex> &fromSet = pieces[indexFromType(m.fromPiece())].get();
+                    std::set<types::boardIndex> &fromSet = pieces[helper::indexFromType(m.fromPiece())].get();
                     fromSet.emplace(m.fromIndex());
 
                     if (fromPrev.fromIndex() == 300) {
@@ -365,8 +361,8 @@ namespace player {
                 } else if (m.isCastling()) {
                     assert(m.fromColour() == clr);
                     // clear both rook and king squares
-                    boardIndex tmp = m.fromIndex();
-                    Direction d = getDirection(m.fromIndex(), m.toIndex());
+                    types::boardIndex tmp = m.fromIndex();
+                    types::Direction d = helper::getDirection(m.fromIndex(), m.toIndex());
                     bool rookFound = false;
                     bool kingFound = false;
                     while (tmp != m.toIndex() && !(rookFound && kingFound)) {
@@ -385,10 +381,10 @@ namespace player {
                             kings.extract(tmpIt);
                             kingFound = true;
                         }
-                        tmp = shiftOne(tmp, d);
+                        tmp = helper::shiftOne(tmp, d);
                     }
                 } else if (m.isEnPeasant()) {
-                    boardIndex remove = shiftOne(m.toIndex(), getUp(m.fromColour()));
+                    types::boardIndex remove = helper::shiftOne(m.toIndex(), helper::getUp(m.fromColour()));
                     auto it = pawns.find(remove);
                     // the pawn to be removed must exist
                     assert(it != pawns.end());
@@ -397,7 +393,7 @@ namespace player {
                     handleMoved(remove, fromPrev);
                 } else {
                     // change index
-                    set<boardIndex> &pieceSet = pieces[indexFromType(m.fromPiece())].get();
+                    std::set<types::boardIndex> &pieceSet = pieces[helper::indexFromType(m.fromPiece())].get();
                     auto it = pieceSet.find(m.toIndex());
                     assert(it != pieceSet.end());
                     pieceSet.extract(it);
@@ -409,12 +405,12 @@ namespace player {
             }
             
             // returns whether in the current game state the index is in the players game data
-            bool indexInData(boardIndex i, PieceType p) {
-                set<boardIndex> &pieceSet = pieces[indexFromType(p)].get();
+            bool indexInData(types::boardIndex i, types::PieceType p) {
+                std::set<types::boardIndex> &pieceSet = pieces[helper::indexFromType(p)].get();
                 return pieceSet.contains(i);
             }
 
-            bool indexHasMoved(boardIndex i) {
+            bool indexHasMoved(types::boardIndex i) {
                 return (movedPieces.find(i) != movedPieces.end());
             }
 

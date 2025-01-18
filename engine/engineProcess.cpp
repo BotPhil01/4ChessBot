@@ -1,5 +1,6 @@
 #include"engine.h"
 #include"board.h"
+#include"types.h"
 #include<cassert>
 #include<sstream>
 #include<string>
@@ -14,14 +15,14 @@ class EngineProcess {
         // for predicting moves
         
         Board rBoard = Board();
-        Engine bEngine = Engine(rBoard, PieceColour::BLUE);
-        Engine yEngine = Engine(rBoard, PieceColour::YELLOW);
-        Engine gEngine = Engine(rBoard, PieceColour::GREEN);
+        Engine bEngine = Engine(rBoard, types::PieceColour::BLUE);
+        Engine yEngine = Engine(rBoard, types::PieceColour::YELLOW);
+        Engine gEngine = Engine(rBoard, types::PieceColour::GREEN);
         // takes a javascript move and converts it to an engine move
         // difference is that js move has 0, 0 as top left cpp has bottom left
         // fromx|fromy|tox|toy
         
-        Move parseMove(string jMove) {
+        types::Move parseMove(string jMove) {
             // extract from string
             assert(jMove.size() > 3);
             vector<int> coordinates;
@@ -47,8 +48,8 @@ class EngineProcess {
             coordinates[3] += 2;
 
             
-            boardIndex from = toIndex(coordinates[0], coordinates[1]);
-            boardIndex to = toIndex(coordinates[2], coordinates[3]);
+            types::boardIndex from = helper::toIndex(coordinates[0], coordinates[1]);
+            types::boardIndex to = helper::toIndex(coordinates[2], coordinates[3]);
             
             return rBoard.indicesToMove(from, to);
         }
@@ -66,10 +67,10 @@ class EngineProcess {
         }
 
         // gives a js output for a cppp move
-        string parseOutput(Move m) {
+        string parseOutput(types::Move m) {
             stringstream stream;
-            pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex()));
-            pair<int, int> toCoords =  toJCoords(to16RC(m.toIndex()));
+            pair<int, int> fromCoords = toJCoords(helper::to16RC(m.fromIndex()));
+            pair<int, int> toCoords =  toJCoords(helper::to16RC(m.toIndex()));
             
             stream << fromCoords.first << "|" << fromCoords.second << "|" << toCoords.first << "|" << toCoords.second << "#";
             return stream.str();
@@ -79,11 +80,11 @@ class EngineProcess {
         string parseOutput(Engine e) {
             assert(rBoard.isPlayerCheckmate(e.getColour()));
             stringstream stream;
-            stream << PieceColourToString(e.getColour()) << "#";
+            stream << helper::PieceColourToString(e.getColour()) << "#";
             return stream.str();
         }
 
-        void updateGameState(Move m) { // plays a move across the whole process
+        void updateGameState(types::Move m) { // plays a move across the whole process
             rBoard.playMove(m);
             return;
         }
@@ -93,13 +94,13 @@ class EngineProcess {
             unsigned int t = jSquare.find("|");
             assert(t != jSquare.npos);
             pair<int, int> coords = fromJCoords(stoi(jSquare.substr(0, t)), stoi(jSquare.substr(t+1, jSquare.length())));
-            boardIndex i = toIndex(coords.first, coords.second);
+            types::boardIndex i = helper::toIndex(coords.first, coords.second);
             // get indices
-            vector<boardIndex> indices = rBoard.genShift(i);
+            vector<types::boardIndex> indices = rBoard.genShift(i);
             // output the indices converted to jcoords
             string s = "@";
-            for (boardIndex i : indices) {
-                pair<int, int> p = toJCoords(to16RC(i));
+            for (types::boardIndex i : indices) {
+                pair<int, int> p = toJCoords(helper::to16RC(i));
                 s = s + to_string(p.first) + "|" + to_string(p.second) + "#";
             }
             cout << s << endl;
@@ -122,16 +123,16 @@ class EngineProcess {
                     cout.flush();
                     continue;
                 }
-                Move m = parseMove(input);
+                types::Move m = parseMove(input);
                 updateGameState(m);
-                Move bm = bEngine.chooseNextMove();
+                types::Move bm = bEngine.chooseNextMove();
                 if (bm.fromIndex() == 300 || bm.toIndex() == 300) {
                     cout << parseOutput(bEngine) << endl;
                 } else {
                     updateGameState(bm); // here yEngine has correct turn
                     cout << parseOutput(bm) << endl;
                 }
-                Move ym = yEngine.chooseNextMove(); // here
+                types::Move ym = yEngine.chooseNextMove(); // here
                 if (ym.fromIndex() == 300 || ym.toIndex() == 300) {
                     cout << parseOutput(yEngine) << endl;
                 } else {
@@ -139,7 +140,7 @@ class EngineProcess {
                     cout << parseOutput(ym) << endl;
                 }
         
-                Move gm = gEngine.chooseNextMove();
+                types::Move gm = gEngine.chooseNextMove();
                 if (gm.fromIndex() == 300 || gm.toIndex() == 300) {
                     cout << parseOutput(gEngine) << endl;
                 } else {

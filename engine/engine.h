@@ -6,27 +6,23 @@
 #include"board.h"
 #include"helper.h"
 
-using namespace board;
-using namespace helper;
-using namespace std;
-
 #ifndef ENGINE_H
 #define ENGINE_h
 
 namespace engine {
     class Engine {
         private:
-            Board &board;
-            PieceColour self;
+            board::Board &board;
+            types::PieceColour self;
             int DEPTH;
             // returns material evaluation for all colours 
             // vector in form {r, b, y, g}
             const std::vector<float> evaluateMaterial() {
                 std::vector<float> weightings {
-                    board.getMaterial(PieceColour::RED), 
-                    board.getMaterial(PieceColour::BLUE), 
-                    board.getMaterial(PieceColour::YELLOW), 
-                    board.getMaterial(PieceColour::GREEN)}; //r b y g
+                    board.getMaterial(types::PieceColour::RED), 
+                    board.getMaterial(types::PieceColour::BLUE), 
+                    board.getMaterial(types::PieceColour::YELLOW), 
+                    board.getMaterial(types::PieceColour::GREEN)}; //r b y g
                 return weightings;   
             }
 
@@ -42,7 +38,7 @@ namespace engine {
             // vector in form {r, b, y, g}
             const std::vector<float> evaluateMobility() {
                 std::vector<float> out;
-                for (PieceColour c : helper::playableColours) {
+                for (types::PieceColour c : helper::playableColours) {
                     if (!board.movesPlayed()) { // failed to find move
                         out.emplace_back((float) board.generateLegalMoves(c).size());
                         continue;
@@ -60,7 +56,7 @@ namespace engine {
             // search for better move
             // if better move is found then bring alpha up to better move's score
             // if the minbound exceeds maxbound it wont be considered
-            float alphaBetaMax(float alpha, float beta, int depth, PieceColour commonEnemy) {
+            float alphaBetaMax(float alpha, float beta, int depth, types::PieceColour commonEnemy) {
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS
                 if (depth == 0) {
                     // return quiesce
@@ -88,7 +84,7 @@ namespace engine {
 
             // alpha =  lower bound
             // beta = upper bound
-            float alphaBetaMin(float alpha, float beta, int depth, PieceColour commonEnemy) { //tries to minimise the value
+            float alphaBetaMin(float alpha, float beta, int depth, types::PieceColour commonEnemy) { //tries to minimise the value
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS
                 if (depth == 0) {
                     // return quiesce
@@ -100,7 +96,7 @@ namespace engine {
                     return evaluateBoard().second;
                 }
                 
-                for (Move move : moves) {
+                for (types::Move move : moves) {
                     move.totalMoves = moves.size();
                     board.playMove(move);
                     float res = alphaBetaMax(alpha, beta, depth-1, commonEnemy);
@@ -119,8 +115,8 @@ namespace engine {
 
         public:
             Engine(
-                Board &b,
-                PieceColour p = PieceColour::RED, 
+                board::Board &b,
+                types::PieceColour p = types::PieceColour::RED, 
                 int depth = 2, 
                 bool finished = false) :
             board(b),
@@ -129,33 +125,33 @@ namespace engine {
             {
                 
             }
-            PieceColour getColour() {
+            types::PieceColour getColour() {
                 return self;
             }
 
             // returns a next move 
-            Move chooseNextMove() { 
+            types::Move chooseNextMove() { 
                 // return the next move or an empty move from default move constructor if unable to find one
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS -> want the algorithm to be able to check mid way through whether a new player becomes the strongest
                 // main idea could be after an upper bound of advantage gained it reevaluates
                 // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
                 // generate legal moves
                 if (board.isPlayerCheckmate(self)) {
-                    return Move();
+                    return types::Move();
                 }
                 auto moves = board.generateLegalMoves(self);
                 if (moves.size() == 0) {
                     board.setPlayerCheckmate(self);
-                    return Move();
+                    return types::Move();
                 }
-                PieceColour strongest = evaluateBoard().first;
+                types::PieceColour strongest = evaluateBoard().first;
                 
                 // store the generated move length 
                 // play a move 
                 float bestCutOff = 999;
                 float bestEval = (float) -9999;
-                Move bestMove = moves[0];
-                for (Move m : moves) {
+                types::Move bestMove = moves[0];
+                for (types::Move m : moves) {
                     // m.totalMoves = movesLength;
                     board.playMove(m);
                     float eval = alphaBetaMax(-9999, 9999, DEPTH, strongest);
@@ -177,23 +173,23 @@ namespace engine {
             // evaluation works by calculating the advantages based on material and position and choosing one player to focus
             // basically constantly tries to bring down the best player (other than itself) and assumes others will too!
             // returns the common enemy and the advantage difference
-            std::pair<PieceColour, float> evaluateBoard() {
+            std::pair<types::PieceColour, float> evaluateBoard() {
                 auto material = evaluateMaterial();
-                multiplyValues(material, (float) 10); // weightings
+                helper::multiplyValues(material, (float) 10); // weightings
                 auto mobility = evaluateMobility();
-                if (mobility[indexFromColour(self)] == 0) {
-                    return pair(PieceColour::NONE, -999.0);
+                if (mobility[helper::indexFromColour(self)] == 0) {
+                    return std::pair(types::PieceColour::NONE, -999.0);
                 }
                 // auto position = evaluatePosition();
-                auto advantages = layer(material, mobility); // combine into singular valus
-                unsigned int selfIndex = getColourIndex(self);
+                auto advantages = helper::layer(material, mobility); // combine into singular valus
+                unsigned int selfIndex = helper::getColourIndex(self);
                 unsigned int maxAdvantageIndex = 0; // index of max advantage
                 for (unsigned int i = 0; i < advantages.size(); i++) {
                     if (selfIndex != i && advantages[i] > advantages[maxAdvantageIndex]) {
                         maxAdvantageIndex = i;
                     }
                 }
-                return std::pair<PieceColour, float> (getColourFromIndex(maxAdvantageIndex), advantages[selfIndex] - advantages[maxAdvantageIndex]);
+                return std::pair<types::PieceColour, float> (helper::getColourFromIndex(maxAdvantageIndex), advantages[selfIndex] - advantages[maxAdvantageIndex]);
             }
 
             
