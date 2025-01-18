@@ -455,162 +455,6 @@
   .destroy {
     display: none;
   }
-  .piece-bb {
-    background-image: url(assets/bb.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-bk {
-    background-image: url(assets/bk.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-bn {
-    background-image: url(assets/bn.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-bp {
-    background-image: url(assets/bp.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-bq {
-    background-image: url(assets/bq.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-br {
-    background-image: url(assets/br.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-gb {
-    background-image: url(assets/gb.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-gk {
-    background-image: url(assets/gk.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-gn {
-    background-image: url(assets/gn.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-gp {
-    background-image: url(assets/gp.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-gq {
-    background-image: url(assets/gq.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
-  .piece-gr {
-    background-image: url(assets/gr.png);
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: absolute;
-    background-position: center center;
-    width: 100%;
-    height: 100%; 
-    max-width: 50.4px;
-    max-height: 50.4px;
-    z-index: 10;
-    cursor: grab;
-  }
   .piece-rb {
     background-image: url(assets/rb.png);
     background-repeat: no-repeat;
@@ -689,6 +533,150 @@
     z-index: 10;
     cursor: grab;
   }
+  .piece-bb {
+    background-image: url(assets/bb.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-bk {
+    background-image: url(assets/bk.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-bn {
+    background-image: url(assets/bn.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-bp {
+    background-image: url(assets/bp.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-bq {
+    background-image: url(assets/bq.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-br {
+    background-image: url(assets/br.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-gb {
+    background-image: url(assets/gb.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-gk {
+    background-image: url(assets/gk.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-gn {
+    background-image: url(assets/gn.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-gp {
+    background-image: url(assets/gp.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-gq {
+    background-image: url(assets/gq.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
+  .piece-gr {
+    background-image: url(assets/gr.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+  }
   .piece-yb {
     background-image: url(assets/yb.png);
     background-repeat: no-repeat;
@@ -700,7 +688,6 @@
     max-width: 50.4px;
     max-height: 50.4px;
     z-index: 10;
-    cursor: grab;
   }
   .piece-yk {
     background-image: url(assets/yk.png);
@@ -713,7 +700,6 @@
     max-width: 50.4px;
     max-height: 50.4px;
     z-index: 10;
-    cursor: grab;
   }
   .piece-yn {
     background-image: url(assets/yn.png);
@@ -726,7 +712,6 @@
     max-width: 50.4px;
     max-height: 50.4px;
     z-index: 10;
-    cursor: grab;
   }
   .piece-yp {
     background-image: url(assets/yp.png);
@@ -739,7 +724,6 @@
     max-width: 50.4px;
     max-height: 50.4px;
     z-index: 10;
-    cursor: grab;
   }
   .piece-yq {
     background-image: url(assets/yq.png);
@@ -752,7 +736,6 @@
     max-width: 50.4px;
     max-height: 50.4px;
     z-index: 10;
-    cursor: grab;
   }
   .piece-yr {
     background-image: url(assets/yr.png);
@@ -765,6 +748,4 @@
     max-width: 50.4px;
     max-height: 50.4px;
     z-index: 10;
-    cursor: grab;
   }
-  

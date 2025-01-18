@@ -1,6 +1,6 @@
 {
   "watchOptions": {
-    "excludeDirectories": ["dist", "deprecated", "assets", ".vscode"],
+    "excludeDirectories": ["dist", "deprecated", "assets", ".vscode", "engine"],
     "excludeFiles": ["compile.sh", "automation.sh", ".gitignore", "Plan.odt", "README.md", "webpack.config.js"],
   },
   // "include": [

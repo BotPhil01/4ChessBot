@@ -83,9 +83,9 @@ function swap() {
 // func for dragging pieces
 // uses ts event handling no libraries needed
 function dragPieceElement(element) {
+    var legalSquares = [];
     var initialSquare;
     var initialPos;
-    // console.log(`AAAAAAAAAAAAAAAA ${initialSquare}`);
     if (!element) {
         // error here 
         console.error("Unable to retrieve element <".concat(element, ">"));
@@ -98,18 +98,27 @@ function dragPieceElement(element) {
     function setInitialPosition(pos) {
         initialPos = pos;
     }
+    function queryLegalMoves() {
+        var message = "@" + initialSquare[0].toString() + "|" + initialSquare[1].toString();
+        console.log("sending message: " + message);
+        ws.send(message);
+        ws.onmessage = function (event) {
+            console.log("Server response: " + event.data);
+            handleOutput(event.data);
+        };
+        return;
+    }
     // triggered by onmousedown
     function startDrag(e) {
         if (!element) {
             console.error("trying to move non existent element");
             return;
         }
+        legalSquares = [];
         // cache initial position and square in case needed to return there
-        var elemRect = element.getBoundingClientRect();
-        console.log("settign position to ".concat(e.clientX, ",").concat(e.clientY));
-        setInitialPosition([e.clientX, e.clientY]);
-        console.log("setting initial square position to ".concat(positionToSquare([e.clientX, e.clientY])));
         setInitialSquare(positionToSquare([e.clientX, e.clientY]));
+        setInitialPosition(positionFromSquare(initialSquare));
+        queryLegalMoves();
         e.preventDefault();
         document.onmouseup = stopDrag;
         document.onmousemove = elementDrag;
@@ -130,8 +139,6 @@ function dragPieceElement(element) {
     // triggered by on mouse up
     function stopDrag(ev) {
         var pos = [ev.clientX, ev.clientY];
-        console.log("stopdrag position ".concat(pos[0], ",").concat(pos[1]));
-        console.log("initial square: " + initialSquare[0].toString() + "," + initialSquare[1].toString());
         var toSquare = snapToBoard(pos);
         if (toSquare != initialSquare) {
             // moved to a square successfully
@@ -142,7 +149,6 @@ function dragPieceElement(element) {
             setInitialSquare(toSquare);
             ws.onmessage = function (event) {
                 console.log("server response: " + event.data);
-                console.log("data type ".concat(typeof (event.data)));
                 handleOutput(event.data);
             };
             // handler response
@@ -154,16 +160,18 @@ function dragPieceElement(element) {
     // takes position of element relative to the viewport and snaps it to the board element if element is over a valid square 
     // returns the initial square if cant move else returns the square it snaps to
     function snapToBoard(position) {
-        // console.log(`snap to board position ${position[0]},${position[1]}`);
         if (!element) {
             console.error("Unable to find elements in snapToBoard function");
             alert("something went wrong with the board see console for details");
             return initialSquare;
         }
         var square = positionToSquare(position);
+        console.log("initialSquare ".concat(initialSquare, " square ").concat(square));
         // check if piece can move there
         if (!elemCanMove(initialSquare, square)) {
+            console.log("element cant move returning to initialpos");
             // return to intitial space 
+            // initialPos is incorrect here
             element.style.left = initialPos[0] + "px";
             element.style.top = initialPos[1] + "px";
             return initialSquare;
@@ -180,6 +188,7 @@ function dragPieceElement(element) {
         if (c != null && /piece-/.test(c) && destroyed != element) {
             destroyed.setAttribute("class", "destroy");
         }
+        checkPromotion(element, square);
         // set element to new position
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
@@ -189,12 +198,10 @@ function dragPieceElement(element) {
     }
     // validates if an element can move from a valid t  o square to a potentially invalid square
     function elemCanMove(fromSquare, toSquare) {
-        // TODO do some stuff when game end
-        // var res = queryEngineLegalMove(fromSquare, toSquare);
-        // if (res == 0) {
-        //     console.error("Engine error");
-        //     return false;
-        // }
+        if (fromSquare[0] === toSquare[0] && fromSquare[1] === toSquare[1]) {
+            console.log("here");
+            return false;
+        }
         // validate toSquare is on the board 
         var outBoardSquare = toSquare[0] >= BOARDDIMENSION || toSquare[0] < 0 || toSquare[1] >= BOARDDIMENSION || toSquare[1] < 0;
         var inCorners = toSquare[0] < 3 && (toSquare[1] < 3 || toSquare[1] > 10) ||
@@ -202,43 +209,68 @@ function dragPieceElement(element) {
         if (outBoardSquare || inCorners) {
             return false;
         }
-        return true;
+        console.log("legalSquares ".concat(legalSquares));
+        // check through legal squares
+        for (var i = 0; i < legalSquares.length; i++) {
+            var tmpSqu = legalSquares[i];
+            // assert(tmpSqu.length === 2);
+            if (tmpSqu.length !== 2) {
+                console.error("legalSquare length is incorrect. i=".concat(i));
+            }
+            if (tmpSqu[0] === toSquare[0] && tmpSqu[1] === toSquare[1]) {
+                return true;
+            }
+        }
+        // TODO do some stuff when game end
+        return false;
     }
-}
-// function queryEngineLegalMove(fromSquare: number[], toSquare: number[]) {
-//     const url = "localhost:42069";
-//     const socket = new WebSocket(url);
-//     var res = -1;
-//     socket.onopen = function (e) {
-//         console.log("connection established");
-//         socket.send(`${fromSquare[0]}0${fromSquare[1]}0${toSquare[0]}0${toSquare}`);
-//     }
-//     socket.onmessage = function (e) {
-//         res = parseEngineLegalMoveData(e.data);
-//     }
-//     socket.onclose = function (e) {
-//         if (e.wasClean) {
-//             console.log("Connection closed cleanly");
-//         } else {
-//             console.log("Connection ended dirty");
-//         }
-//     }
-//     // hang while waiting for a response
-//     while (socket.OPEN && res == -1) {continue}
-//     return res;
-// }
-// returns code depending on game state after move
-// 0 - engine error
-// 1 - illegal move
-// 2 - legal move + game cont
-// 3 - legal move + stalemate
-// 4 - legal move + red win
-// 5 - legal move + blue win
-// 6 - legal move + green win       
-// 8 - legal move + yellow win
-function parseEngineLegalMoveData(data) {
-    // TODO implemnet when engine and sockets done
-    return 1;
+    function handleOutput(d) {
+        return __awaiter(this, void 0, void 0, function () {
+            var str, squares, i, square, data, moves, i, move, data;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, new Response(d).text()];
+                    case 1:
+                        str = _a.sent();
+                        // 2 variations 
+                        // output is a collection of moves for red player
+                        // assert(str.length != 0);
+                        if (str.length === 0) {
+                            console.error("output string is length 0");
+                        }
+                        console.log("handling output ".concat(str));
+                        if (str.charAt(0) === "@") {
+                            str = str.substring(1, str.length);
+                            squares = str.split("#");
+                            for (i = 0; i < squares.length; i++) {
+                                square = squares[i];
+                                if (!/((\d|\d\d)\|)+/.test(square)) {
+                                    continue;
+                                }
+                                data = square.split("|");
+                                // assert(data.length == 2);
+                                if (data.length !== 2) {
+                                    console.error("incorrect split square size");
+                                }
+                                legalSquares.push([+data[0], +data[1]]);
+                            }
+                            return [2 /*return*/];
+                        }
+                        moves = str.split("#");
+                        for (i = 0; i < moves.length; i++) {
+                            move = moves[i];
+                            if (!/(\d\|)+/.test(move)) {
+                                continue;
+                            }
+                            data = move.split("|");
+                            playMove([+data[0], +data[1]], [+data[2], +data[3]]);
+                        }
+                        ;
+                        return [2 /*return*/];
+                }
+            });
+        });
+    }
 }
 // takes position of the element relative to viewport
 function positionToSquare(position) {
@@ -434,7 +466,9 @@ function assignPieces(pieceName) {
     ;
     for (var i = 0; i < pieceCount; i++) {
         var element = pieces[i];
-        dragPieceElement(element);
+        if (pieceName[0] === "r") {
+            dragPieceElement(element);
+        }
         // adding offset is orthogonal between ry and bg pieces
         // hence we want to choose whether to increment columns or rows
         if (pieceName[0] == 'r' || pieceName[0] == 'y') {
@@ -447,42 +481,7 @@ function assignPieces(pieceName) {
         element.style.top = position[1] + "px";
     }
 }
-function handleOutput(d) {
-    return __awaiter(this, void 0, void 0, function () {
-        var str, moves, i, move, data;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, new Response(d).text()];
-                case 1:
-                    str = _a.sent();
-                    moves = str.split("#");
-                    // console.log(`moves length: ${moves.length}`);
-                    for (i = 0; i < moves.length; i++) {
-                        move = moves[i];
-                        if (!/(\d\|)+/.test(move)) {
-                            continue;
-                        }
-                        data = move.split("|");
-                        console.log("data length: ".concat(data.length));
-                        // data.forEach(function f (da: string) {
-                        //     console.log(`da: ${da}`);
-                        // })
-                        playMove([+data[0], +data[1]], [+data[2], +data[3]]);
-                    }
-                    ;
-                    return [2 /*return*/];
-            }
-        });
-    });
-}
 function playMove(from, to) {
-    for (var i = 0; i < from.length; i++) {
-        console.log("from[".concat(i, "] = ").concat(from[i]));
-    }
-    // for (var i = 0; i < to.length; i++) {
-    //     console.log(`to[${i}] = ${to[i]}`);
-    // }
-    // get html element at square
     // move to different square
     var fpos = positionFromSquare(from);
     var tpos = positionFromSquare(to);
@@ -491,24 +490,49 @@ function playMove(from, to) {
         console.error("fpos length: ".concat(fpos.length));
         console.error("tpo length: ".concat(tpos.length));
     }
-    // for (var i = 0; i < fpos.length; i++) {
-    //     console.log(`fpos[i]: ${fpos[i]}`);
-    // }
-    // for (var i = 0; i < tpos.length; i++) {
-    //     console.log(`tpos[i]: ${tpos[i]}`);
-    // }
     var elem = document.elementFromPoint(Number(fpos[0]), Number(fpos[1]));
     var destroyed = document.elementFromPoint(Number(tpos[0]), Number(tpos[1]));
     if (!elem || !destroyed) {
         console.error("when playing move: elements not found");
         return;
     }
-    // console.log(`destroyed element: ${destroyed}`);
     var c = destroyed.getAttribute("class");
     if (c != null && /piece-/.test(c) && destroyed != elem) {
         destroyed.setAttribute("class", "destroy");
     }
+    // potentail promotion
+    // piece-bb
+    checkPromotion(elem, to);
     elem.style.left = tpos[0] + "px";
     elem.style.top = tpos[1] + "px";
     return;
+}
+function checkPromotion(elem, to) {
+    var className = elem.getAttribute("class");
+    console.log(className);
+    if (className === null || className === void 0 ? void 0 : className.endsWith("p")) {
+        switch (className.charAt(6)) {
+            case "r":
+                if (to[1] < 7) {
+                    elem.setAttribute("class", "piece-rq");
+                }
+                break;
+            case "b":
+                if (to[0] > 6) {
+                    elem.setAttribute("class", "piece-bq");
+                }
+                break;
+            case "y":
+                if (to[1] > 6) {
+                    elem.setAttribute("class", "piece-yq");
+                }
+                break;
+            case "g":
+                if (to[0] < 7) {
+                    elem.setAttribute("class", "piece-gq");
+                }
+                break;
+            default:
+        }
+    }
 }

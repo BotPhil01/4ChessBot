@@ -49,6 +49,27 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "thread": "cpp",
-        "set": "cpp"
-    }
+        "set": "cpp",
+        "bitset": "cpp",
+        "chrono": "cpp",
+        "condition_variable": "cpp",
+        "csignal": "cpp",
+        "cstring": "cpp",
+        "ctime": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "ratio": "cpp",
+        "regex": "cpp",
+        "fstream": "cpp",
+        "future": "cpp",
+        "iomanip": "cpp",
+        "mutex": "cpp",
+        "semaphore": "cpp",
+        "sstream": "cpp",
+        "stop_token": "cpp",
+        "cinttypes": "cpp",
+        "variant": "cpp",
+        "cassert": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/home/alex/Documents/Coding/llvm-project/build/bin/clang"
 }
