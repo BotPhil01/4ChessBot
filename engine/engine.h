@@ -17,8 +17,8 @@ namespace engine {
             int DEPTH;
             // returns material evaluation for all colours 
             // vector in form {r, b, y, g}
-            const std::vector<float> evaluateMaterial() {
-                std::vector<float> weightings {
+            const std::array<float, 4> evaluateMaterial() {
+                std::array<float, 4> weightings {
                     board.getMaterial(types::PieceColour::RED), 
                     board.getMaterial(types::PieceColour::BLUE), 
                     board.getMaterial(types::PieceColour::YELLOW), 
@@ -36,14 +36,17 @@ namespace engine {
             // }
 
             // vector in form {r, b, y, g}
-            const std::vector<float> evaluateMobility() {
-                std::vector<float> out;
-                for (types::PieceColour c : helper::playableColours) {
+            const std::array<float, 4> evaluateMobility() {
+                std::array<float, 4> out = {0, 0, 0, 0};
+                std::vector<std::unique_ptr<types::Move>> tmp;
+                for (unsigned char i = 0; i < helper::playableColours.size(); ++i) {
+                    types::PieceColour c = helper::playableColours[i];
                     if (!board.movesPlayed()) { // failed to find move
-                        out.emplace_back((float) board.generateLegalMoves(c).size());
+                        board.generateLegalMoves(c, tmp);
+                        out[i] = (float) tmp.size();
                         continue;
                     }
-                    out.emplace_back(board.getLastMove(c).totalMoves);
+                    out[i] = (float) board.getLastMove(c).totalMoves;
                 }
                 return out;
             }
@@ -62,14 +65,15 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 }
-                auto moves = board.generateLegalMoves(board.getCurrentTurn());
+                std::vector<std::unique_ptr<types::Move>> moves;
+                board.generateLegalMoves(board.getCurrentTurn(), moves);
                 if (moves.size() == 0) {
                     // no moves able to be generated
                     return evaluateBoard().second;
                 }
-                for (auto move : moves) {
-                    move.totalMoves = moves.size();
-                    board.playMove(move);
+                for (std::unique_ptr<types::Move> &move : moves) {
+                    move->totalMoves = moves.size();
+                    board.playMove(*move);
                     float res = alphaBetaMin(alpha, beta, depth-1, commonEnemy);
                     if (res > alpha && res < beta) { // found a better move
                         alpha = res; // new lower bound is our best move
@@ -90,15 +94,16 @@ namespace engine {
                     // return quiesce
                     return evaluateBoard().second;
                 } 
-                auto moves = board.generateLegalMoves(board.getCurrentTurn()); 
+                std::vector<std::unique_ptr<types::Move>> moves;
+                board.generateLegalMoves(board.getCurrentTurn(), moves); 
                 if (moves.size() == 0) {
                     // no moves able to be generated
                     return evaluateBoard().second;
                 }
                 
-                for (types::Move move : moves) {
-                    move.totalMoves = moves.size();
-                    board.playMove(move);
+                for (std::unique_ptr<types::Move> &move : moves) {
+                    move->totalMoves = moves.size();
+                    board.playMove(*move);
                     float res = alphaBetaMax(alpha, beta, depth-1, commonEnemy);
                     if (res < beta) {
                         beta = res; // new min found
@@ -139,7 +144,8 @@ namespace engine {
                 if (board.isPlayerCheckmate(self)) {
                     return types::Move();
                 }
-                auto moves = board.generateLegalMoves(self);
+                std::vector<std::unique_ptr<types::Move>> moves;
+                board.generateLegalMoves(self, moves);
                 if (moves.size() == 0) {
                     board.setPlayerCheckmate(self);
                     return types::Move();
@@ -150,14 +156,14 @@ namespace engine {
                 // play a move 
                 float bestCutOff = 999;
                 float bestEval = (float) -9999;
-                types::Move bestMove = moves[0];
-                for (types::Move m : moves) {
+                types::Move bestMove = *(moves[0]);
+                for (std::unique_ptr<types::Move> &m : moves) {
                     // m.totalMoves = movesLength;
-                    board.playMove(m);
+                    board.playMove(*m);
                     float eval = alphaBetaMax(-9999, 9999, DEPTH, strongest);
                     if (eval > bestEval) {
                         bestEval = eval;
-                        bestMove = m;
+                        bestMove = *m;
                         if (eval > bestCutOff) {
                             board.unPlayMove();
                             break;

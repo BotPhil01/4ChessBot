@@ -26,30 +26,7 @@ namespace types {
         GREEN,
         NONE, //NON PIECE SQUARES
     };
-
-    struct Piece {
-        PieceColour pieceColour;
-        PieceType type;
-        bool hasMoved;
-        boardIndex positionIndex;
-        Piece(
-            PieceColour c = PieceColour::NONE, 
-            PieceType t = PieceType::EMPTY, 
-            bool m = false, 
-            boardIndex i = 300
-        ) :
-        pieceColour(c), 
-        type(t), 
-        hasMoved(m), 
-        positionIndex(i) {
-        }
-    };
-
-    enum class SquareColour {
-        DARK,
-        LIGHT,
-    };
-
+    
     class Square {
         private:
             bool canAccess;
@@ -62,8 +39,8 @@ namespace types {
             Square(bool access, PieceType type, PieceColour col) :
             canAccess(access), pieceType(type), pieceColour(col) {
                 assert (
-                    (!access && (type != PieceType::BLOCK || col != PieceColour::NONE)) || 
-                    (access && type == PieceType::BLOCK)
+                    (!access && (type == PieceType::BLOCK && col == PieceColour::NONE)) || 
+                    (access && type != PieceType::BLOCK)
                 );
             }
 
@@ -164,9 +141,6 @@ namespace types {
             }
             const bool isCastling() const {
                 return special && fromC == capturedC && fromP == PieceType::KING && capturedP == PieceType::ROOK;
-            }
-            const bool isEnPeasant() const {
-                return special && fromC != capturedC && capturedC == PieceColour::NONE && capturedP == PieceType::EMPTY && fromP == PieceType::PAWN;
             }
             PieceType capturedPiece() const {
                 return capturedP;

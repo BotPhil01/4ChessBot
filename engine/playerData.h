@@ -167,7 +167,6 @@ namespace player {
 
             void genPieces() {
 
-                // assigns objects into vectors
                 genPawns();
                 genRooks();
                 genKnights();
@@ -287,10 +286,10 @@ namespace player {
                     }
                     movedPieces.emplace(m.toIndex());
 
-                } else if (m.isEnPeasant()) {
-                    types::boardIndex changeTo = helper::shiftOne(m.toIndex(), helper::getUp(m.fromColour()));
-                    fromSet.emplace_hint(fromIt, changeTo);
-                    fromSet.extract(fromIt);
+                // } else if (m.isEnPeasant()) {
+                //     types::boardIndex changeTo = helper::shiftOne(m.toIndex(), helper::getUp(m.fromColour()));
+                //     fromSet.emplace_hint(fromIt, changeTo);
+                //     fromSet.extract(fromIt);
 
                 } else if (m.isCastling()) {
                     int dif = m.toIndex() - m.fromIndex();
@@ -383,14 +382,14 @@ namespace player {
                         }
                         tmp = helper::shiftOne(tmp, d);
                     }
-                } else if (m.isEnPeasant()) {
-                    types::boardIndex remove = helper::shiftOne(m.toIndex(), helper::getUp(m.fromColour()));
-                    auto it = pawns.find(remove);
-                    // the pawn to be removed must exist
-                    assert(it != pawns.end());
-                    pawns.emplace_hint(it, m.fromIndex());
-                    pawns.extract(it);
-                    handleMoved(remove, fromPrev);
+                // } else if (m.isEnPeasant()) {
+                //     types::boardIndex remove = helper::shiftOne(m.toIndex(), helper::getUp(m.fromColour()));
+                //     auto it = pawns.find(remove);
+                //     // the pawn to be removed must exist
+                //     assert(it != pawns.end());
+                //     pawns.emplace_hint(it, m.fromIndex());
+                //     pawns.extract(it);
+                //     handleMoved(remove, fromPrev);
                 } else {
                     // change index
                     std::set<types::boardIndex> &pieceSet = pieces[helper::indexFromType(m.fromPiece())].get();

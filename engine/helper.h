@@ -2,6 +2,8 @@
 #include<cassert>
 #include<vector>
 #include<utility>
+#include<memory>
+
 #ifndef HELPER_H
 #define HELPER_H
 
@@ -307,100 +309,93 @@ namespace helper
     };
 
     template <typename T>
-    void concat(std::vector<T> &v1, std::vector<T> v2)
+    void concat(std::vector<std::unique_ptr<T>> &v1, std::vector<std::unique_ptr<T>> v2)
     {
-        for (T i : v2)
+        for (std::unique_ptr<T> i : v2)
         {
-            v1.emplace_back(i);
+            v1.push_back(std::move(i));
         }
     }
 
     template <typename T>
-    // layers vectors ontop of each other with + 
-    // vectors must have same size
-    std::vector<T> layer(std::vector<T> v1, std::vector<T> v2) {
-        assert(v1.size() == v2.size());
-        for (unsigned int i = 0; i < v1.size(); i++) {
+    void concat(std::vector<T> &v1, std::vector<T> v2)
+    {
+        for (T i : v2)
+        {
+            v1.push_back(i);
+        }
+    }
+
+    template <typename T, size_t size>
+    std::array<T, size> layer(std::array<T, size> v1, std::array<T, size> v2) {
+        for (unsigned int i = 0; i < size; i++) {
             v1[i] += v2[i];
         }
         return v1;
     }
 
-    template<typename T>
-    void multiplyValues(std::vector<T> &v, T f) {
-        for (unsigned int i = 0; i < v.size(); ++i) {
+    template<typename T, size_t size>
+    void multiplyValues(std::array<T, size> &v, T f) {
+        for (unsigned char i = 0; i < size; ++i) {
             v[i] *= f;
         }
     }
 
+    
 
-    constexpr std::string_view PieceTypeToString(types::PieceType t)
+    constexpr char typeToChar(types::PieceType t)
     {
         switch (t)
         {
         case types::PieceType::PAWN:
-            return "PAWN";
+            return 'P';
         case types::PieceType::ROOK:
-            return "ROOK";
+            return 'R';
         case types::PieceType::KNIGHT:
-            return "KNIGHT";
+            return 'N';
         case types::PieceType::BISHOP:
-            return "BISHOP";
+            return 'B';
         case types::PieceType::QUEEN:
-            return "QUEEEN";
+            return 'Q';
         case types::PieceType::KING:
-            return "KING";
+            return 'K';
         case types::PieceType::EMPTY:
-            return "EMPTY";
+            return 'E';
         default:
-            return "BLOCK";
+            return 'B';
         };
     };
 
-    constexpr std::string_view PieceColourToString(types::PieceColour t)
+    constexpr char colourToChar(types::PieceColour t)
     {
         using pc = types::PieceColour;
         switch (t)
         {
         case pc::RED:
-            return "RED";
+            return 'R';
         case pc::GREEN:
-            return "GREEN";
+            return 'G';
         case pc::BLUE:
-            return "BLUE";
+            return 'B';
         case pc::YELLOW:
-            return "YELLOW";
+            return 'Y';
         case pc::NONE:
-            return "NONE";
+            return ' ';
         default:
-            return "NOCOLOUR";
+            return ' ';
         };
     }
 
-    // returns piece type as string view
-    std::string_view pieceToStringView(types::Piece p)
-    {
-        return PieceTypeToString(p.type);
-    }
-
-    std::string moveToString(types::Move m)
-    {
-        std::string s = "";
-        s.append(std::to_string(m.fromIndex()));
-        s.append(std::to_string(m.toIndex()));
-        return s;
-    }
-
-    // void printMoveVector(std::vector<Move> mvs) {
-    //     std::cout << "Moves: ";
-    //     for (Move m : mvs) {
-    //         std::cout << moveToString(m) << ", ";
-    //     }
-    //     std::cout << "\n";
+    // std::string moveToString(types::Move m)
+    // {
+    //     std::string s = "";
+    //     s.append(std::to_string(m.fromIndex()));
+    //     s.append(std::to_string(m.toIndex()));
+    //     return s;
     // }
 
     // TODO DELETE AND REFACTOR
-    unsigned int getColourIndex(types::PieceColour c) {
+    constexpr unsigned int getColourIndex(types::PieceColour c) {
         assert(c != types::PieceColour::NONE);
         switch (c) {
             case types::PieceColour::RED:
@@ -448,12 +443,6 @@ namespace helper
         return types::Direction::WEST;
     }
 
-    // TODO DELETE AND REFACTOR
-    // takes vector of length 4 a colour to has with and a value to place in vector
-    void placeAtColourIndex(std::vector<float> * const ve, types::PieceColour c, float va) {
-        (*ve)[getColourIndex(c)] = va;
-    }
-
     types::boardIndex shiftOne(types::boardIndex i, types::Direction d) {
         switch (d) {
             case types::Direction::NORTH: 
@@ -487,6 +476,11 @@ namespace helper
         int x = (i % 16);
         int y = (i - x) / 16;
         return std::pair(x,y);
+    }
+
+    unsigned int asciiToCol(char x) {
+        x = x < (int) 'a' ? x + 32: x;
+        return (int) x - (int) 'a';
     }
 
 };
