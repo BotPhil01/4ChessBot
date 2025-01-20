@@ -7,6 +7,7 @@
 #include<stack>
 #include<list>
 #include<memory>
+#include<iostream>
 
 #ifndef BOARD_H
 #define BOARD_H
@@ -675,6 +676,8 @@ namespace board {
 
             void playMove(types::Move m) {
                 // runtime check that everything is working smoothly
+                // std::cout << "nuts=" << helper::typeToChar(boardArray[m.fromIndex()].type()) << std::endl;
+                // std::cout << "nuts=" << helper::typeToChar(m.fromPiece()) << std::endl;
                 assert(boardArray[m.fromIndex()].type() == m.fromPiece());
                 assert(boardArray[m.toIndex()].type() == m.capturedPiece());
                 // if ((boardArray[m.fromIndex()].type() != m.fromPiece()) || (boardArray[m.toIndex()].type() != m.capturedPiece())) {

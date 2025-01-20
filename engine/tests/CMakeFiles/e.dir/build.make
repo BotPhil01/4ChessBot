@@ -69,28 +69,28 @@ include CMakeFiles/e.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/e.dir/flags.make
 
-CMakeFiles/e.dir/tests.cpp.o: CMakeFiles/e.dir/flags.make
-CMakeFiles/e.dir/tests.cpp.o: tests.cpp
-CMakeFiles/e.dir/tests.cpp.o: CMakeFiles/e.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vbox/Projects/4ChessBot/engine/tests/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/e.dir/tests.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/e.dir/tests.cpp.o -MF CMakeFiles/e.dir/tests.cpp.o.d -o CMakeFiles/e.dir/tests.cpp.o -c /home/vbox/Projects/4ChessBot/engine/tests/tests.cpp
+CMakeFiles/e.dir/benchmark.cpp.o: CMakeFiles/e.dir/flags.make
+CMakeFiles/e.dir/benchmark.cpp.o: benchmark.cpp
+CMakeFiles/e.dir/benchmark.cpp.o: CMakeFiles/e.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/vbox/Projects/4ChessBot/engine/tests/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/e.dir/benchmark.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/e.dir/benchmark.cpp.o -MF CMakeFiles/e.dir/benchmark.cpp.o.d -o CMakeFiles/e.dir/benchmark.cpp.o -c /home/vbox/Projects/4ChessBot/engine/tests/benchmark.cpp
 
-CMakeFiles/e.dir/tests.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/e.dir/tests.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/vbox/Projects/4ChessBot/engine/tests/tests.cpp > CMakeFiles/e.dir/tests.cpp.i
+CMakeFiles/e.dir/benchmark.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/e.dir/benchmark.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/vbox/Projects/4ChessBot/engine/tests/benchmark.cpp > CMakeFiles/e.dir/benchmark.cpp.i
 
-CMakeFiles/e.dir/tests.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/e.dir/tests.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/vbox/Projects/4ChessBot/engine/tests/tests.cpp -o CMakeFiles/e.dir/tests.cpp.s
+CMakeFiles/e.dir/benchmark.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/e.dir/benchmark.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/vbox/Projects/4ChessBot/engine/tests/benchmark.cpp -o CMakeFiles/e.dir/benchmark.cpp.s
 
 # Object files for target e
 e_OBJECTS = \
-"CMakeFiles/e.dir/tests.cpp.o"
+"CMakeFiles/e.dir/benchmark.cpp.o"
 
 # External object files for target e
 e_EXTERNAL_OBJECTS =
 
-e : CMakeFiles/e.dir/tests.cpp.o
+e : CMakeFiles/e.dir/benchmark.cpp.o
 e : CMakeFiles/e.dir/build.make
 e : /usr/local/lib64/libCatch2Main.a
 e : /usr/local/lib64/libCatch2.a

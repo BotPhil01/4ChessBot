@@ -1,21 +1,14 @@
-// #include"../helper.h"
-// #include"../types.h"
-// #include"../playerData.h"
-// #include"../board.h"
+#include"../board.h"
 #include"../engine.h"
+#include"../types.h"
 
-#include<vector>
-#include<iostream>
-#include<cassert>
-
-// using namespace helper;
-// using namespace types;
-// using namespace std;
-// using namespace player;
-// using namespace board;
+using namespace board;
 using namespace engine;
+using namespace types;
 
 int main() {
-    
+    Move exp = Move(52, 68, 0, PieceType::PAWN, PieceColour::RED, PieceType::EMPTY, PieceColour::NONE);
+    Board exp1 = Board();
+    exp1.playMove(exp);
     return 1;
 }

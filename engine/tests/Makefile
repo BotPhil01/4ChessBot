@@ -129,29 +129,29 @@ e/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/e.dir/build.make CMakeFiles/e.dir/build
 .PHONY : e/fast
 
-tests.o: tests.cpp.o
-.PHONY : tests.o
+benchmark.o: benchmark.cpp.o
+.PHONY : benchmark.o
 
 # target to build an object file
-tests.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/e.dir/build.make CMakeFiles/e.dir/tests.cpp.o
-.PHONY : tests.cpp.o
+benchmark.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/e.dir/build.make CMakeFiles/e.dir/benchmark.cpp.o
+.PHONY : benchmark.cpp.o
 
-tests.i: tests.cpp.i
-.PHONY : tests.i
+benchmark.i: benchmark.cpp.i
+.PHONY : benchmark.i
 
 # target to preprocess a source file
-tests.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/e.dir/build.make CMakeFiles/e.dir/tests.cpp.i
-.PHONY : tests.cpp.i
+benchmark.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/e.dir/build.make CMakeFiles/e.dir/benchmark.cpp.i
+.PHONY : benchmark.cpp.i
 
-tests.s: tests.cpp.s
-.PHONY : tests.s
+benchmark.s: benchmark.cpp.s
+.PHONY : benchmark.s
 
 # target to generate assembly for a file
-tests.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/e.dir/build.make CMakeFiles/e.dir/tests.cpp.s
-.PHONY : tests.cpp.s
+benchmark.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/e.dir/build.make CMakeFiles/e.dir/benchmark.cpp.s
+.PHONY : benchmark.cpp.s
 
 # Help Target
 help:
@@ -162,9 +162,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... e"
-	@echo "... tests.o"
-	@echo "... tests.i"
-	@echo "... tests.s"
+	@echo "... benchmark.o"
+	@echo "... benchmark.i"
+	@echo "... benchmark.s"
 .PHONY : help
 
 

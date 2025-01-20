@@ -179,6 +179,7 @@ namespace engine {
             // evaluation works by calculating the advantages based on material and position and choosing one player to focus
             // basically constantly tries to bring down the best player (other than itself) and assumes others will too!
             // returns the common enemy and the advantage difference
+            // TODO CHANGE
             std::pair<types::PieceColour, float> evaluateBoard() {
                 auto material = evaluateMaterial();
                 helper::multiplyValues(material, (float) 10); // weightings
