@@ -56,8 +56,9 @@ namespace helper
     const types::Direction GREENDOWNRIGHT = types::Direction::NORTHEAST;
     const types::Direction GREENDOWNLEFT = types::Direction::SOUTHEAST;
     
-    const char PADDEDCOLS = 16;
-    const char PADDEDROWS = 18;
+    constexpr unsigned char BOARDLENGTH = 196;
+    constexpr unsigned char PADDEDCOLS = 16;
+    constexpr unsigned char PADDEDROWS = 18;
     
     const std::vector<types::PieceColour> playableColours {RED, BLUE, YELLOW, GREEN};
     const std::vector<types::PieceType> playablePieces {types::PieceType::PAWN, types::PieceType::ROOK, types::PieceType::KNIGHT, types::PieceType::BISHOP, types::PieceType::QUEEN, types::PieceType::KING};
@@ -483,6 +484,67 @@ namespace helper
         return (int) x - (int) 'a';
     }
 
+    // rotates a 14x14 index 90 degrees counter clockwise
+    types::boardIndex rotate90degrees(types::boardIndex i, unsigned char count) {
+        std::pair<int, int> coords = {i % 14, (i - i % 14) / 14 };
+        // find quadrant
+        if (coords.second < 7) {
+            // lower
+            if (coords.first < 7) {
+                // left
+                coords.first -= 7;
+                coords.second -= 7;
+            } else {
+                // right
+                coords.first -= 6;
+                coords.second -= 7;
+            }
+        } else {
+            // upper
+            if (coords.first < 7) {
+                // left
+                coords.first -= 6;
+                coords.second -= 6;
+            } else {
+                // right
+                coords.first -= 7;
+                coords.second -= 6;
+            }
+        }
+
+        while (count > 0) {   
+            int tmp = coords.first;
+            coords.first = -coords.second;
+            coords.second = tmp;
+            count--;
+        }
+
+        if (coords.first > 0) {
+            coords.first += 6;
+            if (coords.second > 0) {
+                coords.second += 6;
+            } else {
+                coords.second += 7;
+            }
+        } else {
+            coords.first += 7;
+            if (coords.second > 0) {
+                coords.second += 6;
+            } else {
+                coords.second += 7;
+            }
+        }
+
+        i = coords.first + coords.second * 14;
+        return i;
+    }
+    
+    types::boardIndex to14BoardIndex(types::boardIndex i) {
+        unsigned int rem = i % 16;
+        assert(i > 32 && i < 255 && rem != 0 && rem != 15);
+        i = (i -rem) / 16;
+        return rem - 1 + ((i - 2) * 14);
+    }
 };
 
 #endif

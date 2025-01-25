@@ -5,6 +5,7 @@
 #include<exception>
 #include"board.h"
 #include"helper.h"
+#include"evaluator.h"
 
 #ifndef ENGINE_H
 #define ENGINE_h
@@ -14,44 +15,13 @@ namespace engine {
         private:
             board::Board &board;
             types::PieceColour self;
+            eval::Evaluator eval;
+
             int DEPTH;
-            // returns material evaluation for all colours 
-            // vector in form {r, b, y, g}
-            const std::array<float, 4> evaluateMaterial() {
-                std::array<float, 4> weightings {
-                    board.getMaterial(types::PieceColour::RED), 
-                    board.getMaterial(types::PieceColour::BLUE), 
-                    board.getMaterial(types::PieceColour::YELLOW), 
-                    board.getMaterial(types::PieceColour::GREEN)}; //r b y g
-                return weightings;   
-            }
+            
 
-            // const std::vector<float> evaluatePosition() {
-            //     // fundamental ideas
-            //     // pawns close to center = good
-            //     // developed position = good
-            //     // doubled, isolated and blocked pawns is bad
-            //     // ideally the cost of pushing a pawn to the center but making it isolated should be greater than not pushing and reinforcing
-            //     // TODO implement later as an extra
-            // }
-
-            // vector in form {r, b, y, g}
-            const std::array<float, 4> evaluateMobility() {
-                std::array<float, 4> out = {0, 0, 0, 0};
-                std::vector<std::unique_ptr<types::Move>> tmp;
-                for (unsigned char i = 0; i < helper::playableColours.size(); ++i) {
-                    types::PieceColour c = helper::playableColours[i];
-                    if (!board.movesPlayed()) { // failed to find move
-                        board.generateLegalMoves(c, tmp);
-                        out[i] = (float) tmp.size();
-                        continue;
-                    }
-                    out[i] = (float) board.getLastMove(c).totalMoves;
-                }
-                return out;
-            }
-
-            // TODO this algorithm doesn't make sense
+            // TODO FIX THIS ALGORITHM
+            // CURRENTLY THE CUTOFF IS WAY TOO SMALL AND BASICALLY JUST PICKS THE FIRST MOVE
             // we need to maximise if the current enemy isnt us and minimise if the commonEnemy is us
             // search to a depth
             // alpha =  lower bound
@@ -59,22 +29,22 @@ namespace engine {
             // search for better move
             // if better move is found then bring alpha up to better move's score
             // if the minbound exceeds maxbound it wont be considered
-            float alphaBetaMax(float alpha, float beta, int depth, types::PieceColour commonEnemy) {
+            float alphaBetaMax(float alpha, float beta, int depth) {
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS
                 if (depth == 0) {
                     // return quiesce
-                    return evaluateBoard().second;
+                    return evaluateBoard(board.getCurrentTurn());
                 }
                 std::vector<std::unique_ptr<types::Move>> moves;
                 board.generateLegalMoves(board.getCurrentTurn(), moves);
                 if (moves.size() == 0) {
                     // no moves able to be generated
-                    return evaluateBoard().second;
+                    return evaluateBoard(board.getCurrentTurn());
                 }
                 for (std::unique_ptr<types::Move> &move : moves) {
                     move->totalMoves = moves.size();
                     board.playMove(*move);
-                    float res = alphaBetaMin(alpha, beta, depth-1, commonEnemy);
+                    float res = alphaBetaMin(alpha, beta, depth-1);
                     if (res > alpha && res < beta) { // found a better move
                         alpha = res; // new lower bound is our best move
                     } else if (res > alpha && res >= beta) { // our better move wont be considered by the opponent
@@ -88,23 +58,23 @@ namespace engine {
 
             // alpha =  lower bound
             // beta = upper bound
-            float alphaBetaMin(float alpha, float beta, int depth, types::PieceColour commonEnemy) { //tries to minimise the value
+            float alphaBetaMin(float alpha, float beta, int depth) { //tries to minimise the value
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS
                 if (depth == 0) {
                     // return quiesce
-                    return evaluateBoard().second;
+                    return evaluateBoard(board.getCurrentTurn());
                 } 
                 std::vector<std::unique_ptr<types::Move>> moves;
                 board.generateLegalMoves(board.getCurrentTurn(), moves); 
                 if (moves.size() == 0) {
                     // no moves able to be generated
-                    return evaluateBoard().second;
+                    return evaluateBoard(board.getCurrentTurn());
                 }
                 
                 for (std::unique_ptr<types::Move> &move : moves) {
                     move->totalMoves = moves.size();
                     board.playMove(*move);
-                    float res = alphaBetaMax(alpha, beta, depth-1, commonEnemy);
+                    float res = alphaBetaMax(alpha, beta, depth-1);
                     if (res < beta) {
                         beta = res; // new min found
                         if (res < alpha) { // wont be considered
@@ -150,17 +120,16 @@ namespace engine {
                     board.setPlayerCheckmate(self);
                     return types::Move();
                 }
-                types::PieceColour strongest = evaluateBoard().first;
                 
                 // store the generated move length 
                 // play a move 
-                float bestCutOff = 999;
-                float bestEval = (float) -9999;
+                float bestCutOff = 99999999.0f;
+                float bestEval = -99999999.0f;
                 types::Move bestMove = *(moves[0]);
                 for (std::unique_ptr<types::Move> &m : moves) {
                     // m.totalMoves = movesLength;
                     board.playMove(*m);
-                    float eval = alphaBetaMax(-9999, 9999, DEPTH, strongest);
+                    float eval = alphaBetaMax(-9999, 9999, DEPTH);
                     if (eval > bestEval) {
                         bestEval = eval;
                         bestMove = *m;
@@ -175,30 +144,13 @@ namespace engine {
                 return bestMove;
             }
 
-            // evaluates current board position
-            // evaluation works by calculating the advantages based on material and position and choosing one player to focus
-            // basically constantly tries to bring down the best player (other than itself) and assumes others will too!
-            // returns the common enemy and the advantage difference
-            // TODO CHANGE
-            std::pair<types::PieceColour, float> evaluateBoard() {
-                auto material = evaluateMaterial();
-                helper::multiplyValues(material, (float) 10); // weightings
-                auto mobility = evaluateMobility();
-                if (mobility[helper::indexFromColour(self)] == 0) {
-                    return std::pair(types::PieceColour::NONE, -999.0);
-                }
-                // auto position = evaluatePosition();
-                auto advantages = helper::layer(material, mobility); // combine into singular valus
-                unsigned int selfIndex = helper::getColourIndex(self);
-                unsigned int maxAdvantageIndex = 0; // index of max advantage
-                for (unsigned int i = 0; i < advantages.size(); i++) {
-                    if (selfIndex != i && advantages[i] > advantages[maxAdvantageIndex]) {
-                        maxAdvantageIndex = i;
-                    }
-                }
-                return std::pair<types::PieceColour, float> (helper::getColourFromIndex(maxAdvantageIndex), advantages[selfIndex] - advantages[maxAdvantageIndex]);
+            // evaluates current position by maximising our position
+            // currently quite passive
+            float evaluateBoard(types::PieceColour col) {
+                unsigned int i = helper::indexFromColour(col);
+                return eval.getEvaluation(board, board.getPlayers())[i];
             }
-
+            
             
     };
 };

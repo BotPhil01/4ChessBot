@@ -420,7 +420,12 @@ namespace board {
                 // players[3] = std::ref(greenPlayer);
             }
             
-            types::PieceColour getCurrentTurn() {
+            constexpr std::array<std::reference_wrapper<player::Player>, 4UL>  getPlayers() const {
+                return players;
+            }
+
+
+            constexpr types::PieceColour getCurrentTurn() const {
                 return turn;
             }
 
