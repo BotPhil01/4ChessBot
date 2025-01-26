@@ -20,74 +20,6 @@ namespace engine {
             int DEPTH;
             
 
-            // TODO FIX THIS ALGORITHM
-            // CURRENTLY THE CUTOFF IS WAY TOO SMALL AND BASICALLY JUST PICKS THE FIRST MOVE
-            // we need to maximise if the current enemy isnt us and minimise if the commonEnemy is us
-            // search to a depth
-            // alpha =  lower bound
-            // beta = upper bound
-            // search for better move
-            // if better move is found then bring alpha up to better move's score
-            // if the minbound exceeds maxbound it wont be considered
-            float alphaBetaMax(float alpha, float beta, int depth) {
-                // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS
-                if (depth == 0) {
-                    // return quiesce
-                    return evaluateBoard(board.getCurrentTurn());
-                }
-                std::vector<std::unique_ptr<types::Move>> moves;
-                board.generateLegalMoves(board.getCurrentTurn(), moves);
-                if (moves.size() == 0) {
-                    // no moves able to be generated
-                    return evaluateBoard(board.getCurrentTurn());
-                }
-                for (std::unique_ptr<types::Move> &move : moves) {
-                    move->totalMoves = moves.size();
-                    board.playMove(*move);
-                    float res = alphaBetaMin(alpha, beta, depth-1);
-                    if (res > alpha && res < beta) { // found a better move
-                        alpha = res; // new lower bound is our best move
-                    } else if (res > alpha && res >= beta) { // our better move wont be considered by the opponent
-                        board.unPlayMove();
-                        return beta;
-                    }
-                    board.unPlayMove();
-                }
-                return alpha;
-            }
-
-            // alpha =  lower bound
-            // beta = upper bound
-            float alphaBetaMin(float alpha, float beta, int depth) { //tries to minimise the value
-                // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS
-                if (depth == 0) {
-                    // return quiesce
-                    return evaluateBoard(board.getCurrentTurn());
-                } 
-                std::vector<std::unique_ptr<types::Move>> moves;
-                board.generateLegalMoves(board.getCurrentTurn(), moves); 
-                if (moves.size() == 0) {
-                    // no moves able to be generated
-                    return evaluateBoard(board.getCurrentTurn());
-                }
-                
-                for (std::unique_ptr<types::Move> &move : moves) {
-                    move->totalMoves = moves.size();
-                    board.playMove(*move);
-                    float res = alphaBetaMax(alpha, beta, depth-1);
-                    if (res < beta) {
-                        beta = res; // new min found
-                        if (res < alpha) { // wont be considered
-                            board.unPlayMove();
-                            return alpha;
-                        }
-                    }
-                    board.unPlayMove();
-                }
-                return beta;
-            }
-
-
         public:
             Engine(
                 board::Board &b,
@@ -124,40 +56,62 @@ namespace engine {
                 
                 // store the generated move length 
                 // play a move 
-                float bestEval = -99999999.0f;
-                types::Move bestMove = *(moves[0]);
+                float bestDiff = -99999999.0f;
+                types::Move bestMove;
                 for (std::unique_ptr<types::Move> &m : moves) {
-                    // m.totalMoves = movesLength;
                     board.playMove(*m);
                     std::array<float, 4UL> eval = search(DEPTH);
-                    float ourEval = eval[helper::indexFromColour(self)];
-                    if (ourEval > bestEval) {
-                        bestEval = ourEval;
+                    
+                    float enemyBest = -9999999.0f;
+                    for (unsigned int i = 0; i < eval.size(); ++i) {
+                        if (i != helper::indexFromColour(self) && eval[i] > enemyBest) {
+                            enemyBest = eval[i];
+                        }
+                    }
+
+                    float diff = eval[helper::indexFromColour(self)] - enemyBest;
+                    if (diff > bestDiff) {
+                        bestDiff = diff;
                         bestMove = *m;
                     }
                     board.unPlayMove();
                 }
-                bestMove.totalMoves = moves.size();
                 return bestMove;
             }
 
             std::array<float, 4UL> search(unsigned int depth) {
                 if (depth == 0) {
+                    // replace with quiesce later
                     return eval.getEvaluation(board, board.getPlayers());
                 }
-                std::vector<std::unique_ptr<types::Move>> moves;
-                const types::PieceColour turn = board.getCurrentTurn();
-                board.generateLegalMoves(turn, moves);
 
-                std::array<float, 4UL> ourBestEval = {-99999999999.0f, -99999999999.0f, -99999999999.0f, -99999999999.0f};
-                for (std::unique_ptr<types::Move> &m : moves) {
-                    m->totalMoves = moves.size();
-                    board.playMove(*m);
-                    const std::array<float, 4UL> eval = search(depth-1);
-                    ourBestEval = eval[helper::indexFromColour(turn)] > ourBestEval[helper::indexFromColour(turn)] ? eval : ourBestEval;
+                types::PieceColour us = board.getCurrentTurn();
+                std::vector<std::unique_ptr<types::Move>> moves;
+                board.generateLegalMoves(us, moves);
+
+                float bestDiff = -99999999.0f;
+                std::array<float, 4UL> bestEval = {0, 0, 0, 0};
+                types::Move bestMove; 
+                for (unsigned int i = 0; i < moves.size(); ++i) {
+                    types::Move m = *(moves[i]);
+                    board.playMove(m);
+                    std::array<float, 4UL> eval = search(depth-1);
+
+                    float enemyBest = -99999999.0f;
+                    for (unsigned int i = 0; i < eval.size(); ++i) {
+                        if (i != helper::indexFromColour(us) && eval[i] > enemyBest) {
+                            enemyBest = eval[i];
+                        }
+                    }
+                    float diff = eval[helper::indexFromColour(us)] - enemyBest;
+                    if (diff > bestDiff) {
+                        bestDiff = diff;
+                        bestMove = m;
+                        bestEval = eval;
+                    }
                     board.unPlayMove();
                 }
-                return ourBestEval;
+                return bestEval;
             }
 
             // evaluates current position by maximising our position
