@@ -109,58 +109,7 @@ namespace board {
                 return;
             }
 
-            // generates pseudo legal moves
-            // moves in returned std::vector have all except the totalMoves guaranteed to be filled
-            void generatePseudoLegalMoves(types::PieceColour c, std::vector<std::unique_ptr<types::Move>> &out) {
-                player::Player &player = players[helper::indexFromColour(c)].get();
-                std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces = player.getPieces();
-                out.reserve(111);
-                for (unsigned int i = 0; i < pieces.size(); ++i) {
-                    std::set<types::boardIndex> &s = pieces[i].get();
-                    for (auto index : s) {
-                        switch (helper::playablePieces[i]) {
-                            case types::PieceType::PAWN:
-                            bulkCreateMove(index, pawnShift(index), out);
-                            break;
-                        case types::PieceType::ROOK:
-                            bulkCreateMove(index, rookShift(index), out);
-                            break;
-                        case types::PieceType::KNIGHT:
-                            bulkCreateMove(index, knightShift(index), out);
-                            break;
-                        case types::PieceType::BISHOP:
-                            bulkCreateMove(index, bishopShift(index), out);
-                            break;
-                        case types::PieceType::KING:
-                            bulkCreateMove(index, kingShift(index), out);
-                            break;
-                        case types::PieceType::QUEEN:
-                            bulkCreateMove(index, queenShift(index), out);
-                            break;
-                        default:
-                            continue;
-                        }
-                    }
-                }
-                out.shrink_to_fit();
-            }
 
-            // // get colour's last move 
-            // // returns valid iterator if move exists otherwise returns .end() iterator
-            // std::vector<types::Move>::iterator getLastMoveIterator(types::PieceColour colour) {
-            //     const size_t vs = moveStack.size();
-            //     unsigned char min = std::min(vs, (const size_t) 4); 
-            //     std::vector<types::Move>::iterator iterator = moveStack.end() - 1;
-            //     for (int i = 0; i < min; ++i) {
-            //         if (vs - i > 0 && vs - i < moveStack.size()) {
-            //             types::Move m = moveStack[vs - i]; 
-            //             if (m.fromColour() == colour) {
-            //                 return iterator - i;
-            //             }
-            //         }
-            //     }
-            //     return moveStack.end();
-            // }
             // check if a square is empty by index
             bool isEmpty(types::boardIndex i) {
                 return boardArray[i].type() == types::PieceType::EMPTY;
@@ -382,6 +331,7 @@ namespace board {
             //         return false;
             //     }
             //     return true;
+            
             // }
 
             std::array<types::Square, 288UL> getBoard() {
@@ -408,7 +358,41 @@ namespace board {
                 return 0;
             }
         public:
-
+            // generates pseudo legal moves
+            // moves in returned std::vector have all except the totalMoves guaranteed to be filled
+            void generatePseudoLegalMoves(types::PieceColour c, std::vector<std::unique_ptr<types::Move>> &out) {
+                player::Player &player = players[helper::indexFromColour(c)].get();
+                std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces = player.getPieces();
+                out.reserve(111);
+                for (unsigned int i = 0; i < pieces.size(); ++i) {
+                    std::set<types::boardIndex> &s = pieces[i].get();
+                    for (auto index : s) {
+                        switch (helper::playablePieces[i]) {
+                            case types::PieceType::PAWN:
+                            bulkCreateMove(index, pawnShift(index), out);
+                            break;
+                        case types::PieceType::ROOK:
+                            bulkCreateMove(index, rookShift(index), out);
+                            break;
+                        case types::PieceType::KNIGHT:
+                            bulkCreateMove(index, knightShift(index), out);
+                            break;
+                        case types::PieceType::BISHOP:
+                            bulkCreateMove(index, bishopShift(index), out);
+                            break;
+                        case types::PieceType::KING:
+                            bulkCreateMove(index, kingShift(index), out);
+                            break;
+                        case types::PieceType::QUEEN:
+                            bulkCreateMove(index, queenShift(index), out);
+                            break;
+                        default:
+                            continue;
+                        }
+                    }
+                }
+                out.shrink_to_fit();
+            }
             Board() {
                 // construct to initial position
                 for (short i = 0; i < 288; ++i) {
@@ -419,7 +403,18 @@ namespace board {
                 // players[2] = std::ref(yellowPlayer);
                 // players[3] = std::ref(greenPlayer);
             }
-            
+
+            Board(Board &b) :
+            boardArray(b.boardArray), 
+            turn(b.turn),
+            moveStack(b.moveStack),
+            redPlayer(b.redPlayer),
+            bluePlayer(b.bluePlayer),
+            yellowPlayer(b.yellowPlayer),
+            greenPlayer(b.greenPlayer) {
+                players = {{ std::ref(redPlayer), std::ref(bluePlayer), std::ref(yellowPlayer), std::ref(greenPlayer) }};
+            }
+            Board& operator=(Board& other) = default;
             constexpr std::array<std::reference_wrapper<player::Player>, 4UL>  getPlayers() const {
                 return players;
             }

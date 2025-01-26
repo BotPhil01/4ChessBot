@@ -4,6 +4,7 @@
 CMakeFiles/e.dir/benchmark.cpp.o: benchmark.cpp \
   /home/vbox/Projects/4ChessBot/engine/board.h \
   /home/vbox/Projects/4ChessBot/engine/engine.h \
+  /home/vbox/Projects/4ChessBot/engine/evaluator.h \
   /home/vbox/Projects/4ChessBot/engine/helper.h \
   /home/vbox/Projects/4ChessBot/engine/playerData.h \
   /home/vbox/Projects/4ChessBot/engine/types.h \
@@ -49,7 +50,9 @@ CMakeFiles/e.dir/benchmark.cpp.o: benchmark.cpp \
   /usr/include/bits/setjmp.h \
   /usr/include/bits/stdint-intn.h \
   /usr/include/bits/stdint-uintn.h \
+  /usr/include/bits/stdio.h \
   /usr/include/bits/stdio_lim.h \
+  /usr/include/bits/stdlib-bsearch.h \
   /usr/include/bits/stdlib-float.h \
   /usr/include/bits/struct_mutex.h \
   /usr/include/bits/struct_rwlock.h \
@@ -439,17 +442,15 @@ CMakeFiles/e.dir/benchmark.cpp.o: benchmark.cpp \
 
 /usr/local/include/catch2/catch_message.hpp:
 
-/usr/local/include/catch2/generators/catch_generators.hpp:
+/usr/local/include/catch2/catch_assertion_info.hpp:
 
-/usr/include/c++/11/bits/stl_algobase.h:
+/usr/local/include/catch2/benchmark/detail/catch_timing.hpp:
 
 /usr/include/bits/endian.h:
 
 /usr/include/c++/11/iosfwd:
 
 /usr/include/c++/11/bits/refwrap.h:
-
-/usr/include/c++/11/bits/stl_algo.h:
 
 /usr/include/c++/11/bits/atomic_lockfree_defines.h:
 
@@ -541,6 +542,8 @@ CMakeFiles/e.dir/benchmark.cpp.o: benchmark.cpp \
 
 /usr/include/asm/unistd_64.h:
 
+/usr/include/bits/stdio.h:
+
 /usr/include/bits/posix_opt.h:
 
 /usr/include/c++/11/bits/ranges_algo.h:
@@ -550,12 +553,6 @@ CMakeFiles/e.dir/benchmark.cpp.o: benchmark.cpp \
 /usr/include/c++/11/bits/align.h:
 
 /usr/include/bits/xopen_lim.h:
-
-/usr/local/include/catch2/internal/catch_preprocessor_remove_parens.hpp:
-
-/usr/include/c++/11/ext/atomicity.h:
-
-/home/vbox/Projects/4ChessBot/engine/board.h:
 
 /usr/local/include/catch2/catch_totals.hpp:
 
@@ -595,41 +592,21 @@ CMakeFiles/e.dir/benchmark.cpp.o: benchmark.cpp \
 
 /usr/include/bits/types/clock_t.h:
 
-/usr/include/c++/11/ext/alloc_traits.h:
+/usr/include/bits/types/struct_timespec.h:
 
-/usr/include/c++/11/algorithm:
-
-/usr/include/bits/mathcalls-narrow.h:
-
-benchmark.cpp:
-
-/usr/include/bits/stdint-intn.h:
-
-/usr/include/bits/fp-logb.h:
-
-/usr/include/c++/11/bits/list.tcc:
-
-/usr/include/c++/11/bits/unordered_map.h:
-
-/usr/include/ctype.h:
+/usr/include/c++/11/tr1/modified_bessel_func.tcc:
 
 /usr/include/c++/11/bits/shared_ptr_atomic.h:
 
 /usr/include/bits/fp-fast.h:
 
+/usr/include/bits/stdlib-bsearch.h:
+
 /usr/include/bits/libc-header-start.h:
 
 /usr/include/bits/confname.h:
 
-/usr/include/c++/11/bits/std_mutex.h:
-
-/usr/include/bits/locale.h:
-
-/usr/include/asm/unistd.h:
-
 /usr/include/c++/11/bits/stl_heap.h:
-
-/home/vbox/Projects/4ChessBot/engine/engine.h:
 
 /usr/include/bits/mathcalls-helper-functions.h:
 
@@ -645,11 +622,37 @@ benchmark.cpp:
 
 /usr/include/bits/math-vector.h:
 
+/usr/include/bits/fp-logb.h:
+
+/usr/include/c++/11/bits/list.tcc:
+
+/usr/include/c++/11/bits/unordered_map.h:
+
+/usr/include/ctype.h:
+
+/usr/include/bits/stdint-intn.h:
+
+/usr/include/c++/11/ext/alloc_traits.h:
+
+/usr/include/c++/11/algorithm:
+
+/usr/include/bits/mathcalls-narrow.h:
+
+benchmark.cpp:
+
+/home/vbox/Projects/4ChessBot/engine/engine.h:
+
+/usr/include/c++/11/bits/std_mutex.h:
+
+/usr/include/bits/locale.h:
+
+/usr/include/asm/unistd.h:
+
+/home/vbox/Projects/4ChessBot/engine/evaluator.h:
+
+/usr/include/c++/11/bits/basic_ios.h:
+
 /usr/include/bits/getopt_core.h:
-
-/usr/include/bits/types/struct_timespec.h:
-
-/usr/include/c++/11/tr1/modified_bessel_func.tcc:
 
 /usr/include/c++/11/bits/exception_ptr.h:
 
@@ -679,7 +682,19 @@ benchmark.cpp:
 
 /usr/include/bits/types/sigset_t.h:
 
-/usr/include/c++/11/bits/basic_ios.h:
+/usr/include/bits/types/struct_itimerspec.h:
+
+/usr/include/c++/11/utility:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/c++/11/bits/shared_ptr_base.h:
+
+/usr/include/bits/time.h:
+
+/usr/include/c++/11/bits/stl_tree.h:
+
+/usr/include/c++/11/memory:
 
 /usr/include/bits/wordsize.h:
 
@@ -699,6 +714,10 @@ benchmark.cpp:
 
 /usr/include/c++/11/bits/functexcept.h:
 
+/usr/include/bits/byteswap.h:
+
+/usr/include/bits/select.h:
+
 /usr/include/c++/11/clocale:
 
 /usr/include/c++/11/list:
@@ -707,15 +726,13 @@ benchmark.cpp:
 
 /usr/local/include/catch2/benchmark/catch_optimizer.hpp:
 
-/usr/include/bits/select.h:
+/usr/include/c++/11/bits/ranges_uninitialized.h:
 
-/usr/include/bits/byteswap.h:
+/usr/include/c++/11/bits/parse_numbers.h:
 
-/usr/include/c++/11/bits/shared_ptr.h:
+/usr/lib/gcc/x86_64-redhat-linux/11/include/stdint.h:
 
-/usr/include/c++/11/cwchar:
-
-/usr/include/c++/11/bits/cxxabi_init_exception.h:
+/usr/local/include/catch2/benchmark/detail/catch_benchmark_stats.hpp:
 
 /usr/local/include/catch2/internal/catch_message_info.hpp:
 
@@ -725,13 +742,11 @@ benchmark.cpp:
 
 /usr/include/bits/types/__mbstate_t.h:
 
-/usr/include/c++/11/bits/ranges_uninitialized.h:
+/usr/include/c++/11/bits/shared_ptr.h:
 
-/usr/include/c++/11/bits/parse_numbers.h:
+/usr/include/c++/11/cwchar:
 
-/usr/lib/gcc/x86_64-redhat-linux/11/include/stdint.h:
-
-/usr/local/include/catch2/benchmark/detail/catch_benchmark_stats.hpp:
+/usr/include/c++/11/bits/cxxabi_init_exception.h:
 
 /usr/include/c++/11/bits/locale_classes.h:
 
@@ -837,19 +852,17 @@ benchmark.cpp:
 
 /usr/local/include/catch2/benchmark/catch_estimate.hpp:
 
-/usr/include/c++/11/bits/shared_ptr_base.h:
+/usr/include/c++/11/bits/stl_algo.h:
 
-/usr/include/bits/time.h:
+/usr/local/include/catch2/internal/catch_preprocessor_remove_parens.hpp:
 
-/usr/include/c++/11/bits/stl_tree.h:
+/home/vbox/Projects/4ChessBot/engine/board.h:
 
-/usr/include/c++/11/memory:
+/usr/include/c++/11/ext/atomicity.h:
 
-/usr/include/bits/types/struct_itimerspec.h:
+/usr/local/include/catch2/generators/catch_generators.hpp:
 
-/usr/include/c++/11/utility:
-
-/usr/include/sys/cdefs.h:
+/usr/include/c++/11/bits/stl_algobase.h:
 
 /usr/include/c++/11/bits/stl_deque.h:
 
@@ -1065,9 +1078,9 @@ benchmark.cpp:
 
 /usr/include/c++/11/unordered_map:
 
-/usr/include/c++/11/bits/ostream.tcc:
-
 /usr/local/include/catch2/benchmark/detail/catch_stats.hpp:
+
+/usr/include/c++/11/bits/ostream.tcc:
 
 /usr/include/c++/11/x86_64-redhat-linux/bits/c++config.h:
 
@@ -1138,7 +1151,3 @@ benchmark.cpp:
 /usr/local/include/catch2/benchmark/detail/catch_benchmark_function.hpp:
 
 /usr/local/include/catch2/benchmark/detail/catch_measure.hpp:
-
-/usr/local/include/catch2/benchmark/detail/catch_timing.hpp:
-
-/usr/local/include/catch2/catch_assertion_info.hpp:

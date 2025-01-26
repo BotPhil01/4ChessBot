@@ -74,19 +74,20 @@ namespace types {
         private:
             // board data represents the involved pieces
             // board
-            boardIndex fromI;
-            boardIndex toI;
-            PieceColour fromC;
-            PieceType fromP;
+            boardIndex fromI; // 2byte
+            boardIndex toI; // 2byte
+            PieceColour fromC; // 4 byte
+            PieceType fromP; // 4 byte
             // capture
-            PieceColour capturedC;
-            PieceType capturedP;
+            PieceColour capturedC; // 4 byte
+            PieceType capturedP; // 4 byte
             // special move defined as a castling or en peasant move
-            bool special;
+            bool special; // 1 byte
             // promotion
-            PieceType toP;
+            PieceType toP; // 4 byte
 
         public:
+            // 2 byte 
             int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
             
             Move() : 

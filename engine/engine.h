@@ -106,6 +106,7 @@ namespace engine {
 
             // returns a next move 
             types::Move chooseNextMove() { 
+                // std::cout << "choosing next move" << std::endl;
                 // return the next move or an empty move from default move constructor if unable to find one
                 // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS -> want the algorithm to be able to check mid way through whether a new player becomes the strongest
                 // main idea could be after an upper bound of advantage gained it reevaluates
@@ -123,25 +124,40 @@ namespace engine {
                 
                 // store the generated move length 
                 // play a move 
-                float bestCutOff = 99999999.0f;
                 float bestEval = -99999999.0f;
                 types::Move bestMove = *(moves[0]);
                 for (std::unique_ptr<types::Move> &m : moves) {
                     // m.totalMoves = movesLength;
                     board.playMove(*m);
-                    float eval = alphaBetaMax(-9999, 9999, DEPTH);
-                    if (eval > bestEval) {
-                        bestEval = eval;
+                    std::array<float, 4UL> eval = search(DEPTH);
+                    float ourEval = eval[helper::indexFromColour(self)];
+                    if (ourEval > bestEval) {
+                        bestEval = ourEval;
                         bestMove = *m;
-                        if (eval > bestCutOff) {
-                            board.unPlayMove();
-                            break;
-                        }
                     }
                     board.unPlayMove();
                 }
                 bestMove.totalMoves = moves.size();
                 return bestMove;
+            }
+
+            std::array<float, 4UL> search(unsigned int depth) {
+                if (depth == 0) {
+                    return eval.getEvaluation(board, board.getPlayers());
+                }
+                std::vector<std::unique_ptr<types::Move>> moves;
+                const types::PieceColour turn = board.getCurrentTurn();
+                board.generateLegalMoves(turn, moves);
+
+                std::array<float, 4UL> ourBestEval = {-99999999999.0f, -99999999999.0f, -99999999999.0f, -99999999999.0f};
+                for (std::unique_ptr<types::Move> &m : moves) {
+                    m->totalMoves = moves.size();
+                    board.playMove(*m);
+                    const std::array<float, 4UL> eval = search(depth-1);
+                    ourBestEval = eval[helper::indexFromColour(turn)] > ourBestEval[helper::indexFromColour(turn)] ? eval : ourBestEval;
+                    board.unPlayMove();
+                }
+                return ourBestEval;
             }
 
             // evaluates current position by maximising our position

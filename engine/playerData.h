@@ -3,6 +3,7 @@
 #include<vector>
 #include<set>
 #include<functional>
+#include<iostream>
 #ifndef PLAYERDATA_H
 #define PLAYERDATA_H
 
@@ -225,6 +226,19 @@ namespace player {
                 genPieces();                
             }
 
+            Player(Player& p) :
+            clr(p.clr),
+            pawns(p.pawns),
+            rooks(p.rooks),
+            knights(p.knights),
+            bishops(p.bishops),
+            queens(p.queens),
+            kings(p.kings),
+            movedPieces(p.movedPieces)
+            {
+                pieces = {ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)};
+            }
+
             constexpr bool isCheckmate() const {
                 return isMate;
             }
@@ -394,6 +408,9 @@ namespace player {
                     // change index
                     std::set<types::boardIndex> &pieceSet = pieces[helper::indexFromType(m.fromPiece())].get();
                     auto it = pieceSet.find(m.toIndex());
+                    if (it == pieceSet.end()) {
+                        std::cout << helper::typeToChar(m.fromPiece()) << m.fromIndex() << helper::typeToChar(m.capturedPiece()) << m.toIndex() << std::endl;
+                    }
                     assert(it != pieceSet.end());
                     pieceSet.extract(it);
                     pieceSet.emplace(m.fromIndex());
