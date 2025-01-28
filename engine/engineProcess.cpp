@@ -5,14 +5,14 @@
 #include<sstream>
 #include<string>
 #include<array>
-using namespace engine;
+using namespace engines;
 using namespace std;
 using namespace board;
 using namespace types;
 using namespace helper;
 using namespace player;
 
-class EngineProcess {
+class DiffEngineProcess {
     private:
         char CLIMODE = 0;
         char JSMODE = 1;
@@ -22,13 +22,13 @@ class EngineProcess {
         // for predicting moves
         
         Board board = Board();
-        Engine bEngine = Engine(board, PieceColour::BLUE);
-        Engine yEngine = Engine(board, PieceColour::YELLOW);
-        Engine gEngine = Engine(board, PieceColour::GREEN);
+        DiffEngine bDiffEngine = DiffEngine(board, PieceColour::BLUE);
+        DiffEngine yDiffEngine = DiffEngine(board, PieceColour::YELLOW);
+        DiffEngine gDiffEngine = DiffEngine(board, PieceColour::GREEN);
 
-        std::array<std::reference_wrapper<Engine>, 3UL> engines = {ref(bEngine), ref(yEngine), ref(gEngine)};
+        std::array<std::reference_wrapper<DiffEngine>, 3UL> engines = {ref(bDiffEngine), ref(yDiffEngine), ref(gDiffEngine)};
         // TODO MAKE ARRAY OF REFERENCES
-        // takes a javascript move and converts it to an engine move
+        // takes a javascript move and converts it to an DiffDiffEnginemove
         // difference is that js move has 0, 0 as top left cpp has bottom left
         // fromx|fromy|tox|toy
         
@@ -87,7 +87,7 @@ class EngineProcess {
         }
 
         // gives js output for a finished engine
-        string parseOutput(Engine e) {
+        string parseOutput(DiffEngine e) {
             assert(board.isPlayerCheckmate(e.getColour()));
             stringstream stream;
             stream << colourToChar(e.getColour()) << "#";
@@ -145,24 +145,24 @@ class EngineProcess {
                 }
                 Move m = parseJsMove(input);
                 updateGameState(m);
-                Move bm = bEngine.chooseNextMove();
+                Move bm = bDiffEngine.chooseNextMove();
                 if (bm.fromIndex() == 300 || bm.toIndex() == 300) {
-                    cout << parseOutput(bEngine) << endl;
+                    cout << parseOutput(bDiffEngine) << endl;
                 } else {
-                    updateGameState(bm); // here yEngine has correct turn
+                    updateGameState(bm); // here yDiffEngine has correct turn
                     cout << parseOutput(bm) << endl;
                 }
-                Move ym = yEngine.chooseNextMove(); // here
+                Move ym = yDiffEngine.chooseNextMove(); // here
                 if (ym.fromIndex() == 300 || ym.toIndex() == 300) {
-                    cout << parseOutput(yEngine) << endl;
+                    cout << parseOutput(yDiffEngine) << endl;
                 } else {
                     updateGameState(ym);
                     cout << parseOutput(ym) << endl;
                 }
         
-                Move gm = gEngine.chooseNextMove();
+                Move gm = gDiffEngine.chooseNextMove();
                 if (gm.fromIndex() == 300 || gm.toIndex() == 300) {
-                    cout << parseOutput(gEngine) << endl;
+                    cout << parseOutput(gDiffEngine) << endl;
                 } else {
                     updateGameState(gm);
                     cout << parseOutput(gm) << endl;
@@ -197,7 +197,7 @@ class EngineProcess {
                 Move m = parseCliMove(input);
                 updateGameState(m);
                 for (unsigned char i = 0; i < engines.size(); ++i) {
-                    Engine e = engines[i].get();
+                    DiffEngine e = engines[i].get();
                     m = e.chooseNextMove(); 
                     if (m.fromIndex() == 300 || m.toIndex() == 300) {
                         cout << parseOutput(e) << endl;
@@ -212,7 +212,7 @@ class EngineProcess {
         }
 
     public:
-        EngineProcess() {
+        DiffEngineProcess() {
             
         }
         int start() {
@@ -238,7 +238,7 @@ class EngineProcess {
 };
 
 int main() {
-    EngineProcess ep = EngineProcess();
+    DiffEngineProcess ep = DiffEngineProcess();
     return ep.start();
 }
 

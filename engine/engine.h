@@ -7,10 +7,33 @@
 #include"helper.h"
 #include"evaluator.h"
 
-#ifndef ENGINE_H
-#define ENGINE_h
+#ifndef ENGINES_H
+#define ENGINES_h
 
-namespace engine {
+namespace engines {
+    
+    unsigned int DIFFENGINE = 0;
+    unsigned int PARANOIDENGINE = 0;
+
+    // engine interface
+    class Engine {
+
+        public:
+            board::Board &BOARD;
+            types::PieceColour SELF;
+            unsigned int DEPTH;
+            Engine(board::Board &board, types::PieceColour col, unsigned int depth) :
+            BOARD(board),
+            DEPTH(depth),
+            SELF(col)
+            {};
+            virtual ~Engine(){}
+            virtual types::Move chooseNextMove() = 0;
+    };
+    
+     
+
+    
     class SearchData {
         public:
             std::array<bool, 4UL> playedArray = {false, false, false, false};
@@ -33,29 +56,24 @@ namespace engine {
 
     };
     
-    class Engine {
+    class DiffEngine : public Engine {
         private:
-            board::Board &board;
-            types::PieceColour self;
             eval::Evaluator eval;
 
-            int DEPTH;
             
 
         public:
-            Engine(
+            DiffEngine(
                 board::Board &b,
                 types::PieceColour p = types::PieceColour::RED, 
                 int d = 2, 
                 bool finished = false) :
-            board(b),
-            self(p), 
-            DEPTH(d)
+            Engine(b, p, d)
             {
                 
             }
             types::PieceColour getColour() {
-                return self;
+                return SELF;
             }
 
             // returns a next move 
@@ -66,13 +84,13 @@ namespace engine {
                 // main idea could be after an upper bound of advantage gained it reevaluates
                 // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
                 // generate legal moves
-                if (board.isPlayerCheckmate(self)) {
+                if (BOARD.isPlayerCheckmate(SELF)) {
                     return types::Move();
                 }
                 std::vector<std::unique_ptr<types::Move>> moves;
-                board.generateLegalMoves(self, moves);
+                BOARD.generateLegalMoves(SELF, moves);
                 if (moves.size() == 0) {
-                    board.setPlayerCheckmate(self);
+                    BOARD.setPlayerCheckmate(SELF);
                     return types::Move();
                 }
                 
@@ -81,15 +99,15 @@ namespace engine {
                 // float bestDiff = -99999999.0f;
 
                 types::Move bestMove;
-                unsigned int usIndex = helper::indexFromColour(self);
+                unsigned int usIndex = helper::indexFromColour(SELF);
                 SearchData data = SearchData(usIndex);
                 float bestEval = -9999999999.0f;
 
                 for (std::unique_ptr<types::Move> &m : moves) {
-                    board.playMove(*m);
+                    BOARD.playMove(*m);
                     std::array<float, 4UL> eval = search(DEPTH, data);
                     
-                    // perform one search then check what thte state of the board is 
+                    // perform one search then check what thte state of the BOARD is 
                     // maximise us?
                     // assume we arent leader or second
                     // if we become leader then change data to be as such
@@ -99,21 +117,21 @@ namespace engine {
                         bestEval = eval[usIndex];
                     }
 
-                    board.unPlayMove();
+                    BOARD.unPlayMove();
 
                     // float enemyBest = -9999999.0f;
                     // for (unsigned int i = 0; i < eval.size(); ++i) {
-                    //     if (i != helper::indexFromColour(self) && eval[i] > enemyBest) {
+                    //     if (i != helper::indexFromColour(SELF) && eval[i] > enemyBest) {
                     //         enemyBest = eval[i];
                     //     }
                     // }
 
-                    // float diff = eval[helper::indexFromColour(self)] - enemyBest;
+                    // float diff = eval[helper::indexFromColour(SELF)] - enemyBest;
                     // if (diff > bestDiff) {
                     //     bestDiff = diff;
                     //     bestMove = *m;
                     // }
-                    // board.unPlayMove();
+                    // BOARD.unPlayMove();
                 }
                 return bestMove;
 
@@ -124,13 +142,13 @@ namespace engine {
             std::array<float, 4UL> search(unsigned int _depth, SearchData data) {
                 if (_depth == 0) {
                     // replace with quiesce later
-                    return eval.getDiffEvaluation(board, board.getPlayers());
+                    return eval.getDiffEvaluation(BOARD, BOARD.getPlayers());
                 }
 
-                const types::PieceColour us = board.getCurrentTurn();
+                const types::PieceColour us = BOARD.getCurrentTurn();
                 const unsigned int usIndex = helper::indexFromColour(us);
                 std::vector<std::unique_ptr<types::Move>> moves;
-                board.generateLegalMoves(us, moves);
+                BOARD.generateLegalMoves(us, moves);
 
                 float bestDiff = -99999999.0f;
                 std::array<float, 4UL> bestEval = {0, 0, 0, 0};
@@ -140,7 +158,7 @@ namespace engine {
                 --_depth;
                 for (unsigned int i = 0; i < moves.size(); ++i) {
                     types::Move m = *(moves[i]);
-                    board.playMove(m);
+                    BOARD.playMove(m);
                     data.playedArray[usIndex] = true;
 
                     if (data.leaderIndex > 3 || data.secondIndex > 3) {
@@ -179,7 +197,7 @@ namespace engine {
                         // alpha cutoff
                         if ((data.leaderPlayed() && eval[usIndex] > data.leaderArray[data.secondIndex]) 
                         ||  (data.secondPlayed() && eval[usIndex] > data.secondArray[data.secondIndex])) {
-                            board.unPlayMove();
+                            BOARD.unPlayMove();
                             return eval;
                         }
 
@@ -206,7 +224,7 @@ namespace engine {
                         // alpha check
                         if (data.secondPlayed()) {
                             if (eval[data.leaderIndex] > data.secondArray[data.leaderIndex]) {
-                                board.unPlayMove();
+                                BOARD.unPlayMove();
                                 return eval;
                             }
                         }
@@ -233,7 +251,7 @@ namespace engine {
                         // alpha check
                         if (data.leaderPlayed()) {
                             if (eval[data.secondIndex] > data.leaderArray[data.secondIndex]) {
-                                board.unPlayMove();
+                                BOARD.unPlayMove();
                                 return eval;
                             }
                         }
@@ -245,7 +263,7 @@ namespace engine {
                             haveAlternative = true;
                         }
                     }
-                    board.unPlayMove();
+                    BOARD.unPlayMove();
                 }
                 return bestEval;
             }
