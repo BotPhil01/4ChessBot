@@ -1,3 +1,5 @@
+set(CMAKE_C_COMPILER "/usr/bin/gcc")
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
 cmake_minimum_required(VERSION 3.22.1)
 add_compile_options(-O3 -Wall -Werror)
 project(4PChess)

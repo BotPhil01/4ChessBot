@@ -162,6 +162,8 @@ namespace eval{
         }
 
         public:
+
+        
             std::array<float, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
                 std::array<float, 4> out {0.0F, 0.0F, 0.0F, 0.0F};
                 evaluateMaterial(out, playersData);
@@ -169,7 +171,35 @@ namespace eval{
                 return out;
             }
         // std::array<float, 4> evaluate 
+            std::array<float, 4> getDiffEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
+                const std::array<float, 4> evals = getEvaluation(board, playersData);
+                // find max
+                unsigned int maxIndex = 0;
+                for (unsigned int i = 0; i < evals.size(); ++i) {
+                    if (evals[i] > evals[maxIndex]) {
+                        maxIndex = i;
+                    }
+                }
 
+                unsigned int secondIndex = 0;
+                for (unsigned int i = 0; i < evals.size(); ++i) {
+                    if (i != maxIndex && evals[i] > evals[secondIndex]) {
+                        secondIndex = i;
+                    }
+                }
+
+                std::array<float, 4> diff = {0.0f, 0.0f, 0.0f, 0.0f};
+                for (unsigned int i = 0; i < evals.size(); ++i) {
+                    if (i == maxIndex) {
+                        diff[i] = evals[maxIndex] - evals[secondIndex];
+                    } else {
+                        diff[i] = evals[i] - evals[maxIndex];
+                    }
+                }
+
+
+                return diff;
+            }      
     };
 
 };

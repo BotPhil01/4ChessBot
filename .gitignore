@@ -12,3 +12,4 @@ helper/
 **/a.out
  
 engine/tests/e
+engine/dummy.cpp
