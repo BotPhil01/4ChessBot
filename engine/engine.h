@@ -62,11 +62,6 @@ namespace engine {
 
             // returns a next move 
             types::Move chooseNextMove() { 
-                // std::cout << "choosing next move" << std::endl;
-                // return the next move or an empty move from default move constructor if unable to find one
-                // TODO ADAPT FOR MULTIPLE OPPONENT NATURE OF 4PCHESS -> want the algorithm to be able to check mid way through whether a new player becomes the strongest
-                // main idea could be after an upper bound of advantage gained it reevaluates
-                // alternatively give a lower depth -> makes sense as 4PChess has higher variance than regular games
                 // generate legal moves
                 if (board.isPlayerCheckmate(self)) {
                     return types::Move();
@@ -77,11 +72,6 @@ namespace engine {
                     board.setPlayerCheckmate(self);
                     return types::Move();
                 }
-                
-                // store the generated move length 
-                // play a move 
-                // float bestDiff = -99999999.0f;
-
                 types::Move bestMove;
                 float bestEval = -9999999999.0f;
                 float beta = 9999999.0f;
