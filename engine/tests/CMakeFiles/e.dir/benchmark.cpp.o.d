@@ -291,5 +291,7 @@ CMakeFiles/e.dir/benchmark.cpp.o: \
  /usr/include/c++/11/bits/stl_stack.h /usr/include/c++/11/list \
  /usr/include/c++/11/bits/stl_list.h /usr/include/c++/11/bits/list.tcc \
  /home/vbox/Projects/4ChessBot/engine/tests/../engine.h \
+ /usr/include/c++/11/numeric /usr/include/c++/11/bits/stl_numeric.h \
+ /usr/include/c++/11/pstl/glue_numeric_defs.h \
  /home/vbox/Projects/4ChessBot/engine/tests/../board.h \
  /home/vbox/Projects/4ChessBot/engine/tests/../evaluator.h

@@ -3,6 +3,8 @@
 #include<vector>
 #include<algorithm>
 #include<exception>
+#include<numeric>
+
 #include"board.h"
 #include"helper.h"
 #include"evaluator.h"
@@ -81,178 +83,100 @@ namespace engine {
                 // float bestDiff = -99999999.0f;
 
                 types::Move bestMove;
-                unsigned int usIndex = helper::indexFromColour(self);
-                SearchData data = SearchData(usIndex);
                 float bestEval = -9999999999.0f;
+                float beta = 9999999.0f;
 
-                for (std::unique_ptr<types::Move> &m : moves) {
-                    board.playMove(*m);
-                    std::array<float, 4UL> eval = search(DEPTH, data);
+                for (unsigned int i = 0; i < moves.size(); i++) {
+                    types::Move m = *moves[i];
+                    (*moves[i]).totalMoves = moves.size();
+                    board.playMove(m);
+                    float e = -alphaBetaMin(DEPTH, bestEval, beta);
                     
-                    // perform one search then check what thte state of the board is 
-                    // maximise us?
-                    // assume we arent leader or second
-                    // if we become leader then change data to be as such
-
-                    if (eval[usIndex] > bestEval) {
-                        bestMove = *m;
-                        bestEval = eval[usIndex];
+                    if (e > bestEval) {
+                        bestMove = m;
+                        bestEval = e;
                     }
 
                     board.unPlayMove();
-
-                    // float enemyBest = -9999999.0f;
-                    // for (unsigned int i = 0; i < eval.size(); ++i) {
-                    //     if (i != helper::indexFromColour(self) && eval[i] > enemyBest) {
-                    //         enemyBest = eval[i];
-                    //     }
-                    // }
-
-                    // float diff = eval[helper::indexFromColour(self)] - enemyBest;
-                    // if (diff > bestDiff) {
-                    //     bestDiff = diff;
-                    //     bestMove = *m;
-                    // }
-                    // board.unPlayMove();
                 }
                 return bestMove;
 
 
             }
 
-            // assumes data has been set in other words leader index and secondindex is known
-            std::array<float, 4UL> search(unsigned int _depth, SearchData data) {
-                if (_depth == 0) {
-                    // replace with quiesce later
-                    return eval.getDiffEvaluation(board, board.getPlayers());
+            float alphaBetaMax(unsigned int depth, float alpha, float beta) {
+                if (depth == 0) {
+                    std::array<float, 4UL> e = eval.getEvaluation(board, board.getPlayers());
+                    return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
                 }
 
-                const types::PieceColour us = board.getCurrentTurn();
-                const unsigned int usIndex = helper::indexFromColour(us);
                 std::vector<std::unique_ptr<types::Move>> moves;
-                board.generateLegalMoves(us, moves);
+                board.generateLegalMoves(board.getCurrentTurn(), moves);
+                depth--;
+                float bestEval = -99999.0f;
 
-                float bestDiff = -99999999.0f;
-                std::array<float, 4UL> bestEval = {0, 0, 0, 0};
-                bool haveAlternative = false;
-                types::Move bestMove; 
-
-                --_depth;
-                for (unsigned int i = 0; i < moves.size(); ++i) {
-                    types::Move m = *(moves[i]);
+                for (unsigned int i = 0; i < moves.size(); i++) {
+                    types::Move m = *moves[i];
+                    (*moves[i]).totalMoves = moves.size();
                     board.playMove(m);
-                    data.playedArray[usIndex] = true;
-
-                    if (data.leaderIndex > 3 || data.secondIndex > 3) {
-                        // leader and second haven't been set
-                        std::array<float, 4UL> eval = search(_depth, data);
-                        
-                        unsigned char leaderIndex = 0;
-                        for (unsigned int j = 0; j < eval.size(); ++j) {
-                            if (eval[j] > eval[leaderIndex]) {
-                                leaderIndex = j;
-                            };
-                        }
-
-                        unsigned char secondIndex = 0;
-                        for (unsigned int j = 0; j < eval.size(); ++j) {
-                            if (j != leaderIndex && eval[j] > eval[secondIndex]) {
-                                secondIndex = j;
-                            }
-                        }
-
-                        data.leaderIndex = leaderIndex;
-                        data.secondIndex = secondIndex;
-
-                        if (eval[usIndex] > bestDiff) {
-                            bestDiff = eval[usIndex];
-                            bestMove = m;
-                            bestEval = eval;
-                            haveAlternative = true;
-                        }
-
-                        
-                    } else if (data.leaderIndex != usIndex && data.secondIndex != usIndex) {
-                        // we are not involved
-                        std::array<float, 4UL> eval = search(_depth, data);
-
-                        // alpha cutoff
-                        if ((data.leaderPlayed() && eval[usIndex] > data.leaderArray[data.secondIndex]) 
-                        ||  (data.secondPlayed() && eval[usIndex] > data.secondArray[data.secondIndex])) {
-                            board.unPlayMove();
-                            return eval;
-                        }
-
-                        // maximise as normal
-                        if (eval[usIndex] > bestDiff) {
-                            bestDiff = eval[usIndex];
-                            bestMove = m;
-                            bestEval = eval;
-                            haveAlternative = true;
-                        }
-
-                        
-                        
-                    } else if (data.leaderIndex == usIndex) {
-                        // we are leader
-                        if (haveAlternative) {
-                            data.leaderArray = bestEval;
-                        } else {
-                            data.leaderArray = {99999.0f, 99999.0f, 99999.0f, 99999.0f};
-                        }
-
-                        std::array<float, 4UL> eval = search(_depth, data);
-
-                        // alpha check
-                        if (data.secondPlayed()) {
-                            if (eval[data.leaderIndex] > data.secondArray[data.leaderIndex]) {
-                                board.unPlayMove();
-                                return eval;
-                            }
-                        }
-
-                        if (eval[usIndex] > bestDiff) {
-                            bestDiff = eval[usIndex];
-                            bestMove = m;
-                            bestEval = eval;
-                            haveAlternative = true;
-                        }
-                        
-                        
-
-                    } else if (data.secondIndex == usIndex) {
-                        // we are second
-                        if (haveAlternative) {
-                            data.secondArray = bestEval;
-                        } else {
-                            data.secondArray = {99999.0f, 99999.0f, 99999.0f, 99999.0f};
-                        }
-
-                        std::array<float, 4UL> eval = search(_depth, data);
-
-                        // alpha check
-                        if (data.leaderPlayed()) {
-                            if (eval[data.secondIndex] > data.leaderArray[data.secondIndex]) {
-                                board.unPlayMove();
-                                return eval;
-                            }
-                        }
-
-                        if (eval[usIndex] > bestDiff) {
-                            bestDiff = eval[usIndex];
-                            bestMove = m;
-                            bestEval = eval;
-                            haveAlternative = true;
+                    float eval = -alphaBetaMin(depth, alpha, beta);
+                    
+                    if (eval >= beta) {
+                        board.unPlayMove();
+                        return eval;
+                    }
+                    if (eval > bestEval) {
+                        bestEval = eval;
+                        if (eval > alpha) {
+                            alpha = bestEval;
                         }
                     }
                     board.unPlayMove();
                 }
                 return bestEval;
             }
-            
+
+            float alphaBetaMin(unsigned int depth, float alpha, float beta) {
+                if (depth == 0) {
+                    std::array<float, 4UL> e = eval.getEvaluation(board, board.getPlayers());
+                    return std::accumulate(e.begin(), e.end(), 0) - 2 * e[helper::indexFromColour(self)];
+                }
+
+
+                std::vector<std::unique_ptr<types::Move>> moves;
+                board.generateLegalMoves(board.getCurrentTurn(), moves);
+                depth--;
+                float bestEval = -99999.0f;
+                float eval;
+
+                for (unsigned int i = 0; i < moves.size(); i++) {
+                    types::Move m = *moves[i];
+                    (*moves[i]).totalMoves = moves.size();
+                    board.playMove(m);
+
+                    if (board.getCurrentTurn() == self) {
+                        eval = -alphaBetaMax(depth, alpha, beta);
+                    } else {
+                        eval = alphaBetaMin(depth, alpha, beta);
+                    }
+
+                    if (eval <= alpha) {
+                        board.unPlayMove();
+                        return eval;
+                    }
+                    if (eval < bestEval) {
+                        bestEval = eval;
+                        if (eval < beta) {
+                            beta = eval;
+                        }
+                    }
+                    board.unPlayMove();
+                }
+                return bestEval;
+            }
+
+
             
     };
-
-    
 };
 #endif

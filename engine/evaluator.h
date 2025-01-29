@@ -128,8 +128,6 @@ namespace eval{
             return POSITIONS[typeIndex].get()[tmp] * PIECEVALUES[typeIndex];
         }
 
-
-
         void evaluateMaterial(std::array<float, 4> &out, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
             for (unsigned int i = 0; i < playersData.size(); ++i) {
                 player::Player p = playersData[i].get();
@@ -156,20 +154,17 @@ namespace eval{
                     });
                 }
             }
-
-            // TODO evaluate number of attacks on us
-
         }
 
         public:
-
-        
             std::array<float, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
                 std::array<float, 4> out {0.0F, 0.0F, 0.0F, 0.0F};
                 evaluateMaterial(out, playersData);
                 evaluatePosition(out, board, playersData);
                 return out;
             }
+
+
         // std::array<float, 4> evaluate 
             std::array<float, 4> getDiffEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
                 const std::array<float, 4> evals = getEvaluation(board, playersData);
@@ -201,6 +196,7 @@ namespace eval{
                 return diff;
             }      
     };
+
 
 };
 

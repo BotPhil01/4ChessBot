@@ -12,7 +12,7 @@ using namespace player;
 
 int main() {
     Board b = Board();
-    Engine e = Engine(b, PieceColour::RED, 10);
+    Engine e = Engine(b, PieceColour::RED, 4);
     e.chooseNextMove();
     return 0;
 }
