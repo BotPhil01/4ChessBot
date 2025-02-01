@@ -455,6 +455,84 @@
   .destroy {
     display: none;
   }
+  .piece-xb {
+    background-image: url(assets/xb.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+    cursor: grab;
+  }
+  .piece-xk {
+    background-image: url(assets/xk.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+    cursor: grab;
+  }
+  .piece-xn {
+    background-image: url(assets/xn.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+    cursor: grab;
+  }
+  .piece-xp {
+    background-image: url(assets/xp.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+    cursor: grab;
+  }
+  .piece-xq {
+    background-image: url(assets/xq.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+    cursor: grab;
+  }
+  .piece-xr {
+    background-image: url(assets/xr.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: absolute;
+    background-position: center center;
+    width: 100%;
+    height: 100%; 
+    max-width: 50.4px;
+    max-height: 50.4px;
+    z-index: 10;
+    cursor: grab;
+  }
   .piece-rb {
     background-image: url(assets/rb.png);
     background-repeat: no-repeat;

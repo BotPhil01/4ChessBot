@@ -4,6 +4,41 @@ const BOARDDIMENSION = 14;
 // holds knowledge on which players are known to be in checkmate R Y G B
 let knownCheckmates = [false, false, false, false];
 
+enum Colour {
+    RED,
+    BLUE,
+    YELLOW,
+    GREEN
+}
+
+function strToColour(c: String) {
+    switch (c.toUpperCase()) {
+        case 'R':
+            return Colour.RED;
+        case 'B':
+            return Colour.BLUE;
+        case 'Y':
+            return Colour.YELLOW;
+        case 'G':
+            return Colour.GREEN;
+    }
+    return Colour.RED;
+}
+
+function colourToIndex(colour: Colour) {
+    switch (colour) {
+        case Colour.RED:
+            return 0;
+        case Colour.BLUE:
+            return 1;
+        case Colour.YELLOW:
+            return 2;
+        case Colour.GREEN:
+            return 3;
+    }
+    return -1;
+}
+
 window.onload = function() {
     buttons();
 }
@@ -68,11 +103,9 @@ function dragPieceElement(element: HTMLElement) {
     }
     
     function queryLegalMoves() {
-        var message: string = "@" + initialSquare[0].toString() + "|" + initialSquare[1].toString(); 
-        console.log("sending message: " + message);
+        var message: string = "S" + initialSquare[0].toString() + "|" + initialSquare[1].toString() + "S"; 
         ws.send(message);
         ws.onmessage = (event) => {
-            console.log("Server response: " + event.data);
             handleOutput(event.data);
         }
         return;
@@ -116,13 +149,11 @@ function dragPieceElement(element: HTMLElement) {
         if (toSquare != initialSquare) {
             // moved to a square successfully
             
-            var message: string = initialSquare[0].toString() + "|" + initialSquare[1].toString() + "|" + toSquare[0].toString() + "|" + toSquare[1].toString();
-            console.log("Sending move: " + message + "\n");
+            var message: string = "M" + initialSquare[0].toString() + "|" + initialSquare[1].toString() + "|" + toSquare[0].toString() + "|" + toSquare[1].toString() + "M";
             ws.send(message);
             setInitialPosition(positionFromSquare(toSquare));
             setInitialSquare(toSquare);
             ws.onmessage = (event) => {
-                console.log("server response: " + event.data);
                 handleOutput(event.data);
             }
 
@@ -144,12 +175,9 @@ function dragPieceElement(element: HTMLElement) {
         }
 
         var square = positionToSquare(position);
-        console.log(`initialSquare ${initialSquare} square ${square}`);
         // check if piece can move there
         if (!elemCanMove(initialSquare, square)) {
-            console.log("element cant move returning to initialpos");
             // return to intitial space 
-            // initialPos is incorrect here
             element.style.left = initialPos[0] + "px";
             element.style.top = initialPos[1] + "px";
             return initialSquare;
@@ -179,7 +207,6 @@ function dragPieceElement(element: HTMLElement) {
     // validates if an element can move from a valid t  o square to a potentially invalid square
     function elemCanMove(fromSquare: number[], toSquare: number[]) {
         if (fromSquare[0] === toSquare[0] && fromSquare[1] === toSquare[1]) {
-            console.log("here");
             return false;
         }
         // validate toSquare is on the board 
@@ -190,7 +217,6 @@ function dragPieceElement(element: HTMLElement) {
         if (outBoardSquare || inCorners) {
             return false;
         }
-        console.log(`legalSquares ${legalSquares}`);
         // check through legal squares
         for (var i = 0; i < legalSquares.length; i++) {
             var tmpSqu: number[] = legalSquares[i];
@@ -214,60 +240,76 @@ function dragPieceElement(element: HTMLElement) {
         if(str.length === 0) {
             console.error("output string is length 0");
         }
-        console.log(`handling output ${str}`);
-        if (str.includes("!")) {
-            // player has no moves
-            alert("You have lost! Better luck next time.");
-            ws.close();
-            return;
-        }
-        if (str.includes("~")) {
-            // engine has been checkmated
-        }
-        if (str.charAt(0) === "@") {
-            if (!str.includes("#")) {
-                // no legal squares found
-                // 
-            }
-            str = str.substring(1, str.length);
-            var squares = str.split("#");
-            for (var i = 0; i < squares.length; i++) {
-                var square = squares[i];
-                if (!/((\d|\d\d)\|)+/.test(square)) {
-                    continue;
+        switch (str[0]) {
+            case "M":
+                str = str.substring(str.indexOf("M") + 1, str.lastIndexOf("M"));
+                var indices = str.split("|");
+                playMove([+indices[0], +indices[1]], [+indices[2], +indices[3]]);
+                return
+            case "C":
+                str = str.substring(str.indexOf("C") + 1, str.lastIndexOf("C"));
+                handleCheckmate(str);
+                break;
+            case "S":
+                str = str.substring(str.indexOf("S") + 1, str.lastIndexOf("S"));
+                var squares = str.split("#");
+                for (var i = 0; i < squares.length; i++) {
+                        var square = squares[i];
+                        if (!/((\d|\d\d)\|)+/.test(square)) {
+                            continue;
+                        }
+                        var data = square.split("|");
+                        // assert(data.length == 2);
+                        if (data.length !== 2) {
+                            console.error("incorrect split square size");
+                    }
+                    legalSquares.push([+data[0], +data[1]]);
                 }
-                var data = square.split("|");
-                // assert(data.length == 2);
-                if (data.length !== 2) {
-                    console.error("incorrect split square size");
-                }
-                legalSquares.push([+data[0], +data[1]]);
-            }
-            return;
+                return;
+            case "L":
+                alert("You have lost! Better luck next time.");
+                ws.close();
+                return;
+            case "W":
+                alert("You win! Good job!");
+                ws.close();
+                return;
         }
-        // OR
-        // output is a collection of moves from the engines
-        // data comes in rows and columns already translated to js layout
-        var moves = str.split("#");
-        for (var i = 0; i < moves.length; i++) {
-            var move = moves[i];
-            if (!/(\d\|)+/.test(move)) {
-                continue;
-            }
-            var data = move.split("|");
-            
-            // check if player is in checkmate
-            var player = i;
-
-            
-            playMove([+data[0], +data[1]], [+data[2], +data[3]]);
-        };
-        return;
     }
     
     
 }
 
+function handleCheckmate(colourString: String) {
+    var colour = strToColour(colourString);
+    var index = colourToIndex(colour);
+    if (knownCheckmates[index]) {
+        return;
+    }
+    knownCheckmates[index] = true;
+
+    // grey out pieces
+    var pieces = ["p", "b", "n", "r", "q", "k"];
+    var className = "piece-" + colourString.toLowerCase();
+    var greyClassName = "piece-x";
+
+    pieces.forEach( (piece: String) => {
+        className = className + piece;
+        greyClassName = greyClassName + piece;
+        var elements = document.getElementsByClassName(className);
+        
+        // only changes half of hte elements in elements
+        // eelements loads in to be all of them 
+        while (elements.length > 0) {
+            elements[0].setAttribute("class", greyClassName);
+        }
+
+        className = className.substring(0, className.length - 1);
+        greyClassName = greyClassName.substring(0, greyClassName.length - 1);
+    });    
+
+
+}
 
 // takes position of the element relative to viewport
 function positionToSquare(position: number[]): number[] {
@@ -279,8 +321,6 @@ function positionToSquare(position: number[]): number[] {
     }
     var boardRect = boardElement.getBoundingClientRect();
     const squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
-    // console.log(`board left: ${boardRect.left}`);
-    // console.log(`square length: ${squareLength}`);
     // make position relative to board
     position[0] -= boardRect.left; 
     position[1] -= boardRect.top;
@@ -288,13 +328,11 @@ function positionToSquare(position: number[]): number[] {
     var square: number[] = [-1, -1];
     square[0] = Math.floor(position[0] / squareLength);
     square[1] = Math.floor(position[1] / squareLength);
-    // console.log(`calculated square: ${square[0]},${square[1]} from: ${position[0]},${position[1]}`);
     return square;
 }
 
 // returns psoition relative to viewport
 function positionFromSquare(square: number[]): number[] {
-    // console.log(`square[0]: ${square[0]}`);
     //TODO optimise this function to use global variables instead of recalculating
     var boardElement = document.getElementById("boardImage");
     if (!boardElement) {
@@ -306,8 +344,6 @@ function positionFromSquare(square: number[]): number[] {
     var position: number[] = [-1, -1];
     position[0] = Number(boardRect.left) + square[0] * squareLength;
     position[1] = Number(boardRect.top) + square[1] * squareLength;
-    // console.log(`position[0] in posfsqu: ${position[0]}`);
-    // console.log(`position[1] in posfsqu: ${position[0]}`);
     return position;
 }
 
@@ -518,7 +554,6 @@ function playMove(from: number[], to: number[]) {
 
 function checkPromotion(elem: HTMLElement, to: number[]) {
     var className = elem.getAttribute("class");
-    console.log(className);
     if (className?.endsWith("p")) {
         switch(className.charAt(6)) {
             case "r":

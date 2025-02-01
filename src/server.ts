@@ -13,38 +13,42 @@ const app = express();
 
 
 app.use(express.static('public'));
-console.log("balls");
 server = new Server(app);
 
 assert(server != null);
 const wss = new WebSocketServer({ server });
 
 wss.on('connection', (ws: WebSocket) => {
-    console.log("Client connected");
+    // console.log("Client connected");
     const engineProcess = spawn(executablePath, {
         shell: true,
     });
     var res = engineProcess.stdin.write("js\n");
-    console.log(`heading to js loop; ${res}`)
+    // console.log(`heading to js loop; ${res}`)
 
     ws.on('message', (message: string) => {
-        console.log(`Message received from client ${message}`);
+        // console.log(`Message received from client ${message}`);
         assert(engineProcess.stdin != null);
         
         var res = engineProcess.stdin.write(message + "\n");
-        console.log(`result after writing ${res}`);
+        // console.log(`result after writing ${res}`);
     });
 
     assert(engineProcess.stdout != null);
     engineProcess.stdout.on('data', (data: Buffer) => {
-        console.log(`Process has output data: <data>${data}</data>`);
+        // console.log(`Process has output data: <data>${data}</data>`);
         ws.send(data);
     });
 
     ws.on('close', () => {
         console.log("Socket closed");
         engineProcess.stdin.write("quit");
-        engineProcess.kill();
+        var killRes = engineProcess.kill();
+        if (killRes) {
+            console.log("Process successfully killed ")
+        } else {
+            console.log("Process failed to be killed");
+        }
     });
 
     engineProcess.stderr.on('data', (data: Buffer) => {
@@ -53,5 +57,5 @@ wss.on('connection', (ws: WebSocket) => {
 });
 
 server.listen(PORT, () => {
-    console.log(`Server running on port: ${PORT}`);
+    // console.log(`Server running on port: ${PORT}`);
 })

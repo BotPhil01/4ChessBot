@@ -36,10 +36,15 @@ wss.on('connection', function (ws) {
         ws.send(data);
     });
     ws.on('close', function () {
-        // console.log("Socket closed");
+        console.log("Socket closed");
         engineProcess.stdin.write("quit");
-        engineProcess.kill();
-        return;
+        var killRes = engineProcess.kill();
+        if (killRes) {
+            console.log("Process successfully killed ");
+        }
+        else {
+            console.log("Process failed to be killed");
+        }
     });
     engineProcess.stderr.on('data', function (data) {
         console.error("Engine error=".concat(data));

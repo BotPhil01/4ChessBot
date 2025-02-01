@@ -38,6 +38,39 @@ var ws = new WebSocket("ws://".concat(window.location.host));
 var BOARDDIMENSION = 14;
 // holds knowledge on which players are known to be in checkmate R Y G B
 var knownCheckmates = [false, false, false, false];
+var Colour;
+(function (Colour) {
+    Colour[Colour["RED"] = 0] = "RED";
+    Colour[Colour["BLUE"] = 1] = "BLUE";
+    Colour[Colour["YELLOW"] = 2] = "YELLOW";
+    Colour[Colour["GREEN"] = 3] = "GREEN";
+})(Colour || (Colour = {}));
+function strToColour(c) {
+    switch (c.toUpperCase()) {
+        case 'R':
+            return Colour.RED;
+        case 'B':
+            return Colour.BLUE;
+        case 'Y':
+            return Colour.YELLOW;
+        case 'G':
+            return Colour.GREEN;
+    }
+    return Colour.RED;
+}
+function colourToIndex(colour) {
+    switch (colour) {
+        case Colour.RED:
+            return 0;
+        case Colour.BLUE:
+            return 1;
+        case Colour.YELLOW:
+            return 2;
+        case Colour.GREEN:
+            return 3;
+    }
+    return -1;
+}
 window.onload = function () {
     buttons();
 };
@@ -101,11 +134,9 @@ function dragPieceElement(element) {
         initialPos = pos;
     }
     function queryLegalMoves() {
-        var message = "@" + initialSquare[0].toString() + "|" + initialSquare[1].toString();
-        console.log("sending message: " + message);
+        var message = "S" + initialSquare[0].toString() + "|" + initialSquare[1].toString() + "S";
         ws.send(message);
         ws.onmessage = function (event) {
-            console.log("Server response: " + event.data);
             handleOutput(event.data);
         };
         return;
@@ -144,13 +175,11 @@ function dragPieceElement(element) {
         var toSquare = snapToBoard(pos);
         if (toSquare != initialSquare) {
             // moved to a square successfully
-            var message = initialSquare[0].toString() + "|" + initialSquare[1].toString() + "|" + toSquare[0].toString() + "|" + toSquare[1].toString();
-            console.log("Sending move: " + message + "\n");
+            var message = "M" + initialSquare[0].toString() + "|" + initialSquare[1].toString() + "|" + toSquare[0].toString() + "|" + toSquare[1].toString() + "M";
             ws.send(message);
             setInitialPosition(positionFromSquare(toSquare));
             setInitialSquare(toSquare);
             ws.onmessage = function (event) {
-                console.log("server response: " + event.data);
                 handleOutput(event.data);
             };
             // handler response
@@ -168,12 +197,9 @@ function dragPieceElement(element) {
             return initialSquare;
         }
         var square = positionToSquare(position);
-        console.log("initialSquare ".concat(initialSquare, " square ").concat(square));
         // check if piece can move there
         if (!elemCanMove(initialSquare, square)) {
-            console.log("element cant move returning to initialpos");
             // return to intitial space 
-            // initialPos is incorrect here
             element.style.left = initialPos[0] + "px";
             element.style.top = initialPos[1] + "px";
             return initialSquare;
@@ -201,7 +227,6 @@ function dragPieceElement(element) {
     // validates if an element can move from a valid t  o square to a potentially invalid square
     function elemCanMove(fromSquare, toSquare) {
         if (fromSquare[0] === toSquare[0] && fromSquare[1] === toSquare[1]) {
-            console.log("here");
             return false;
         }
         // validate toSquare is on the board 
@@ -211,7 +236,6 @@ function dragPieceElement(element) {
         if (outBoardSquare || inCorners) {
             return false;
         }
-        console.log("legalSquares ".concat(legalSquares));
         // check through legal squares
         for (var i = 0; i < legalSquares.length; i++) {
             var tmpSqu = legalSquares[i];
@@ -228,7 +252,7 @@ function dragPieceElement(element) {
     }
     function handleOutput(d) {
         return __awaiter(this, void 0, void 0, function () {
-            var str, squares, i, square, data, moves, i, move, data, player;
+            var str, indices, squares, i, square, data;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, new Response(d).text()];
@@ -240,53 +264,70 @@ function dragPieceElement(element) {
                         if (str.length === 0) {
                             console.error("output string is length 0");
                         }
-                        console.log("handling output ".concat(str));
-                        if (str.includes("!")) {
-                            // player has no moves
-                            alert("You have lost! Better luck next time.");
-                            ws.close();
-                            return [2 /*return*/];
-                        }
-                        if (str.includes("~")) {
-                            // engine has been checkmated
-                        }
-                        if (str.charAt(0) === "@") {
-                            if (!str.includes("#")) {
-                                // no legal squares found
-                                // 
-                            }
-                            str = str.substring(1, str.length);
-                            squares = str.split("#");
-                            for (i = 0; i < squares.length; i++) {
-                                square = squares[i];
-                                if (!/((\d|\d\d)\|)+/.test(square)) {
-                                    continue;
+                        switch (str[0]) {
+                            case "M":
+                                str = str.substring(str.indexOf("M") + 1, str.lastIndexOf("M"));
+                                indices = str.split("|");
+                                playMove([+indices[0], +indices[1]], [+indices[2], +indices[3]]);
+                                return [2 /*return*/];
+                            case "C":
+                                str = str.substring(str.indexOf("C") + 1, str.lastIndexOf("C"));
+                                handleCheckmate(str);
+                                break;
+                            case "S":
+                                str = str.substring(str.indexOf("S") + 1, str.lastIndexOf("S"));
+                                squares = str.split("#");
+                                for (i = 0; i < squares.length; i++) {
+                                    square = squares[i];
+                                    if (!/((\d|\d\d)\|)+/.test(square)) {
+                                        continue;
+                                    }
+                                    data = square.split("|");
+                                    // assert(data.length == 2);
+                                    if (data.length !== 2) {
+                                        console.error("incorrect split square size");
+                                    }
+                                    legalSquares.push([+data[0], +data[1]]);
                                 }
-                                data = square.split("|");
-                                // assert(data.length == 2);
-                                if (data.length !== 2) {
-                                    console.error("incorrect split square size");
-                                }
-                                legalSquares.push([+data[0], +data[1]]);
-                            }
-                            return [2 /*return*/];
+                                return [2 /*return*/];
+                            case "L":
+                                alert("You have lost! Better luck next time.");
+                                ws.close();
+                                return [2 /*return*/];
+                            case "W":
+                                alert("You win! Good job!");
+                                ws.close();
+                                return [2 /*return*/];
                         }
-                        moves = str.split("#");
-                        for (i = 0; i < moves.length; i++) {
-                            move = moves[i];
-                            if (!/(\d\|)+/.test(move)) {
-                                continue;
-                            }
-                            data = move.split("|");
-                            player = i;
-                            playMove([+data[0], +data[1]], [+data[2], +data[3]]);
-                        }
-                        ;
                         return [2 /*return*/];
                 }
             });
         });
     }
+}
+function handleCheckmate(colourString) {
+    var colour = strToColour(colourString);
+    var index = colourToIndex(colour);
+    if (knownCheckmates[index]) {
+        return;
+    }
+    knownCheckmates[index] = true;
+    // grey out pieces
+    var pieces = ["p", "b", "n", "r", "q", "k"];
+    var className = "piece-" + colourString.toLowerCase();
+    var greyClassName = "piece-x";
+    pieces.forEach(function (piece) {
+        className = className + piece;
+        greyClassName = greyClassName + piece;
+        var elements = document.getElementsByClassName(className);
+        // only changes half of hte elements in elements
+        // eelements loads in to be all of them 
+        while (elements.length > 0) {
+            elements[0].setAttribute("class", greyClassName);
+        }
+        className = className.substring(0, className.length - 1);
+        greyClassName = greyClassName.substring(0, greyClassName.length - 1);
+    });
 }
 // takes position of the element relative to viewport
 function positionToSquare(position) {
@@ -298,8 +339,6 @@ function positionToSquare(position) {
     }
     var boardRect = boardElement.getBoundingClientRect();
     var squareLength = (boardRect.right - boardRect.left) / BOARDDIMENSION;
-    // console.log(`board left: ${boardRect.left}`);
-    // console.log(`square length: ${squareLength}`);
     // make position relative to board
     position[0] -= boardRect.left;
     position[1] -= boardRect.top;
@@ -307,12 +346,10 @@ function positionToSquare(position) {
     var square = [-1, -1];
     square[0] = Math.floor(position[0] / squareLength);
     square[1] = Math.floor(position[1] / squareLength);
-    // console.log(`calculated square: ${square[0]},${square[1]} from: ${position[0]},${position[1]}`);
     return square;
 }
 // returns psoition relative to viewport
 function positionFromSquare(square) {
-    // console.log(`square[0]: ${square[0]}`);
     //TODO optimise this function to use global variables instead of recalculating
     var boardElement = document.getElementById("boardImage");
     if (!boardElement) {
@@ -324,8 +361,6 @@ function positionFromSquare(square) {
     var position = [-1, -1];
     position[0] = Number(boardRect.left) + square[0] * squareLength;
     position[1] = Number(boardRect.top) + square[1] * squareLength;
-    // console.log(`position[0] in posfsqu: ${position[0]}`);
-    // console.log(`position[1] in posfsqu: ${position[0]}`);
     return position;
 }
 // assume we have <div class="piece-br"></div>
@@ -525,7 +560,6 @@ function playMove(from, to) {
 }
 function checkPromotion(elem, to) {
     var className = elem.getAttribute("class");
-    console.log(className);
     if (className === null || className === void 0 ? void 0 : className.endsWith("p")) {
         switch (className.charAt(6)) {
             case "r":

@@ -32,7 +32,39 @@ class EngineProcess {
         // difference is that js move has 0, 0 as top left cpp has bottom left
         // fromx|fromy|tox|toy
         
+        
+        // translates jcoordinates into c++ coords
+        pair<int, int> fromJCoords(int x, int y) {
+            return pair<int, int> {x + 1, (13 - y) + 2};
+        }
+        // converts 16x18 coords to javascript coords
+        pair<int, int> toJCoords(pair <int, int> coords) {
+            coords.first -= 1;
+            coords.second -= 2;
+            coords.second = 13 - coords.second;
+            return coords;
+        }
+
+        // gives a js output for a cpp move
+        void parseOutput(Move m) {
+            pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex()));
+            pair<int, int> toCoords =  toJCoords(to16RC(m.toIndex()));
+            
+            cout << "M" << fromCoords.first << "|" << fromCoords.second << "|" << toCoords.first << "|" << toCoords.second << "M" << endl;
+        }
+
+        // gives js output for a finished engine
+        void parseOutput(Engine e) {
+            assert(board.isPlayerCheckmate(e.getColour()));            
+            cout << "C" << colourToChar(e.getColour()) << "C" << endl;
+        }
+
+        void updateGameState(Move m) { // plays a move across the whole process
+            board.playMove(m);
+            return;
+        }
         Move parseJsMove(string jMove) {
+            jMove = jMove.substr(jMove.find_first_of("M") + 1, jMove.find_last_of("M"));
             // extract from string
             assert(jMove.size() > 3);
             vector<int> coordinates;
@@ -64,42 +96,9 @@ class EngineProcess {
             return board.indicesToMove(from, to);
         }
 
-        // translates jcoordinates into c++ coords
-        pair<int, int> fromJCoords(int x, int y) {
-            return pair<int, int> {x + 1, (13 - y) + 2};
-        }
-        // converts 16x18 coords to javascript coords
-        pair<int, int> toJCoords(pair <int, int> coords) {
-            coords.first -= 1;
-            coords.second -= 2;
-            coords.second = 13 - coords.second;
-            return coords;
-        }
-
-        // gives a js output for a cpp move
-        string parseOutput(Move m) {
-            stringstream stream;
-            pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex()));
-            pair<int, int> toCoords =  toJCoords(to16RC(m.toIndex()));
-            
-            stream << fromCoords.first << "|" << fromCoords.second << "|" << toCoords.first << "|" << toCoords.second << "#";
-            return stream.str();
-        }
-
-        // gives js output for a finished engine
-        string parseOutput(Engine e) {
-            assert(board.isPlayerCheckmate(e.getColour()));
-            stringstream stream;
-            stream << colourToChar(e.getColour()) << "~";
-            return stream.str();
-        }
-
-        void updateGameState(Move m) { // plays a move across the whole process
-            board.playMove(m);
-            return;
-        }
-
         void parseSquare(string jSquare) {
+            jSquare = jSquare.substr(jSquare.find_first_of("S") + 1, jSquare.find_last_of("S"));
+
             // in form [0-9]+|[0-9]+
             size_t t = jSquare.find("|");
             assert(t != jSquare.npos);
@@ -108,11 +107,12 @@ class EngineProcess {
             // get indices
             vector<boardIndex> indices = board.genShift(i);
             // output the indices converted to jcoords
-            string s = "@";
+            string s = "S";
             for (boardIndex i : indices) {
                 pair<int, int> p = toJCoords(to16RC(i));
                 s = s + to_string(p.first) + "|" + to_string(p.second) + "#";
             }
+            s = s + "S";
             cout << s << endl;
         }
 
@@ -138,35 +138,54 @@ class EngineProcess {
                     break;
                 }
                 assert(input.length() != 0);
-                if (input[0] == '@') {
-                    parseSquare(input.substr(1, input.length()));
-                    cout.flush();
-                    cout.flush();
-                    continue;
+                switch (input[0]) {
+                    case 'S':
+                        parseSquare(input);
+                        cout.flush();
+                        continue;
+                    case 'M':
+                        updateGameState(parseJsMove(input));
+                        break;
+                    default:
+                        cout << "Move is poorly formed" << endl;
+                        assert(false);
                 }
-                Move m = parseJsMove(input);
-                updateGameState(m);
+
+                // run engines
                 for (unsigned int i = 0; i < engines.size(); ++i) {
                     Engine e = engines[i].get();
                     Move m = e.chooseNextMove();
+
                     if (m.fromIndex() == 300 || m.toIndex() == 300) {
-                        cout << parseOutput(bEngine) << endl;
+                        parseOutput(e);
                     } else {
                         updateGameState(m);
-                        cout << parseOutput(m);
+                        parseOutput(m);
                     }
                 }
 
-                // check if red player has legal moves
+                // check loss condition
                 vector<unique_ptr<Move>> moves;
                 board.generateLegalMoves(PieceColour::RED, moves);
                 if (moves.size() == 0) {
-                    cout << colourToChar(PieceColour::RED) << "!" << endl;
+                    cout << "L" << endl;
+                    return;
+                }
+
+                // check win condition;
+                bool existsEnemy = false;
+                for (Player p : board.getPlayers()) {
+                    if (p.colour() != PieceColour::RED && !p.isCheckmate()) {
+                        existsEnemy = true;
+                    }
                 }
                 
-                cout.flush();
+                if (!existsEnemy) {
+                    cout << "W" << endl;
+                    return;
+                }
+                
             }
-            return;
         }
 
         // cli move comes in [a-n][1-14][a-n][1-14]
@@ -196,10 +215,10 @@ class EngineProcess {
                     Engine e = engines[i].get();
                     m = e.chooseNextMove(); 
                     if (m.fromIndex() == 300 || m.toIndex() == 300) {
-                        cout << parseOutput(e) << endl;
+                        parseOutput(e);
                     } else {
                         updateGameState(m);
-                        cout << parseOutput(m) << endl;
+                        parseOutput(m);
                     }
                     cout.flush();
                 }
@@ -208,9 +227,6 @@ class EngineProcess {
         }
 
     public:
-        EngineProcess() {
-            
-        }
         int start() {
             string input;
             cout << "enter mode: 1.cli 2.js 3.exit" << endl;
