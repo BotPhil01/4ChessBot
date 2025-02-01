@@ -4,6 +4,7 @@
 #include<algorithm>
 #include<exception>
 #include<numeric>
+#include<cstdint>
 
 #include"board.h"
 #include"helper.h"
@@ -13,27 +14,6 @@
 #define ENGINE_h
 
 namespace engine {
-    class SearchData {
-        public:
-            std::array<bool, 4UL> playedArray = {false, false, false, false};
-            unsigned char leaderIndex = 4;
-            unsigned char secondIndex = 4;
-            std::array<float, 4UL> leaderArray = {0, 0, 0, 0};
-            std::array<float, 4UL> secondArray = {0, 0, 0, 0};
-            
-            constexpr bool leaderPlayed() const {
-                return leaderIndex != 4 && playedArray[leaderIndex];
-            }
-            constexpr bool secondPlayed() const {
-                return secondIndex != 4 && playedArray[secondIndex];
-            }
-            SearchData(unsigned char cur) {
-                playedArray[cur] = true;
-            }
-            SearchData() = default;
-
-
-    };
     
     class Engine {
         private:
@@ -48,7 +28,7 @@ namespace engine {
             Engine(
                 board::Board &b,
                 types::PieceColour p = types::PieceColour::RED, 
-                int d = 2, 
+                int d = 4, 
                 bool finished = false) :
             board(b),
             self(p), 
@@ -73,14 +53,14 @@ namespace engine {
                     return types::Move();
                 }
                 types::Move bestMove;
-                float bestEval = -9999999999.0f;
-                float beta = 9999999.0f;
+                std::int_fast16_t bestEval = -9999999999;
+                std::int_fast16_t beta = 9999999;
 
                 for (unsigned int i = 0; i < moves.size(); i++) {
                     types::Move m = *moves[i];
                     (*moves[i]).totalMoves = moves.size();
                     board.playMove(m);
-                    float e = -alphaBetaMin(DEPTH, bestEval, beta);
+                    std::int_fast16_t e = -alphaBetaMin(DEPTH, bestEval, beta);
                     
                     if (e > bestEval) {
                         bestMove = m;
@@ -94,22 +74,22 @@ namespace engine {
 
             }
 
-            float alphaBetaMax(unsigned int depth, float alpha, float beta) {
+            std::int_fast16_t alphaBetaMax(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
                 if (depth == 0) {
-                    std::array<float, 4UL> e = eval.getEvaluation(board, board.getPlayers());
+                    std::array<std::int_fast16_t, 4UL> e = eval.getEvaluation(board, board.getPlayers());
                     return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
                 }
 
                 std::vector<std::unique_ptr<types::Move>> moves;
                 board.generateLegalMoves(board.getCurrentTurn(), moves);
                 depth--;
-                float bestEval = -99999.0f;
+                std::int_fast16_t bestEval = -99999;
 
                 for (unsigned int i = 0; i < moves.size(); i++) {
                     types::Move m = *moves[i];
                     (*moves[i]).totalMoves = moves.size();
                     board.playMove(m);
-                    float eval = -alphaBetaMin(depth, alpha, beta);
+                    std::int_fast16_t eval = -alphaBetaMin(depth, alpha, beta);
                     
                     if (eval >= beta) {
                         board.unPlayMove();
@@ -126,9 +106,9 @@ namespace engine {
                 return bestEval;
             }
 
-            float alphaBetaMin(unsigned int depth, float alpha, float beta) {
+            std::int_fast16_t alphaBetaMin(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
                 if (depth == 0) {
-                    std::array<float, 4UL> e = eval.getEvaluation(board, board.getPlayers());
+                    std::array<std::int_fast16_t, 4UL> e = eval.getEvaluation(board, board.getPlayers());
                     return std::accumulate(e.begin(), e.end(), 0) - 2 * e[helper::indexFromColour(self)];
                 }
 
@@ -136,8 +116,8 @@ namespace engine {
                 std::vector<std::unique_ptr<types::Move>> moves;
                 board.generateLegalMoves(board.getCurrentTurn(), moves);
                 depth--;
-                float bestEval = -99999.0f;
-                float eval;
+                std::int_fast16_t bestEval = -99999;
+                std::int_fast16_t eval;
 
                 for (unsigned int i = 0; i < moves.size(); i++) {
                     types::Move m = *moves[i];

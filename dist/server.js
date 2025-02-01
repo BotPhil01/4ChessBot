@@ -23,6 +23,8 @@ wss.on('connection', function (ws) {
     var engineProcess = (0, node_child_process_1.spawn)(executablePath, {
         shell: true,
     });
+    var res = engineProcess.stdin.write("js\n");
+    console.log("heading to js loop; ".concat(res));
     ws.on('message', function (message) {
         console.log("Message received from client ".concat(message));
         (0, node_assert_1.default)(engineProcess.stdin != null);

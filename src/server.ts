@@ -24,6 +24,8 @@ wss.on('connection', (ws: WebSocket) => {
     const engineProcess = spawn(executablePath, {
         shell: true,
     });
+    var res = engineProcess.stdin.write("js\n");
+    console.log(`heading to js loop; ${res}`)
 
     ws.on('message', (message: string) => {
         console.log(`Message received from client ${message}`);

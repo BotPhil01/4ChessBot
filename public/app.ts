@@ -1,6 +1,8 @@
 const ws = new WebSocket(`ws://${window.location.host}`);
 const BOARDDIMENSION = 14;
 
+// holds knowledge on which players are known to be in checkmate R Y G B
+let knownCheckmates = [false, false, false, false];
 
 window.onload = function() {
     buttons();
@@ -213,7 +215,20 @@ function dragPieceElement(element: HTMLElement) {
             console.error("output string is length 0");
         }
         console.log(`handling output ${str}`);
+        if (str.includes("!")) {
+            // player has no moves
+            alert("You have lost! Better luck next time.");
+            ws.close();
+            return;
+        }
+        if (str.includes("~")) {
+            // engine has been checkmated
+        }
         if (str.charAt(0) === "@") {
+            if (!str.includes("#")) {
+                // no legal squares found
+                // 
+            }
             str = str.substring(1, str.length);
             var squares = str.split("#");
             for (var i = 0; i < squares.length; i++) {
@@ -240,6 +255,10 @@ function dragPieceElement(element: HTMLElement) {
                 continue;
             }
             var data = move.split("|");
+            
+            // check if player is in checkmate
+            var player = i;
+
             
             playMove([+data[0], +data[1]], [+data[2], +data[3]]);
         };

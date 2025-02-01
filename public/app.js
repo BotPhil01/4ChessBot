@@ -36,6 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 var ws = new WebSocket("ws://".concat(window.location.host));
 var BOARDDIMENSION = 14;
+// holds knowledge on which players are known to be in checkmate R Y G B
+var knownCheckmates = [false, false, false, false];
 window.onload = function () {
     buttons();
 };
@@ -226,7 +228,7 @@ function dragPieceElement(element) {
     }
     function handleOutput(d) {
         return __awaiter(this, void 0, void 0, function () {
-            var str, squares, i, square, data, moves, i, move, data;
+            var str, squares, i, square, data, moves, i, move, data, player;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, new Response(d).text()];
@@ -239,7 +241,20 @@ function dragPieceElement(element) {
                             console.error("output string is length 0");
                         }
                         console.log("handling output ".concat(str));
+                        if (str.includes("!")) {
+                            // player has no moves
+                            alert("You have lost! Better luck next time.");
+                            ws.close();
+                            return [2 /*return*/];
+                        }
+                        if (str.includes("~")) {
+                            // engine has been checkmated
+                        }
                         if (str.charAt(0) === "@") {
+                            if (!str.includes("#")) {
+                                // no legal squares found
+                                // 
+                            }
                             str = str.substring(1, str.length);
                             squares = str.split("#");
                             for (i = 0; i < squares.length; i++) {
@@ -263,6 +278,7 @@ function dragPieceElement(element) {
                                 continue;
                             }
                             data = move.split("|");
+                            player = i;
                             playMove([+data[0], +data[1]], [+data[2], +data[3]]);
                         }
                         ;

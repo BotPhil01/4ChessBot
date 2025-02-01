@@ -76,7 +76,7 @@ class EngineProcess {
             return coords;
         }
 
-        // gives a js output for a cppp move
+        // gives a js output for a cpp move
         string parseOutput(Move m) {
             stringstream stream;
             pair<int, int> fromCoords = toJCoords(to16RC(m.fromIndex()));
@@ -90,7 +90,7 @@ class EngineProcess {
         string parseOutput(Engine e) {
             assert(board.isPlayerCheckmate(e.getColour()));
             stringstream stream;
-            stream << colourToChar(e.getColour()) << "#";
+            stream << colourToChar(e.getColour()) << "~";
             return stream.str();
         }
 
@@ -141,31 +141,28 @@ class EngineProcess {
                 if (input[0] == '@') {
                     parseSquare(input.substr(1, input.length()));
                     cout.flush();
+                    cout.flush();
                     continue;
                 }
                 Move m = parseJsMove(input);
                 updateGameState(m);
-                Move bm = bEngine.chooseNextMove();
-                if (bm.fromIndex() == 300 || bm.toIndex() == 300) {
-                    cout << parseOutput(bEngine) << endl;
-                } else {
-                    updateGameState(bm); // here yEngine has correct turn
-                    cout << parseOutput(bm) << endl;
+                for (unsigned int i = 0; i < engines.size(); ++i) {
+                    Engine e = engines[i].get();
+                    Move m = e.chooseNextMove();
+                    if (m.fromIndex() == 300 || m.toIndex() == 300) {
+                        cout << parseOutput(bEngine) << endl;
+                    } else {
+                        updateGameState(m);
+                        cout << parseOutput(m);
+                    }
                 }
-                Move ym = yEngine.chooseNextMove(); // here
-                if (ym.fromIndex() == 300 || ym.toIndex() == 300) {
-                    cout << parseOutput(yEngine) << endl;
-                } else {
-                    updateGameState(ym);
-                    cout << parseOutput(ym) << endl;
-                }
-        
-                Move gm = gEngine.chooseNextMove();
-                if (gm.fromIndex() == 300 || gm.toIndex() == 300) {
-                    cout << parseOutput(gEngine) << endl;
-                } else {
-                    updateGameState(gm);
-                    cout << parseOutput(gm) << endl;
+
+                // check if red player has legal moves
+                vector<unique_ptr<Move>> moves;
+                board.generateLegalMoves(PieceColour::RED, moves);
+                // if (moves.size() == 0) {
+                if (true) {
+                    cout << colourToChar(PieceColour::RED) << "!" << endl;
                 }
                 
                 cout.flush();

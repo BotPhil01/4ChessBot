@@ -444,7 +444,7 @@ namespace helper
         return types::Direction::WEST;
     }
 
-    types::boardIndex shiftOne(types::boardIndex i, types::Direction d) {
+    constexpr types::boardIndex shiftOne(const types::boardIndex i, const types::Direction d) {
         switch (d) {
             case types::Direction::NORTH: 
                 return i + 16;
