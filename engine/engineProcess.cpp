@@ -160,8 +160,7 @@ class EngineProcess {
                 // check if red player has legal moves
                 vector<unique_ptr<Move>> moves;
                 board.generateLegalMoves(PieceColour::RED, moves);
-                // if (moves.size() == 0) {
-                if (true) {
+                if (moves.size() == 0) {
                     cout << colourToChar(PieceColour::RED) << "!" << endl;
                 }
                 
