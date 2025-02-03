@@ -14,19 +14,19 @@ using namespace player;
 
 class EngineProcess {
     private:
-        char CLIMODE = 0;
-        char JSMODE = 1;
-        char EXIT = -1;
+        const char CLIMODE = 0;
+        const char JSMODE = 1;
+        const char EXIT = -1;
 
         // for generating legal moves
         // for predicting moves
         
         Board board = Board();
-        Engine bEngine = Engine(board, PieceColour::BLUE);
-        Engine yEngine = Engine(board, PieceColour::YELLOW);
-        Engine gEngine = Engine(board, PieceColour::GREEN);
+        const Engine bEngine = Engine(board, PieceColour::BLUE);
+        const Engine yEngine = Engine(board, PieceColour::YELLOW);
+        const Engine gEngine = Engine(board, PieceColour::GREEN);
 
-        std::array<std::reference_wrapper<Engine>, 3UL> engines = {ref(bEngine), ref(yEngine), ref(gEngine)};
+        std::array<const std::reference_wrapper<const Engine>, 3UL> engines = {cref(bEngine), cref(yEngine), cref(gEngine)};
         // TODO MAKE ARRAY OF REFERENCES
         // takes a javascript move and converts it to an engine move
         // difference is that js move has 0, 0 as top left cpp has bottom left
@@ -152,7 +152,7 @@ class EngineProcess {
                 }
 
                 // run engines
-                for (unsigned int i = 0; i < engines.size(); ++i) {
+                for (unsigned int i = 0; i < 1; ++i) {
                     Engine e = engines[i].get();
                     Move m = e.chooseNextMove();
 

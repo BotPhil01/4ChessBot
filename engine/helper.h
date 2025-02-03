@@ -11,71 +11,74 @@
 namespace helper
 {
     
-    const types::PieceColour RED = types::PieceColour::RED;
-    const types::PieceColour BLUE = types::PieceColour::BLUE;
-    const types::PieceColour YELLOW = types::PieceColour::YELLOW;
-    const types::PieceColour GREEN = types::PieceColour::GREEN;
-    const types::Direction NORTH = types::Direction::NORTH;
-    const types::Direction EAST = types::Direction::EAST;
-    const types::Direction SOUTH = types::Direction::SOUTH;
-    const types::Direction WEST = types::Direction::WEST;
+    constexpr types::PieceColour RED = types::PieceColour::RED;
+    constexpr types::PieceColour BLUE = types::PieceColour::BLUE;
+    constexpr types::PieceColour YELLOW = types::PieceColour::YELLOW;
+    constexpr types::PieceColour GREEN = types::PieceColour::GREEN;
+    constexpr types::Direction NORTH = types::Direction::NORTH;
+    constexpr types::Direction EAST = types::Direction::EAST;
+    constexpr types::Direction SOUTH = types::Direction::SOUTH;
+    constexpr types::Direction WEST = types::Direction::WEST;
     
-    const types::Direction REDUP = types::Direction::NORTH;
-    const types::Direction REDDOWN = types::Direction::SOUTH;
-    const types::Direction REDLEFT = types::Direction::WEST;
-    const types::Direction REDRIGHT = types::Direction::EAST;
-    const types::Direction REDUPRIGHT = types::Direction::NORTHEAST;
-    const types::Direction REDUPLEFT = types::Direction::NORTHWEST;
-    const types::Direction REDDOWNRIGHT = types::Direction::SOUTHEAST;
-    const types::Direction REDDOWNLEFT = types::Direction::SOUTHWEST;
+    constexpr  types::Direction REDUP = types::Direction::NORTH;
+    constexpr  types::Direction REDDOWN = types::Direction::SOUTH;
+    constexpr  types::Direction REDLEFT = types::Direction::WEST;
+    constexpr  types::Direction REDRIGHT = types::Direction::EAST;
+    constexpr  types::Direction REDUPRIGHT = types::Direction::NORTHEAST;
+    constexpr  types::Direction REDUPLEFT = types::Direction::NORTHWEST;
+    constexpr  types::Direction REDDOWNRIGHT = types::Direction::SOUTHEAST;
+    constexpr  types::Direction REDDOWNLEFT = types::Direction::SOUTHWEST;
 
-    const types::Direction BLUEUP = types::Direction::EAST;
-    const types::Direction BLUEDOWN = types::Direction::WEST;
-    const types::Direction BLUELEFT = types::Direction::NORTH;
-    const types::Direction BLUERIGHT = types::Direction::SOUTH;
-    const types::Direction BLUEUPRIGHT = types::Direction::SOUTHEAST;
-    const types::Direction BLUEUPLEFT = types::Direction::NORTHEAST;
-    const types::Direction BLUEDOWNRIGHT = types::Direction::SOUTHWEST;
-    const types::Direction BLUEDOWNLEFT = types::Direction::NORTHWEST;
+    constexpr  types::Direction BLUEUP = types::Direction::EAST;
+    constexpr  types::Direction BLUEDOWN = types::Direction::WEST;
+    constexpr  types::Direction BLUELEFT = types::Direction::NORTH;
+    constexpr  types::Direction BLUERIGHT = types::Direction::SOUTH;
+    constexpr  types::Direction BLUEUPRIGHT = types::Direction::SOUTHEAST;
+    constexpr  types::Direction BLUEUPLEFT = types::Direction::NORTHEAST;
+    constexpr  types::Direction BLUEDOWNRIGHT = types::Direction::SOUTHWEST;
+    constexpr  types::Direction BLUEDOWNLEFT = types::Direction::NORTHWEST;
 
-    const types::Direction YELLOWUP = types::Direction::SOUTH;
-    const types::Direction YELLOWDOWN = types::Direction::NORTH;
-    const types::Direction YELLOWLEFT = types::Direction::EAST;
-    const types::Direction YELLOWRIGHT = types::Direction::WEST;
-    const types::Direction YELLOWUPRIGHT = types::Direction::SOUTHWEST;
-    const types::Direction YELLOWUPLEFT = types::Direction::SOUTHEAST;
-    const types::Direction YELLOWDOWNRIGHT = types::Direction::NORTHWEST;
-    const types::Direction YELLOWDOWNLEFT = types::Direction::NORTHEAST;
+    constexpr types::Direction YELLOWUP = types::Direction::SOUTH;
+    constexpr types::Direction YELLOWDOWN = types::Direction::NORTH;
+    constexpr types::Direction YELLOWLEFT = types::Direction::EAST;
+    constexpr types::Direction YELLOWRIGHT = types::Direction::WEST;
+    constexpr types::Direction YELLOWUPRIGHT = types::Direction::SOUTHWEST;
+    constexpr types::Direction YELLOWUPLEFT = types::Direction::SOUTHEAST;
+    constexpr types::Direction YELLOWDOWNRIGHT = types::Direction::NORTHWEST;
+    constexpr types::Direction YELLOWDOWNLEFT = types::Direction::NORTHEAST;
 
-    const types::Direction GREENUP = types::Direction::WEST;
-    const types::Direction GREENDOWN = types::Direction::EAST;
-    const types::Direction GREENRIGHT = types::Direction::NORTH;
-    const types::Direction GREENLEFT = types::Direction::SOUTH;
-    const types::Direction GREENUPRIGHT = types::Direction::NORTHWEST;
-    const types::Direction GREENUPLEFT = types::Direction::SOUTHWEST;
-    const types::Direction GREENDOWNRIGHT = types::Direction::NORTHEAST;
-    const types::Direction GREENDOWNLEFT = types::Direction::SOUTHEAST;
+    constexpr types::Direction GREENUP = types::Direction::WEST;
+    constexpr types::Direction GREENDOWN = types::Direction::EAST;
+    constexpr types::Direction GREENRIGHT = types::Direction::NORTH;
+    constexpr types::Direction GREENLEFT = types::Direction::SOUTH;
+    constexpr types::Direction GREENUPRIGHT = types::Direction::NORTHWEST;
+    constexpr types::Direction GREENUPLEFT = types::Direction::SOUTHWEST;
+    constexpr types::Direction GREENDOWNRIGHT = types::Direction::NORTHEAST;
+    constexpr types::Direction GREENDOWNLEFT = types::Direction::SOUTHEAST;
     
     constexpr unsigned char BOARDLENGTH = 196;
     constexpr unsigned char PADDEDCOLS = 16;
     constexpr unsigned char PADDEDROWS = 18;
     
-    const std::vector<types::PieceColour> playableColours {RED, BLUE, YELLOW, GREEN};
-    const std::vector<types::PieceType> playablePieces {types::PieceType::PAWN, types::PieceType::ROOK, types::PieceType::KNIGHT, types::PieceType::BISHOP, types::PieceType::QUEEN, types::PieceType::KING};
+    constexpr std::array<const types::PieceColour, 4UL> playableColours {RED, BLUE, YELLOW, GREEN};
+    constexpr std::array<const types::PieceType, 6UL> playablePieces {types::PieceType::PAWN, types::PieceType::ROOK, types::PieceType::KNIGHT, types::PieceType::BISHOP, types::PieceType::QUEEN, types::PieceType::KING};
 
-    const std::vector<types::boardIndex> cornerIndices = {
+    constexpr std::size_t NPIECES = 6;
+    constexpr std::size_t NCOLOURS = 4;
+
+    constexpr std::array<types::boardIndex, 36> cornerIndices = {
         33, 34, 35, 49, 50, 51, 65, 66, 67,           // sw
         44, 45, 46, 60, 61, 62, 76, 77, 78,           // se
         209, 210, 211, 225, 226, 227, 241, 242, 243,  // nw
         220, 221, 222, 236, 237, 238, 252, 253, 254}; // ne
 
-    const types::PieceColour initailTurn = types::PieceColour::RED;
+    constexpr types::PieceColour initailTurn = types::PieceColour::RED;
 
 
 
-    const int indexFromType(types::PieceType t) {
+    constexpr const int indexFromType(types::PieceType t) {
         assert(t != types::PieceType::BLOCK && t != types::PieceType::EMPTY);
-        for (unsigned int i = 0; i < playablePieces.size(); ++i) {
+        for (unsigned int i = 0; i < NPIECES; ++i) {
             if (playablePieces[i] == t) {
                 return i;
             }
@@ -272,7 +275,7 @@ namespace helper
         return i == 40 || i == 145 || i == 142 || i == 247;
     }
 
-    const bool isEmptyStart(types::boardIndex const i)
+    constexpr bool isEmptyStart(types::boardIndex const i)
     {
         short tmp = i % 16;
         bool in14Square = (i > 32 && i < 255 && tmp != 15 && tmp != 0);
@@ -289,8 +292,7 @@ namespace helper
         return notInCorners && in14Square;
     }
 
-    types::Square generateSquare(short i)
-    {
+    types::Square generateSquare(short i) {
         // assign colour
         types::PieceColour pc = types::PieceColour ::NONE;
         pc = isRedStart(i) ? types::PieceColour::RED : isBlueStart(i) ? types::PieceColour::BLUE
@@ -387,15 +389,8 @@ namespace helper
         };
     }
 
-    // std::string moveToString(types::Move m)
-    // {
-    //     std::string s = "";
-    //     s.append(std::to_string(m.fromIndex()));
-    //     s.append(std::to_string(m.toIndex()));
-    //     return s;
-    // }
 
-    // TODO DELETE AND REFACTOR
+    
     constexpr unsigned int getColourIndex(types::PieceColour c) {
         assert(c != types::PieceColour::NONE);
         switch (c) {
@@ -413,7 +408,7 @@ namespace helper
         return -1;
     }
 
-    types::PieceColour getColourFromIndex(char i) {
+    constexpr types::PieceColour getColourFromIndex(char i) {
         assert(i >= 0 && i < 4);
         switch (i) {
             case 0:
@@ -430,7 +425,7 @@ namespace helper
         return types::PieceColour::NONE;
     }
     // assumes there is a valid non diagonal straight path towards tgt from src
-    types::Direction getDirection(types::boardIndex src, types::boardIndex tgt) {
+    constexpr types::Direction getDirection(types::boardIndex src, types::boardIndex tgt) {
         short diff = tgt - src;
         if (diff > 0) {
             if (diff > PADDEDCOLS) {
@@ -468,24 +463,24 @@ namespace helper
     }
 
     // returns types::boardIndex from 16 * 18  coordinates
-    types::boardIndex toIndex( unsigned char c, unsigned char r) { 
+    constexpr types::boardIndex toIndex( unsigned char c, unsigned char r) { 
         return (r * 16 + c);
     }
 
     // translates a types::boardIndex to a padded row column pair
-    std::pair<int, int> to16RC(types::boardIndex i) {
+    constexpr std::pair<int, int> to16RC(types::boardIndex i) {
         int x = (i % 16);
         int y = (i - x) / 16;
         return std::pair(x,y);
     }
 
-    unsigned int asciiToCol(char x) {
+    constexpr unsigned int asciiToCol(char x) {
         x = x < (int) 'a' ? x + 32: x;
         return (int) x - (int) 'a';
     }
 
     // rotates a 14x14 index 90 degrees counter clockwise
-    types::boardIndex rotate90degrees(types::boardIndex i, unsigned char count) {
+    constexpr types::boardIndex rotate90degrees(types::boardIndex i, unsigned char count) {
         std::pair<int, int> coords = {i % 14, (i - i % 14) / 14 };
         // find quadrant
         if (coords.second < 7) {
@@ -539,7 +534,7 @@ namespace helper
         return i;
     }
     
-    types::boardIndex to14BoardIndex(types::boardIndex i) {
+    constexpr types::boardIndex to14BoardIndex(types::boardIndex i) {
         unsigned int rem = i % 16;
         assert(i > 32 && i < 255 && rem != 0 && rem != 15);
         i = (i -rem) / 16;

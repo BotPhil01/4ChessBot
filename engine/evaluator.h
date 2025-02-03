@@ -124,7 +124,7 @@ namespace eval{
         // P R N B Q K
         // evaluates a single 14x14 index 
         // uses strategy pattern for different piece colours
-        std::int_fast16_t evaluateIndexPosition(types::boardIndex i, types::PieceType t, types::PieceColour c) {
+        constexpr std::int_fast16_t evaluateIndexPosition(types::boardIndex i, types::PieceType t, types::PieceColour c) const {
             // adjust for colour
             unsigned int ci = helper::indexFromColour(c);
             types::boardIndex tmp = helper::rotate90degrees(i, ci);
@@ -134,21 +134,21 @@ namespace eval{
             return POSITIONS[typeIndex].get()[tmp] * PIECEVALUES[typeIndex];
         }
 
-        void evaluateMaterial(std::array<std::int_fast16_t, 4> &out, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
+        void evaluateMaterial(std::array<std::int_fast16_t, 4> &out, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
             for (unsigned int i = 0; i < playersData.size(); ++i) {
                 player::Player p = playersData[i].get();
-                const std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces = p.getPieces();
+                const std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
                 for (unsigned int j = 0; j < pieces.size(); ++j) {
                     out[i] += (pieces.size() * PIECEVALUES[j]);
                 }
             }
         }
 
-        void evaluatePosition(std::array<std::int_fast16_t, 4> &out, const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
+        void evaluatePosition(std::array<std::int_fast16_t, 4> &out, const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
             // we need to evaluate position in correct dimension hence rotations should be considered
             for (unsigned int i = 0; i < playersData.size(); ++i) {
-                player::Player p = playersData[i].get();
-                std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces = p.getPieces();
+                const player::Player p = playersData[i].get();
+                std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
 
                 for (unsigned int j = 0; j < playersData.size(); ++j) {
                     const std::set<types::boardIndex> pieceSet = pieces[j].get();
@@ -163,7 +163,7 @@ namespace eval{
         }
 
         public:
-            std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
+            std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
                 std::array<std::int_fast16_t, 4> out {0, 0, 0, 0};
                 evaluateMaterial(out, playersData);
                 evaluatePosition(out, board, playersData);

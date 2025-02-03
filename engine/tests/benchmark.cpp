@@ -31,17 +31,35 @@ using namespace engine;
 //     b.unPlayMove();
 // }   
 
+TEST_CASE("pawnshift") {
+    BENCHMARK_ADVANCED("default")(Catch::Benchmark::Chronometer meter) {
+        Board b = Board();
+        meter.measure([&b] { return b.pawnShift(52); });
+    };
+    BENCHMARK_ADVANCED("reserve + tmp")(Catch::Benchmark::Chronometer meter) {
+        Board b = Board();
+        std::vector<types::boardIndex> out;
+        meter.measure([&b, &out] { return b.pawnShift4(52, out); });
+    };
+    BENCHMARK_ADVANCED("array")(Catch::Benchmark::Chronometer meter) {
+        Board b = Board();
+        std::array<types::boardIndex, 4UL> out;
+        meter.measure([&b, &out] { return b.pawnShift5(52, out); });
+    };
+    
+}
+
 TEST_CASE("balls") {
-    BENCHMARK_ADVANCED("Choose 2")(Catch::Benchmark::Chronometer meter) {
-        Board b = Board();
-        Engine e = Engine(b, PieceColour::RED, 2);
-        meter.measure([&e] { return e.chooseNextMove(); });
-    };
-    BENCHMARK_ADVANCED("Choose 4")(Catch::Benchmark::Chronometer meter) {
-        Board b = Board();
-        Engine e = Engine(b, PieceColour::RED, 4);
-        meter.measure([&e] { return e.chooseNextMove(); });
-    };
+    // BENCHMARK_ADVANCED("Choose 2")(Catch::Benchmark::Chronometer meter) {
+    //     Board b = Board();
+    //     Engine e = Engine(b, PieceColour::RED, 2);
+    //     meter.measure([&e] { return e.chooseNextMove(); });
+    // };
+    // BENCHMARK_ADVANCED("Choose 4")(Catch::Benchmark::Chronometer meter) {
+    //     Board b = Board();
+    //     Engine e = Engine(b, PieceColour::RED, 4);
+    //     meter.measure([&e] { return e.chooseNextMove(); });
+    // };
     // BENCHMARK_ADVANCED("Choose 8")(Catch::Benchmark::Chronometer meter) {
     //     Board b = Board();
     //     Engine e = Engine(b, PieceColour::RED, 8);

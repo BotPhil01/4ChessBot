@@ -17,7 +17,6 @@ namespace types {
         KING,
         EMPTY, //vacant squares
         BLOCK, //non existent squares
-        
     };
     
     enum class PieceColour {
@@ -27,6 +26,18 @@ namespace types {
         GREEN,
         NONE, //NON PIECE SQUARES
     };
+
+    enum class Direction {
+        NORTH,
+        NORTHEAST,
+        EAST,
+        SOUTHEAST,
+        SOUTH,
+        SOUTHWEST,
+        WEST,
+        NORTHWEST,
+    };
+
     
     class Square {
         private:
@@ -37,7 +48,7 @@ namespace types {
             Square() :
             canAccess(false), pieceType(PieceType::EMPTY), pieceColour(PieceColour::NONE) {                
             }
-            Square(bool access, PieceType type, PieceColour col) :
+            Square(const bool access, const PieceType type, const PieceColour col) :
             canAccess(access), pieceType(type), pieceColour(col) {
                 assert (
                     (!access && (type == PieceType::BLOCK && col == PieceColour::NONE)) || 
@@ -45,11 +56,11 @@ namespace types {
                 );
             }
 
-            bool isAccessible() const {
+            constexpr bool isAccessible() const {
                 return canAccess;
             }
 
-            bool isEmpty() const {
+            constexpr bool isEmpty() const {
                 return pieceType == PieceType::EMPTY && pieceColour == PieceColour::NONE;
             }
             
@@ -59,11 +70,11 @@ namespace types {
                 pieceColour = c;
             }
 
-            PieceType type() {
+            constexpr PieceType type() const {
                 return pieceType;
             }
 
-            PieceColour colour() const {
+            constexpr PieceColour colour() const {
                 return pieceColour;
             }
 
@@ -90,7 +101,7 @@ namespace types {
             // 2 byte 
             int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
             
-            Move() : 
+            constexpr Move() : 
             fromI(300), 
             toI(300), 
             fromC(PieceColour::NONE), 
@@ -103,12 +114,12 @@ namespace types {
             }
 
             // Move() = default;
-            Move(const Move &m) = default;
-            Move(Move &&m) = default;
-            Move& operator=(const Move&) = default;
+            constexpr Move(const Move &m) = default;
+            constexpr Move(Move &&m) = default;
+            constexpr Move& operator=(const Move&) = default;
 
             // generic move
-            Move(
+            constexpr Move(
             const boardIndex fi, 
             const boardIndex ti, 
             const int total, 
@@ -132,51 +143,41 @@ namespace types {
             }
 
 
-            const bool isPromotion() const {
+            constexpr bool isPromotion() const {
                 return fromP != PieceType::EMPTY && toP != PieceType::EMPTY;
             }
-            const bool isCapture() const {
+            constexpr bool isCapture() const {
                 return capturedP != PieceType::EMPTY && capturedP != PieceType::BLOCK;
             }
-            const bool isSpecial() const {
+            constexpr bool isSpecial() const {
                 return special;
             }
-            const bool isCastling() const {
+            constexpr bool isCastling() const {
                 return special && fromC == capturedC && fromP == PieceType::KING && capturedP == PieceType::ROOK;
             }
-            PieceType capturedPiece() const {
+            constexpr PieceType capturedPiece() const {
                 return capturedP;
             }
-            PieceColour capturedColour() const {
+            constexpr PieceColour capturedColour() const {
                 return capturedC;
             }
-            const boardIndex fromIndex() const {
+            constexpr boardIndex fromIndex() const {
                 return fromI;
             }
             constexpr boardIndex toIndex() const {
                 return toI;
             }
-            const PieceType fromPiece() const {
+            constexpr PieceType fromPiece() const {
                 return fromP;
             }
-            const PieceType promotionPiece() const {
+            constexpr PieceType promotionPiece() const {
                 return  toP;
             }
-            const PieceColour fromColour() const {
+            constexpr PieceColour fromColour() const {
                 return fromC;
             }
     };
 
-    enum class Direction {
-        NORTH,
-        NORTHEAST,
-        EAST,
-        SOUTHEAST,
-        SOUTH,
-        SOUTHWEST,
-        WEST,
-        NORTHWEST,
-    };
 
 
 };

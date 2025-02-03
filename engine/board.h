@@ -115,7 +115,7 @@ namespace board {
                 return boardArray[i].type() == types::PieceType::EMPTY;
             }
 
-            bool isOnBoard(types::boardIndex i) {
+            constexpr bool isOnBoard(types::boardIndex i) const{
                 for (types::boardIndex c : helper::cornerIndices) { // not in corners
                     if (c == i) {
                         return false;
@@ -131,24 +131,7 @@ namespace board {
                 return p.indexHasMoved(i);
             }
         
-            std::vector<types::boardIndex> pawnShift(types::boardIndex index) {
-                std::vector<types::boardIndex> out = pawnQuietShift(index);
-                helper::concat(out, pawnCaptureShift(index));
-                return out;
-            }
 
-            // Quiet move shift checks if on the board
-            std::vector<types::boardIndex> pawnQuietShift(types::boardIndex index) {
-                std::vector<types::boardIndex> out = {};
-                types::boardIndex m = helper::shiftOne(index, helper::getUp(turn));
-                if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
-                if (!helper::isPawnStart(index)) {
-                    return out;
-                }
-                m = helper::shiftOne(m, helper::getUp(turn));
-                if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
-                return out;
-            }
 
             // includes en peasant
             std::vector<types::boardIndex> pawnCaptureShift(types::boardIndex index) {
@@ -167,23 +150,6 @@ namespace board {
                 if (existsEnemyPiece(index, target)) {
                     out.emplace_back(target);
                 }
-
-                // // en peasant
-                // target = helper::shiftOne(index, helper::getLeft(boardArray[index].colour()));
-                // types::PieceColour targetColour = boardArray[target].colour(); 
-                // std::vector<types::Move>::iterator lastMoveIterator = getLastMoveIterator(targetColour);
-                // // need to verify that the piece to the left/right of us's last move was a double square move
-                // // 
-                // if (upLeftEmpty && (lastMoveIterator != moveStack.end()) && (lastMoveIterator->toIndex() == target) && existsEnemyPiece(index, target)) { 
-                //     out.emplace_back(target);
-                // }
-
-                // target = helper::shiftOne(index, helper::getRight(boardArray[index].colour()));
-                // targetColour = boardArray[target].colour();
-                // lastMoveIterator = getLastMoveIterator(targetColour);
-                // if (upRightEmpty && (lastMoveIterator != moveStack.end()) && (lastMoveIterator->toIndex() == target) && existsEnemyPiece(index, target)) {
-                //     out.emplace_back(target);
-                // }
                 return out;
             }
 
@@ -319,22 +285,8 @@ namespace board {
                 return true;
             }
 
-            
 
-            // checks whether 2 indices constitute an enPeasant move
-            // bool isEnPeasant(types::boardIndex src, types::boardIndex trgt) {
-            //     if (trgt != helper::shiftOne(src, helper::getLeft(boardArray[src].colour())) || 
-            //         trgt != helper::shiftOne(src, helper::getRight(boardArray[src].colour()))) {
-            //         return false;
-            //     }
-            //     if (boardArray[src].type() != types::PieceType::PAWN || boardArray[trgt].type() != types:: PieceType::PAWN) {
-            //         return false;
-            //     }
-            //     return true;
-            
-            // }
-
-            std::array<types::Square, 288UL> getBoard() {
+            std::array<types::Square, 288UL> getBoard() const {
                 return boardArray;
             }
             
@@ -358,11 +310,92 @@ namespace board {
                 return 0;
             }
         public:
+
+
+            // Quiet move shift checks if on the board
+            std::vector<types::boardIndex> pawnQuietShift(types::boardIndex index) {
+                std::vector<types::boardIndex> out = {};
+                types::boardIndex m = helper::shiftOne(index, helper::getUp(turn));
+                if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
+                if (!helper::isPawnStart(index)) {
+                    return out;
+                }
+                m = helper::shiftOne(m, helper::getUp(turn));
+                if (isEmpty(m) && isOnBoard(m)) {
+                    out.emplace_back(m);
+                }
+                return out;
+            }
+            
+            std::vector<types::boardIndex> pawnShift(types::boardIndex index) {
+                std::vector<types::boardIndex> out = pawnQuietShift(index);
+                helper::concat(out, pawnCaptureShift(index));
+                return out;
+            }
+
+            void pawnQuietShift1(types::boardIndex index, std::vector<types::boardIndex> &out) {
+                types::boardIndex m = helper::shiftOne(index, helper::getUp(turn));
+                if (isEmpty(m) && isOnBoard(m)) {out.emplace_back(m);}
+                if (!helper::isPawnStart(index)) {
+                    return;
+                }
+                m = helper::shiftOne(m, helper::getUp(turn));
+                if (isEmpty(m) && isOnBoard(m)) {
+                    out.emplace_back(m);
+                }
+            }
+
+            void pawnShift4(types::boardIndex index, std::vector<types::boardIndex> &out) {
+                out.reserve(4);
+                pawnQuietShift1(index, out);
+                std::vector<types::boardIndex> tmp = pawnCaptureShift(index);
+                for (types::boardIndex i : tmp) {
+                    out.emplace_back(i);
+                }
+            }
+
+            void pawnQuietShift2(types::boardIndex index, std::array<types::boardIndex, 4> &out) {
+                types::boardIndex m = helper::shiftOne(index, helper::getUp(turn));
+                if (isEmpty(m) && isOnBoard(m)) {
+                    out[0] = m;
+                }
+                if (helper::isPawnStart(index)) {
+                    m = helper::shiftOne(m, helper::getUp(turn));
+                    if (isEmpty(m) && isOnBoard(m)) {
+                        out[1] = m;
+                    }
+                }
+            }
+
+
+            // includes en peasant
+            void pawnCaptureShift1(types::boardIndex index, std::array<types::boardIndex, 4> &out) {
+                // check if there exists a capturable piece beside 
+                // regular captures
+                types::boardIndex target = helper::shiftOne(index, helper::getUpRight(boardArray[index].colour()));
+                // bool upRightEmpty = isEmpty(target);
+                if (existsEnemyPiece(index, target)) {
+                    out[2] = target;
+                }
+
+                target = helper::shiftOne(index, helper::getUpLeft(boardArray[index].colour())); // go to next possible capture
+                // bool upLeftEmpty = isEmpty(target);
+                if (existsEnemyPiece(index, target)) {
+                    out[3] = target;
+                }
+            }
+
+            void pawnShift5(types::boardIndex index, std::array<types::boardIndex, 4> &out) {
+                out = {300UL, 300UL, 300UL, 300UL};
+                pawnQuietShift2(index, out);
+                pawnCaptureShift1(index, out);
+            }
+
             // generates pseudo legal moves
             // moves in returned std::vector have all except the totalMoves guaranteed to be filled
             void generatePseudoLegalMoves(types::PieceColour c, std::vector<std::unique_ptr<types::Move>> &out) {
                 player::Player &player = players[helper::indexFromColour(c)].get();
-                std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces = player.getPieces();
+                std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6> pieces = player.getPieces();
                 out.reserve(111);
                 for (unsigned int i = 0; i < pieces.size(); ++i) {
                     std::set<types::boardIndex> &s = pieces[i].get();
@@ -824,7 +857,7 @@ namespace board {
                 }
             }
 
-            bool isPlayerCheckmate(types::PieceColour c) {
+            constexpr bool isPlayerCheckmate(types::PieceColour c) {
                 return players[helper::indexFromColour(c)].get().isCheckmate();
             }
     };

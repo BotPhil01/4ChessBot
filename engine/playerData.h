@@ -24,7 +24,7 @@ namespace player {
             std::set<types::boardIndex> kings;
             std::set<types::boardIndex> movedPieces;
             // for iteration through pieces
-            std::vector<std::reference_wrapper<std::set<types::boardIndex>>> pieces;
+            std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces;
             
 
             std::set<types::Move> playedMoves;
@@ -175,7 +175,6 @@ namespace player {
                 genQueens();
                 genKings();
 
-                pieces = {ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)};
             }
         
             // gets the piecetype that the set is handling
@@ -222,7 +221,9 @@ namespace player {
             }   
         public:
             Player(Colour c) :
-            clr(c) {
+            clr(c),
+            pieces({ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)})
+            {
                 genPieces();                
             }
 
@@ -234,9 +235,9 @@ namespace player {
             bishops(p.bishops),
             queens(p.queens),
             kings(p.kings),
-            movedPieces(p.movedPieces)
+            movedPieces(p.movedPieces),
+            pieces({ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)})
             {
-                pieces = {ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)};
             }
 
             constexpr bool isCheckmate() const {
@@ -247,11 +248,11 @@ namespace player {
                 isMate = b;
             }
 
-            types::PieceColour colour() {
+            constexpr types::PieceColour colour() const {
                 return clr;
             }
 
-            const std::vector<std::reference_wrapper<std::set<types::boardIndex>>> getPieces() {
+            const std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6> getPieces() const {
                 return pieces;
             }
 
@@ -421,12 +422,12 @@ namespace player {
             }
             
             // returns whether in the current game state the index is in the players game data
-            bool indexInData(types::boardIndex i, types::PieceType p) {
+            inline bool indexInData(types::boardIndex i, types::PieceType p) const {
                 std::set<types::boardIndex> &pieceSet = pieces[helper::indexFromType(p)].get();
                 return pieceSet.contains(i);
             }
 
-            bool indexHasMoved(types::boardIndex i) {
+            inline bool indexHasMoved(types::boardIndex i) const {
                 return (movedPieces.find(i) != movedPieces.end());
             }
 

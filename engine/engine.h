@@ -60,7 +60,7 @@ namespace engine {
                     types::Move m = *moves[i];
                     (*moves[i]).totalMoves = moves.size();
                     board.playMove(m);
-                    std::int_fast16_t evaluation = -alphaBetaMin(DEPTH, bestEval, beta);
+                    std::int_fast16_t evaluation = alphaBetaMin(DEPTH, bestEval, beta);
                     
                     if (evaluation > bestEval) {
                         bestMove = m;
