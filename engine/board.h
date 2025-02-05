@@ -25,15 +25,15 @@ namespace board {
         player::Player yellowPlayer = player::Player(types::PieceColour::YELLOW);
         player::Player greenPlayer = player::Player(types::PieceColour::GREEN);
 
-        std::array<std::reference_wrapper<player::Player>, 4UL> players {{std::ref(redPlayer), std::ref(bluePlayer), std::ref(yellowPlayer), std::ref(greenPlayer)}};
+        const std::array<const std::reference_wrapper<player::Player>, 4UL> players {{std::ref(redPlayer), std::ref(bluePlayer), std::ref(yellowPlayer), std::ref(greenPlayer)}};
 
         private:
 
-            std::stack<types::Move, std::list<types::Move>> getMoveHistory() {
+            inline std::stack<types::Move, std::list<types::Move>> getMoveHistory() const {
                 return moveStack;
             }
             types::Square & getSquare(types::boardIndex r, types::boardIndex c) { // from 14x14
-                short a1 = 33;
+                const short a1 = 33;
                 return boardArray.at(r * helper::PADDEDCOLS + (c + 1) + a1);
             }
             // types::Square & getSquareByType(COLUMN c, short r) {}
@@ -44,20 +44,20 @@ namespace board {
             // note this is pseudo legal and hence should not be used as a definitive answer
             // assume src is a valid piece ie not empty
             // checks if target is on the board
-            bool existsCapturable(types::boardIndex src, types::boardIndex trgt) {
+            constexpr bool existsCapturable(types::boardIndex src, types::boardIndex trgt) const {
 
                 types::Square srcSqu = boardArray.at(src);
                 types::Square trgtSqu = boardArray.at(trgt);
                 return isOnBoard(trgt) && trgtSqu.colour() != srcSqu.colour() && trgtSqu.isAccessible();
             }
             // STRICTER THAN existsCapturable
-            bool existsEnemyPiece(types::boardIndex src, types::boardIndex trgt) {
+            constexpr bool existsEnemyPiece(types::boardIndex src, types::boardIndex trgt) const {
                 types::Square trgtSqu = boardArray.at(trgt);
                 types::Square srcSqu = boardArray.at(src);
                 return isOnBoard(trgt) && trgtSqu.colour() != srcSqu.colour() && !trgtSqu.isEmpty() && trgtSqu.isAccessible();
             }            
 
-            bool isPromotion(types::boardIndex from, types::boardIndex to) {
+            constexpr bool isPromotion(types::boardIndex from, types::boardIndex to) const {
                 if (boardArray[from].type() != types::PieceType::PAWN) {
                     return false;
                 }
@@ -111,7 +111,7 @@ namespace board {
 
 
             // check if a square is empty by index
-            bool isEmpty(types::boardIndex i) {
+            constexpr bool isEmpty(types::boardIndex i) const {
                 return boardArray[i].type() == types::PieceType::EMPTY;
             }
 
@@ -125,13 +125,16 @@ namespace board {
                 return rem != 0 && rem != 15 && i < 252 && i > 35;
             }
 
-            bool hasMoved(types::boardIndex i) {
+            const bool hasMoved(types::boardIndex i) const {
                 auto c = boardArray[i].colour();
                 player::Player p = players[helper::indexFromColour(c)];
                 return p.indexHasMoved(i);
             }
         
-
+            // returns if the piece at i is a blocker
+            constexpr bool isBlocker(types::boardIndex i) const {
+                return boardArray[i].type() != types::PieceType::EMPTY;
+            }
 
             // includes en peasant
             std::vector<types::boardIndex> pawnCaptureShift(types::boardIndex index) {
@@ -194,10 +197,6 @@ namespace board {
                 return out;
             }
 
-            // returns if the piece at i is a blocker
-            bool isBlocker(types::boardIndex i) {
-                return boardArray[i].type() != types::PieceType::EMPTY;
-            }
             // returns the list of on board ray indices in a given direction from a given src
             std::vector<types::boardIndex> getRay(types::boardIndex src, types::Direction d) {
                 // src = 193
@@ -395,7 +394,7 @@ namespace board {
             // moves in returned std::vector have all except the totalMoves guaranteed to be filled
             void generatePseudoLegalMoves(types::PieceColour c, std::vector<std::unique_ptr<types::Move>> &out) {
                 player::Player &player = players[helper::indexFromColour(c)].get();
-                std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6> pieces = player.getPieces();
+                std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6> pieces = player.getPieces();
                 out.reserve(111);
                 for (unsigned int i = 0; i < pieces.size(); ++i) {
                     std::set<types::boardIndex> &s = pieces[i].get();
@@ -444,11 +443,12 @@ namespace board {
             redPlayer(b.redPlayer),
             bluePlayer(b.bluePlayer),
             yellowPlayer(b.yellowPlayer),
-            greenPlayer(b.greenPlayer) {
-                players = {{ std::ref(redPlayer), std::ref(bluePlayer), std::ref(yellowPlayer), std::ref(greenPlayer) }};
+            greenPlayer(b.greenPlayer),
+            players({ std::ref(redPlayer), std::ref(bluePlayer), std::ref(yellowPlayer), std::ref(greenPlayer) })
+            {
             }
             Board& operator=(Board& other) = default;
-            constexpr std::array<std::reference_wrapper<player::Player>, 4UL>  getPlayers() const {
+            constexpr std::array<const std::reference_wrapper<player::Player>, 4UL>  getPlayers() const {
                 return players;
             }
 
@@ -461,28 +461,28 @@ namespace board {
                 players[helper::indexFromColour(c)].get().setIsCheckmate(true);
             }
 
-            // returns (c)'s last move if no move is found it returns the last move played
-            types::Move & getLastMove(types::PieceColour c) {
-                assert(moveStack.size() > 0);
-                std::stack<types::Move, std::list<types::Move>> tmp;
-                unsigned int i = 0;
-                while(moveStack.empty() == false && i < 4) {
-                    if (moveStack.top().fromColour() == c) {
-                        types::Move &ret = moveStack.top();
-                        while (!tmp.empty()) {
-                            moveStack.push(tmp.top());
-                            tmp.pop();
-                        }
-                        return ret;
-                    }
-                    ++i;
-                }
-                while (!tmp.empty()) {
-                    moveStack.push(tmp.top());
-                    tmp.pop();
-                }
-                return moveStack.top();
-            } 
+            // // returns (c)'s last move if no move is found it returns the last move played
+            // types::Move & getLastMove(types::PieceColour c) {
+            //     assert(moveStack.size() > 0);
+            //     std::stack<types::Move, std::list<types::Move>> tmp;
+            //     unsigned int i = 0;
+            //     while(moveStack.empty() == false && i < 4) {
+            //         if (moveStack.top().fromColour() == c) {
+            //             types::Move &ret = moveStack.top();
+            //             while (!tmp.empty()) {
+            //                 moveStack.push(tmp.top());
+            //                 tmp.pop();
+            //             }
+            //             return ret;
+            //         }
+            //         ++i;
+            //     }
+            //     while (!tmp.empty()) {
+            //         moveStack.push(tmp.top());
+            //         tmp.pop();
+            //     }
+            //     return moveStack.top();
+            // } 
 
             void printPaddedBoard() {
                 // algo is weird but prints correctly according to red

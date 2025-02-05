@@ -24,11 +24,11 @@ namespace player {
             std::set<types::boardIndex> kings;
             std::set<types::boardIndex> movedPieces;
             // for iteration through pieces
-            std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces;
+            std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces;
             
 
             std::set<types::Move> playedMoves;
-            void genPawns() {
+            inline void genPawns() {
                 int lo = 0;
                 int hi = 0;
                 switch(clr) {
@@ -63,7 +63,7 @@ namespace player {
                     }
                 }
             }
-            void genRooks() {
+            inline void genRooks() {
                 switch(clr) {
                     case types::PieceColour::RED:
                         rooks.emplace(36);
@@ -85,7 +85,7 @@ namespace player {
                         return;
                 }
             }
-            void genKnights() {
+            inline void genKnights() {
                 switch(clr) {
                     case types::PieceColour::RED:
                         knights.emplace(37);
@@ -107,7 +107,7 @@ namespace player {
                         return;
                 }
             }
-            void genBishops() {
+            inline void genBishops() {
                 switch(clr) {
                     case types::PieceColour::RED:
                         bishops.emplace(38);
@@ -129,7 +129,7 @@ namespace player {
                         return;
                 }
             }
-            void genQueens() {
+            inline void genQueens() {
                 switch(clr) {
                     case types::PieceColour::RED:
                         queens.emplace(39);
@@ -147,7 +147,7 @@ namespace player {
                         return;
                 }
             }
-            void genKings() {
+            inline void genKings() {
                 switch(clr) {
                     case types::PieceColour::RED:
                         kings.emplace(40);
@@ -166,7 +166,7 @@ namespace player {
                 }
             }
 
-            void genPieces() {
+            inline void genPieces() {
 
                 genPawns();
                 genRooks();
@@ -178,7 +178,7 @@ namespace player {
             }
         
             // gets the piecetype that the set is handling
-            types::PieceType getSetType(std::set<types::boardIndex> & address) {
+            constexpr types::PieceType getSetType(std::set<types::boardIndex> & address) const {
                 unsigned int i = 0;
                 for (; i < pieces.size(); ++i) {
                     auto s = pieces.at(i);
@@ -193,7 +193,7 @@ namespace player {
             // for updating an index from src to trgt
             // src is assumed to be in our control
             // used in updating for a move
-            void handleMoved(types::boardIndex src, types::boardIndex trgt) {
+            inline void handleMoved(types::boardIndex src, types::boardIndex trgt) {
                 auto it = movedPieces.find(src);
                 if (it != movedPieces.end()) {
                     movedPieces.emplace_hint(it, trgt);
@@ -208,7 +208,7 @@ namespace player {
             // used in reverting a move
             // NOTE i should not equal last.toIndex();
             // i is assumed to be in our control
-            void handleMoved(types::boardIndex i, types::Move last) {
+            inline void handleMoved(types::boardIndex i, types::Move last) {
                 assert(i != last.toIndex()); // bad usage
                 auto it = movedPieces.find(i); 
                 assert(it != movedPieces.end());
@@ -220,7 +220,7 @@ namespace player {
                 
             }   
         public:
-            Player(Colour c) :
+            Player(const Colour c) :
             clr(c),
             pieces({ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)})
             {
@@ -244,7 +244,7 @@ namespace player {
                 return isMate;
             }
 
-            void setIsCheckmate(bool b) {
+            inline void setIsCheckmate(bool b) {
                 isMate = b;
             }
 
@@ -252,7 +252,7 @@ namespace player {
                 return clr;
             }
 
-            const std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6> getPieces() const {
+            constexpr std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6> getPieces() const {
                 return pieces;
             }
 

@@ -204,7 +204,7 @@ namespace helper
         }
     }
     
-    const bool indexInCorners(types::boardIndex i) {
+    constexpr bool indexInCorners(types::boardIndex i) {
         for (auto index : cornerIndices) {
             if (index == i) {
                 return true;
@@ -292,7 +292,7 @@ namespace helper
         return notInCorners && in14Square;
     }
 
-    types::Square generateSquare(short i) {
+    constexpr types::Square generateSquare(short i) {
         // assign colour
         types::PieceColour pc = types::PieceColour ::NONE;
         pc = isRedStart(i) ? types::PieceColour::RED : isBlueStart(i) ? types::PieceColour::BLUE
@@ -312,7 +312,7 @@ namespace helper
     };
 
     template <typename T>
-    void concat(std::vector<std::unique_ptr<T>> &v1, std::vector<std::unique_ptr<T>> v2)
+    constexpr void concat(std::vector<std::unique_ptr<T>> &v1, std::vector<std::unique_ptr<T>> v2)
     {
         for (std::unique_ptr<T> i : v2)
         {
@@ -321,7 +321,7 @@ namespace helper
     }
 
     template <typename T>
-    void concat(std::vector<T> &v1, std::vector<T> v2)
+    constexpr void concat(std::vector<T> &v1, std::vector<T> v2)
     {
         for (T i : v2)
         {
@@ -330,7 +330,7 @@ namespace helper
     }
 
     template <typename T, size_t size>
-    std::array<T, size> layer(std::array<T, size> v1, std::array<T, size> v2) {
+    constexpr std::array<T, size> layer(std::array<T, size> v1, std::array<T, size> v2) {
         for (unsigned int i = 0; i < size; i++) {
             v1[i] += v2[i];
         }
@@ -338,7 +338,7 @@ namespace helper
     }
 
     template<typename T, size_t size>
-    void multiplyValues(std::array<T, size> &v, T f) {
+    constexpr void multiplyValues(std::array<T, size> &v, T f) {
         for (unsigned char i = 0; i < size; ++i) {
             v[i] *= f;
         }

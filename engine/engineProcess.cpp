@@ -152,7 +152,7 @@ class EngineProcess {
                 }
 
                 // run engines
-                for (unsigned int i = 0; i < 1; ++i) {
+                for (unsigned int i = 0; i < engines.size(); ++i) {
                     Engine e = engines[i].get();
                     Move m = e.chooseNextMove();
 

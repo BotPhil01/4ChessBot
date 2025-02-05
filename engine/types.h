@@ -45,10 +45,10 @@ namespace types {
             PieceType pieceType;
             PieceColour pieceColour;
         public:
-            Square() :
+            constexpr Square() :
             canAccess(false), pieceType(PieceType::EMPTY), pieceColour(PieceColour::NONE) {                
             }
-            Square(const bool access, const PieceType type, const PieceColour col) :
+            constexpr Square(const bool access, const PieceType type, const PieceColour col) :
             canAccess(access), pieceType(type), pieceColour(col) {
                 assert (
                     (!access && (type == PieceType::BLOCK && col == PieceColour::NONE)) || 
@@ -64,7 +64,7 @@ namespace types {
                 return pieceType == PieceType::EMPTY && pieceColour == PieceColour::NONE;
             }
             
-            void setPiece(PieceType t, PieceColour c) {
+            constexpr void setPiece(PieceType t, PieceColour c) {
                 assert(canAccess);
                 pieceType = t;
                 pieceColour = c;

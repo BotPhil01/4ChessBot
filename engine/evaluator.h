@@ -16,8 +16,8 @@ namespace eval{
     // vague position (where the pieces are) x
     // position aggressiveness 
     
-    constexpr std::array<std::int_fast16_t, 6> PIECEVALUES = {1, 5, 3, 3, 9, 9999};
-    constexpr std::array<std::int_fast16_t, helper::BOARDLENGTH> PPOS = {
+    constexpr std::array<const std::int_fast16_t, 6> PIECEVALUES = {1, 5, 3, 3, 9, 9999};
+    constexpr std::array<const std::int_fast16_t, helper::BOARDLENGTH> PPOS = {
         0,   0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,   0,
         0,   0,   0,   3,   10,   3,   3,   3,   3,  10,   3,   0,  0,   0,
         0,   0,  -5,   5,   10,  15,  15,  10,  15,  -5,   5,  -5,  0,   0,
@@ -34,7 +34,7 @@ namespace eval{
         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
 
     };
-    constexpr std::array<std::int_fast16_t, helper::BOARDLENGTH> RPOS = {
+    constexpr std::array<const std::int_fast16_t, helper::BOARDLENGTH> RPOS = {
         0,   0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,   0,
         0,   0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,   0,
         0,   0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,   0,
@@ -50,7 +50,7 @@ namespace eval{
         0,   0,   0,   20,  20,  20,  20,  20,  20,  20,  20,   0,   0,   0,
         0,   0,   0,   15,  15,  15,  15,  15,  15,  15,  15,   0,   0,   0,
     };
-    constexpr std::array<std::int_fast16_t, helper::BOARDLENGTH> NPOS = {
+    constexpr std::array<const std::int_fast16_t, helper::BOARDLENGTH> NPOS = {
         0,   0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,   0,
         0,   0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,   0,
         0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -68,7 +68,7 @@ namespace eval{
 
 
     };
-    constexpr std::array<std::int_fast16_t, helper::BOARDLENGTH> BPOS = {
+    constexpr std::array<const std::int_fast16_t, helper::BOARDLENGTH> BPOS = {
         0,   0,   0,  -5,  -5,  -5,  -5,  -5,  -5,  -5,  -5,   0,   0,   0,
         0,   0,   0,  -5,   10,  10,  10,  10,  10,  10, -5,   0,   0,   0,
         0,   0,   0,   9,   9,   9,   9,   9,   9,   9,   9,   0,   0,   0,
@@ -85,7 +85,7 @@ namespace eval{
         0,   0,   0,  -15, -15, -15, -15, -15, -15, -15, -15,  0,   0,   0,
 
     };
-    constexpr std::array<std::int_fast16_t, helper::BOARDLENGTH> QPOS = {
+    constexpr std::array<const std::int_fast16_t, helper::BOARDLENGTH> QPOS = {
         0,   0,   0,  -20, -20, -20, -20, -20, -20, -20, -20,  0,   0,   0,
         0,   0,   0,  -18, -18, -18  -18, -18, -18, -18, -18,   0,   0,   0,
         0,   0,   0,   10,  10,  10,  10,  10,  10,  10,  10,  0,   0,   0,
@@ -102,7 +102,7 @@ namespace eval{
         0,   0,   0,   22,  22,  22,  22,  22,  22,  22,  22,   0,   0,   0,
 
     };
-    constexpr std::array<std::int_fast16_t, helper::BOARDLENGTH> KPOS = {
+    constexpr std::array<const std::int_fast16_t, helper::BOARDLENGTH> KPOS = {
         0, 0, 0, -3,   -3,   -3,   -3,   -3,   -3,   -3,   -3,   0, 0, 0,
         0, 0, 0, -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   0, 0, 0,
         0, 0, 0, -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   0, 0, 0,
@@ -118,7 +118,7 @@ namespace eval{
         0, 0, 0, -550, -550, -550, -550, -550, -550, -550, -550, 0, 0, 0,
         0, 0, 0, -600, -600, -600, -600, -600, -600, -600, -600, 0, 0, 0,
     };
-    constexpr std::array<std::reference_wrapper<const std::array<std::int_fast16_t, helper::BOARDLENGTH>>, 6> POSITIONS = {std::cref(PPOS), std::cref(RPOS), std::cref(NPOS), std::cref(BPOS), std::cref(QPOS), std::cref(KPOS)};
+    constexpr std::array<std::reference_wrapper<const std::array<const std::int_fast16_t, helper::BOARDLENGTH>>, 6> POSITIONS = {std::cref(PPOS), std::cref(RPOS), std::cref(NPOS), std::cref(BPOS), std::cref(QPOS), std::cref(KPOS)};
 
     class Evaluator {
         // P R N B Q K
@@ -134,24 +134,24 @@ namespace eval{
             return POSITIONS[typeIndex].get()[tmp] * PIECEVALUES[typeIndex];
         }
 
-        void evaluateMaterial(std::array<std::int_fast16_t, 4> &out, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
+        constexpr void evaluateMaterial(std::array<std::int_fast16_t, 4> &out, const std::array<const std::reference_wrapper<player::Player>, 4UL> &playersData) const {
             for (unsigned int i = 0; i < playersData.size(); ++i) {
-                player::Player p = playersData[i].get();
-                const std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
+                player::Player &p = playersData[i].get();
+                const std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
                 for (unsigned int j = 0; j < pieces.size(); ++j) {
                     out[i] += (pieces.size() * PIECEVALUES[j]);
                 }
             }
         }
 
-        void evaluatePosition(std::array<std::int_fast16_t, 4> &out, const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
+        constexpr void evaluatePosition(std::array<std::int_fast16_t, 4> &out, const board::Board &board, const std::array<const std::reference_wrapper<player::Player>, 4UL> &playersData) const {
             // we need to evaluate position in correct dimension hence rotations should be considered
             for (unsigned int i = 0; i < playersData.size(); ++i) {
-                const player::Player p = playersData[i].get();
-                std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
+                player::Player &p = playersData[i].get();
+                std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
 
                 for (unsigned int j = 0; j < playersData.size(); ++j) {
-                    const std::set<types::boardIndex> pieceSet = pieces[j].get();
+                    std::set<types::boardIndex> &pieceSet = pieces[j].get();
                     types::PieceType type = helper::playablePieces[j];
 
                     std::for_each(pieceSet.cbegin(), pieceSet.cend(), [&type, &out, &i, &p, this](types::boardIndex index) {
@@ -163,7 +163,7 @@ namespace eval{
         }
 
         public:
-            std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
+            constexpr std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board, const std::array<const std::reference_wrapper<player::Player>, 4UL> &playersData) const {
                 std::array<std::int_fast16_t, 4> out {0, 0, 0, 0};
                 evaluateMaterial(out, playersData);
                 evaluatePosition(out, board, playersData);

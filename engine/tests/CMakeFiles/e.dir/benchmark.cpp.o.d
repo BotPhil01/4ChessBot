@@ -294,4 +294,5 @@ CMakeFiles/e.dir/benchmark.cpp.o: \
  /usr/include/c++/11/numeric /usr/include/c++/11/bits/stl_numeric.h \
  /usr/include/c++/11/pstl/glue_numeric_defs.h \
  /home/vbox/Projects/4ChessBot/engine/tests/../board.h \
+ /home/vbox/Projects/4ChessBot/engine/tests/../evaluator.h \
  /home/vbox/Projects/4ChessBot/engine/tests/../evaluator.h
