@@ -170,37 +170,6 @@ namespace eval{
                 return out;
             }
 
-
-        // std::array<std::int_fast16_t, 4> evaluate 
-            // std::array<std::int_fast16_t, 4> getDiffEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) {
-            //     const std::array<std::int_fast16_t, 4> evals = getEvaluation(board, playersData);
-            //     // find max
-            //     unsigned int maxIndex = 0;
-            //     for (unsigned int i = 0; i < evals.size(); ++i) {
-            //         if (evals[i] > evals[maxIndex]) {
-            //             maxIndex = i;
-            //         }
-            //     }
-
-            //     unsigned int secondIndex = 0;
-            //     for (unsigned int i = 0; i < evals.size(); ++i) {
-            //         if (i != maxIndex && evals[i] > evals[secondIndex]) {
-            //             secondIndex = i;
-            //         }
-            //     }
-
-            //     std::array<std::int_fast16_t, 4> diff = {0, 0, 0, 0};
-            //     for (unsigned int i = 0; i < evals.size(); ++i) {
-            //         if (i == maxIndex) {
-            //             diff[i] = evals[maxIndex] - evals[secondIndex];
-            //         } else {
-            //             diff[i] = evals[i] - evals[maxIndex];
-            //         }
-            //     }
-
-
-            //     return diff;
-            // }      
     };
 
 

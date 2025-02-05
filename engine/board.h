@@ -137,7 +137,7 @@ namespace board {
             }
 
             // includes en peasant
-            std::vector<types::boardIndex> pawnCaptureShift(types::boardIndex index) {
+            std::vector<types::boardIndex> pawnCaptureShift(types::boardIndex index) const {
                 // check if there exists a capturable piece beside 
                 // TODO optimise later
                 std::vector<types::boardIndex> out = std::vector<types::boardIndex> {}; // en peasant is unlikely 
@@ -156,7 +156,7 @@ namespace board {
                 return out;
             }
 
-            std::vector<types::boardIndex> knightShift(types::boardIndex index) {
+            std::vector<types::boardIndex> knightShift(types::boardIndex index) const {
                 std::vector<types::boardIndex> out {}; 
                 types::boardIndex northSouth = helper::shiftOne(index, types::Direction::NORTH);
                 types::boardIndex eastWest = helper::shiftOne(index, types::Direction::EAST);
@@ -198,7 +198,7 @@ namespace board {
             }
 
             // returns the list of on board ray indices in a given direction from a given src
-            std::vector<types::boardIndex> getRay(types::boardIndex src, types::Direction d) {
+            std::vector<types::boardIndex> getRay(types::boardIndex src, types::Direction d) const{
                 // src = 193
                 // d = NORTH
                 std::vector<types::boardIndex> out {};
@@ -215,7 +215,7 @@ namespace board {
                 }
                 return out;
             }
-            std::vector<types::boardIndex> bishopShift(types::boardIndex src) {
+            std::vector<types::boardIndex> bishopShift(types::boardIndex src) const {
                 std::vector<types::boardIndex> out = getRay(src, types::Direction::NORTHEAST);
                 helper::concat(out, getRay(src, types::Direction::NORTHWEST));
                 helper::concat(out, getRay(src, types::Direction::SOUTHEAST));
@@ -223,7 +223,7 @@ namespace board {
                 return out;
             }
 
-            std::vector<types::boardIndex> rookShift(types::boardIndex src) {
+            std::vector<types::boardIndex> rookShift(types::boardIndex src) const {
                 std::vector<types::boardIndex> out = getRay(src, types::Direction::NORTH);
                 helper::concat(out, getRay(src, types::Direction::EAST));
                 helper::concat(out, getRay(src, types::Direction::SOUTH));
@@ -231,13 +231,13 @@ namespace board {
                 return out;
             }
 
-            std::vector<types::boardIndex> queenShift(types::boardIndex src) {
+            std::vector<types::boardIndex> queenShift(types::boardIndex src) const {
                 std::vector<types::boardIndex> out = rookShift(src);
                 helper::concat(out, bishopShift(src));
                 return out;
             } 
 
-            std::vector<types::boardIndex> kingShift(types::boardIndex src) {
+            std::vector<types::boardIndex> kingShift(types::boardIndex src) const {
                 std::vector<types::Direction> directions = {types::Direction::NORTH, types::Direction::NORTHEAST, types::Direction::EAST, types::Direction::SOUTHEAST, types::Direction::SOUTH, types::Direction::SOUTHWEST, types::Direction::WEST, types::Direction::NORTHWEST};
                 std::vector<types::boardIndex> out;
                 types::boardIndex tmp;
@@ -271,7 +271,7 @@ namespace board {
             }
 
             // indices passed into this should be verified that no other piece blocks the path between them
-            bool isCastling(types::boardIndex src, types::boardIndex tgt) {
+            constexpr bool isCastling(types::boardIndex src, types::boardIndex tgt) const {
                 types::Square s = boardArray[src];
                 types::Square t = boardArray[tgt];
                 if (!(s.type() == types::PieceType::KING && t.type() == types:: PieceType::ROOK && s.colour() == t.colour())) {
@@ -285,28 +285,8 @@ namespace board {
             }
 
 
-            std::array<types::Square, 288UL> getBoard() const {
+            constexpr std::array<types::Square, 288UL> getBoard() const {
                 return boardArray;
-            }
-            
-            int getValue(types::PieceType t) {
-                switch (t) {
-                    case types::PieceType::PAWN:
-                        return 1;
-                    case types::PieceType::ROOK:
-                        return 5;
-                    case types::PieceType::BISHOP:
-                        return 3;
-                    case types::PieceType::KNIGHT:
-                        return 3;
-                    case types::PieceType::QUEEN:
-                        return 9;
-                    case types::PieceType::KING:
-                        return 200;
-                    default:
-                        return 0;
-                }
-                return 0;
             }
         public:
 
@@ -484,7 +464,7 @@ namespace board {
             //     return moveStack.top();
             // } 
 
-            void printPaddedBoard() {
+            constexpr void printPaddedBoard() const {
                 // algo is weird but prints correctly according to red
                 // orientation in order NESW = YGRB
                 for (short i = helper::PADDEDROWS - 1; i >= 0; --i) {
@@ -496,7 +476,7 @@ namespace board {
                 }
             }
 
-            void printBoard() {
+            constexpr void printBoard() const {
                 for (short i = helper::PADDEDROWS - 3; i >= 2; --i) {
                     for (int j = 1; j < helper::PADDEDCOLS - 1; ++j) {
                         char colour = helper::colourToChar(boardArray[16 * i + j].colour());
@@ -513,13 +493,9 @@ namespace board {
             }
 
             // asks whether c's king is in check in current board position
-            bool isKingInCheck(types::PieceColour c) {
+            const bool isKingInCheck(types::PieceColour c) const {
                 assert(c != types::PieceColour::NONE);
-                player::Player player = players[helper::indexFromColour(c)];
-                // BUG this does not adequately check whether the king is in check
-                // knight just fucking takes the blue king
-                // idea
-                // get king index
+                player::Player &player = players[helper::indexFromColour(c)];
                 std::set<types::boardIndex> s = player.getPieces()[helper::indexFromType(types::PieceType::KING)].get();
                 auto node = s.extract(s.begin());
                 assert(!node.empty());
@@ -595,7 +571,7 @@ namespace board {
             // if there are no more players that aren't in checkmate it returns the provided colour
             // takes the colour to increment and the iteration counter
             // iteration should start on 0
-            types::PieceColour getPrevTurn(types::PieceColour c, unsigned int iteration) {
+            constexpr types::PieceColour getPrevTurn(types::PieceColour c, unsigned int iteration) const {
                 if (iteration == 4) {
                     return c;
                 }
@@ -618,7 +594,7 @@ namespace board {
             // if there are no more players that aren't in checkmate it returns the provided colour
             // takes the colour to increment and the iteration counter
             // iteration should start on 0
-            types::PieceColour getNextTurn(types::PieceColour c, unsigned int iteration) {
+            constexpr types::PieceColour getNextTurn(types::PieceColour c, unsigned int iteration) const {
                 if (iteration == 4) {
                     return c;
                 }
@@ -800,34 +776,11 @@ namespace board {
                 virtualUnPlayMove();
             }
     
-            // gets the current material value of a colour 
-            float getMaterial(types::PieceColour c) {
-                float res = 0;
-                for (auto square : boardArray) {
-                    if (square.colour() == c) {
-                        res += getValue(square.type());
-                    }
-                }
-                return res;
-            }
-
-            // returns the position of the given colour
-            std::vector<std::pair<types::Square, types::boardIndex>> getPosition(types::PieceColour c) {
-                std::vector<std::pair<types::Square, types::boardIndex>> res;
-                for (unsigned int i = 0; i < boardArray.size(); ++i) {
-                    types::Square square = boardArray[i];
-                    if (square.colour() == c) {
-                        res.emplace_back(std::pair<types::Square, types::boardIndex> {square, i});
-                    }
-                }    
-                return res;            
-            }   
-
-            bool movesPlayed() {
+            inline bool movesPlayed() const {
                 return moveStack.size() != 0;
             }            
         
-            types::Move indicesToMove(types::boardIndex from, types::boardIndex to) {
+            constexpr types::Move indicesToMove(types::boardIndex from, types::boardIndex to) const {
                 types::PieceType promotionType = isPromotion(from, to) ? types::PieceType::QUEEN : types:: PieceType::EMPTY;
             
                 bool special = isCastling(from, to) /*|| isEnPeasant(from, to)*/;
@@ -857,7 +810,7 @@ namespace board {
                 }
             }
 
-            constexpr bool isPlayerCheckmate(types::PieceColour c) {
+            constexpr bool isPlayerCheckmate(types::PieceColour c) const {
                 return players[helper::indexFromColour(c)].get().isCheckmate();
             }
     };
