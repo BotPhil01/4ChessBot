@@ -5,7 +5,7 @@
 #define TYPES_H
 
 namespace types {
-    using boardIndex = uint16_t;
+    using boardIndex = uint_fast16_t;
 
     // piece enums
     enum class PieceType { // not set to class to allow for indeexing into pieceTypes[]
@@ -178,7 +178,73 @@ namespace types {
             }
     };
 
+    // fixed length move array 
+    // maximum length of moves created in 1 call of pseudoLegalMoves = K: 10 * 1 Q: 41 * 9 R: 26 * 2: B: 15 * 2 P: 4 * 0 = 461  
+    // class FLMarray {
+    //     constexpr static std::size_t maxSize = 461;
+    //     std::array<Move, maxSize + 1> arr = {};
+    //     unsigned int filled = 0;
+    //     public:
+    //         constexpr FLMarray() = default;
+    //         constexpr ~FLMarray() = default;
+    //         constexpr Move at(unsigned int i) const {
+    //             assert(i < filled);
+    //             return arr[i];
+    //         }
+    //         void emplace_back(Move move) {
+    //             assert(filled < arr.size());
+    //             arr[filled++] = move;
+    //         }
+    //         constexpr std::size_t size() const {
+    //             return filled;
+    //         }
 
+    //         constexpr std::size_t max_size() const {
+    //             return maxSize;
+    //         }
+    // };
+
+
+    // fixed length index array for storing indices after a single shift
+    // maximum theorhetical for shifts is a queen shift 13 + 13 + 4 + 4 + 4 + 3 = 41
+    // class FLSArray {
+    //     // initialises to 0
+    //     const static std::size_t maxSize = 41;
+    //     const static boardIndex END = 400;
+    //     std::array<boardIndex, maxSize + 1> arr = {};
+    //     volatile std::size_t filled = 0UL;
+    //     public:
+    //         constexpr FLSArray() {
+    //             arr[maxSize + 1] = END;
+    //         }
+    //         constexpr ~FLSArray() = default;
+    //         // constexpr boardIndex at(unsigned int i) const {
+    //         //     assert(i < filled);
+    //         //     return arr[i];
+    //         // }
+    //         constexpr boardIndex operator[](unsigned int i) const {
+    //             assert(i <= maxSize);
+    //             return arr[i];
+    //         }
+    //         void emplace_back(boardIndex index) {
+    //             assert(filled <= maxSize);
+    //             arr[filled++] = index;
+    //         }
+    //         constexpr std::size_t size() const {
+    //             return filled;
+    //         }
+    //         constexpr std::size_t max_size() const {
+    //             return maxSize;
+    //         }
+    //         constexpr types::boardIndex back() const {
+    //             assert(filled != 0);
+    //             return arr[filled-1];
+    //         }
+    //         constexpr types::boardIndex end() const {
+    //             return arr[maxSize + 1];
+    //         }
+
+    // };
 
 };
 #endif

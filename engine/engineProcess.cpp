@@ -105,11 +105,12 @@ class EngineProcess {
             pair<int, int> coords = fromJCoords(stoi(jSquare.substr(0, t)), stoi(jSquare.substr(t+1, jSquare.length())));
             boardIndex i = toIndex(coords.first, coords.second);
             // get indices
-            vector<boardIndex> indices = board.genShift(i);
+            array<boardIndex, 41>  indices = board.genShift(i);
             // output the indices converted to jcoords
             string s = "S";
-            for (boardIndex i : indices) {
-                pair<int, int> p = toJCoords(to16RC(i));
+            for (unsigned int i = 0; i < indices.size() && indices[i] != 0; ++i) {
+                boardIndex index = indices[i];
+                pair<int, int> p = toJCoords(to16RC(index));
                 s = s + to_string(p.first) + "|" + to_string(p.second) + "#";
             }
             s = s + "S";

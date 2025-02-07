@@ -10,10 +10,9 @@
 
 
 namespace player {
-    using Colour = types::PieceColour;
     class Player {
         private: 
-            Colour clr;
+            types::PieceColour clr;
             bool isMate = false;
             
             std::set<types::boardIndex> pawns;
@@ -220,7 +219,7 @@ namespace player {
                 
             }   
         public:
-            Player(const Colour c) :
+            Player(const types::PieceColour c) :
             clr(c),
             pieces({ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)})
             {
@@ -322,9 +321,8 @@ namespace player {
                     fromSet.extract(fromIt);
                     fromSet.emplace(m.toIndex());
                     // update moved pieces list
-                    auto it = movedPieces.find(m.fromIndex());
-                    if (it != movedPieces.end()) {
-                        movedPieces.extract(it);
+                    if (movedPieces.contains(m.fromIndex())) {
+                        movedPieces.extract(m.fromIndex());
                     }
                     movedPieces.emplace(m.toIndex());
                 }

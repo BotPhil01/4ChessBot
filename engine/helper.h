@@ -56,6 +56,8 @@ namespace helper
     constexpr types::Direction GREENDOWNRIGHT = types::Direction::NORTHEAST;
     constexpr types::Direction GREENDOWNLEFT = types::Direction::SOUTHEAST;
     
+    constexpr std::array<const types::Direction, 8UL> DIRECTIONS = {NORTH, types::Direction::NORTHEAST, EAST, types::Direction::SOUTHEAST, SOUTH, types::Direction::SOUTHWEST, WEST, types::Direction::NORTHWEST};
+
     constexpr unsigned char BOARDLENGTH = 196;
     constexpr unsigned char PADDEDCOLS = 16;
     constexpr unsigned char PADDEDROWS = 18;
@@ -317,6 +319,23 @@ namespace helper
         for (std::unique_ptr<T> i : v2)
         {
             v1.push_back(std::move(i));
+        }
+    }
+
+    template <typename T, size_t size1, size_t size2>
+    constexpr void concat(std::array<T, size1> &v1, std::array<T, size2> v2) {
+        unsigned int v1size = 0;
+        for (unsigned int i = 0; i < v1.size(); ++i) {
+            if (v1[i] == 0) {
+                v1size = i;
+            }
+        }
+
+        for (unsigned int i = 0; i < v2.size(); ++i) {
+            if (v1[i] == 0) {
+                break;
+            }
+            v1[i + v1size] = v2[i];
         }
     }
 
