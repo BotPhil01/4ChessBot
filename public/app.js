@@ -76,20 +76,22 @@ function colourToIndex(colour) {
 window.onload = function () {
     buttons();
 };
+window.onbeforeunload = function () {
+    ws.send("quit");
+    ws.close();
+};
 function buttons() {
     var h = document.getElementById("homeSwap");
     h.onclick = swap;
     var bb = document.getElementById("boardBackButton");
     bb.onclick = swap;
-    var db = document.getElementById("debugButton");
-    db.onclick = destroy;
     var draggable = document.getElementById("draggable");
     dragPieceElement(draggable);
 }
-function destroy() {
-    ws.send("quit");
-    ws.close();
-}
+// function destroy () {
+//     ws.send("quit");
+//     ws.close();
+// }
 // func for swapping between home and game pages
 function swap() {
     var gameDiv = document.getElementById("gameDiv");
