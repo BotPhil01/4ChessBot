@@ -1,1 +1,15 @@
-/.~lock.Plan.odt#
+**/.~lock.Plan.odt#
+Dockerfile
+automation.sh
+engine/compile.sh
+engine/streamable
+engine/notes.txt
+*.txt
+*.sh
+export/
+helper/
+**/debug.cpp
+**/a.out
+ 
+engine/tests/e
+engine/dummy.cpp

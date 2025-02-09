@@ -1,0 +1,61 @@
+Randomness seeded to: 332267103
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+e is a Catch2 v3.8.0 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+balls
+-------------------------------------------------------------------------------
+/home/vbox/Projects/4ChessBot/engine/tests/benchmark.cpp:34
+...............................................................................
+
+benchmark name                       samples       iterations    est run time
+                                     mean          low mean      high mean
+                                     std dev       low std dev   high std dev
+-------------------------------------------------------------------------------
+ALPHA BETA MAX                                 100             1    75.9735 ms 
+                                        815.488 us    769.336 us    884.249 us 
+                                        283.102 us     213.82 us    469.922 us 
+                                                                               
+ALPHA BETA MIN                                 100             1    95.6477 ms 
+                                        901.668 us    832.835 us    986.935 us 
+                                        390.344 us    320.591 us    479.703 us 
+                                                                               
+MOVE GENERATION                                100             1     45.014 ms 
+                                        268.716 us    244.495 us    308.278 us 
+                                        154.948 us    105.864 us    242.942 us 
+                                                                               
+MG PSEUDOLEGAL                                 100             1    14.7694 ms 
+                                        15.2245 us    14.6179 us     16.341 us 
+                                        4.07355 us    2.70918 us    7.07864 us 
+                                                                               
+MG PSEUDOLEGAL + CLEAR                         100             8     9.3696 ms 
+                                        11.1961 us    11.0728 us    11.3638 us 
+                                        725.808 ns    560.314 ns    997.042 ns 
+                                                                               
+MG VIRTUAL BOARD COPY CONSTRUCTOR              100            12      9.366 ms 
+                                        6.93863 us    6.34937 us    7.87798 us 
+                                        3.73642 us    2.65649 us    5.45957 us 
+                                                                               
+MG COPY + VIRTUAL PLAY                         100            14     9.2456 ms 
+                                        8.29875 us    7.87562 us    8.91703 us 
+                                        2.57697 us    1.94059 us    3.47746 us 
+                                                                               
+MG VIRTUAL PLAY + UNPLAY                       100            99     8.8803 ms 
+                                        978.754 ns    861.283 ns    1.26268 us 
+                                        874.483 ns    336.548 ns    1.66287 us 
+                                                                               
+MG COPY + VIRTUAL UNPLAY                       100            12     8.8764 ms 
+                                        6.98186 us    6.69522 us    7.33613 us 
+                                        1.62055 us    1.36898 us    1.96681 us 
+                                                                               
+MG KING IN CHECK                               100            25     9.1525 ms 
+                                        4.00178 us    3.77524 us    4.31825 us 
+                                        1.35031 us    1.05929 us     1.7816 us 
+                                                                               
+
+===============================================================================
+test cases: 1 | 1 passed
+assertions: - none -
+
