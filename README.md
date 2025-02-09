@@ -34,16 +34,16 @@ As above in a browser navigate to http://127.0.0.1:3000
 # Library credits:
 This project uses several libraries to work as intended. All work on these libraries belongs to the respective owners. Please check out their projects they deserve full credit for the work they put into the javascript and c++ ecosystems respectively:
 ## Javascript packages:
-ws v8.18.0 for websockets found here https://www.npmjs.com/package/ws
-express v4.21.2 for server found here https://www.npmjs.com/package/express
-typescript v5.7.2 for typescript found here https://www.npmjs.com/package/typescript
+- ws v8.18.0 for websockets found here https://www.npmjs.com/package/ws
+- express v4.21.2 for server found here https://www.npmjs.com/package/express
+- typescript v5.7.2 for typescript found here https://www.npmjs.com/package/typescript
 ## The typescript versions:
-@types/ws v8.5.13 found here https://www.npmjs.com/package/@types/ws
-@types/express v5.0.0 found here https://www.npmjs.com/package/@types/express
+- @types/ws v8.5.13 found here https://www.npmjs.com/package/@types/ws
+- @types/express v5.0.0 found here https://www.npmjs.com/package/@types/express
 
 ## C++ packages
-Catch2 v3.8.0 for testing and debugging found here https://github.com/catchorg/Catch2/tree/devel
-Cmake v3.22.1 for compiling tests found here https://cmake.org/
+- Catch2 v3.8.0 for testing and debugging found here https://github.com/catchorg/Catch2/tree/devel
+- Cmake v3.22.1 for compiling tests found here https://cmake.org/
 
 # Special acknowledgements
 - My friends for the encouragement while working on this project
