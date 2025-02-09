@@ -76,6 +76,10 @@ function colourToIndex(colour) {
 window.onload = function () {
     buttons();
 };
+window.onbeforeunload = function () {
+    ws.send("quit");
+    ws.close();
+};
 function buttons() {
     var h = document.getElementById("homeSwap");
     h.onclick = swap;

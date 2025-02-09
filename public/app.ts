@@ -48,6 +48,11 @@ window.onload = function() {
     buttons();
 }
 
+window.onbeforeunload = function() {
+    ws.send("quit");
+    ws.close();
+}
+
     
 
 function buttons() {
