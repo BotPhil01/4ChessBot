@@ -4,6 +4,11 @@ const BOARDDIMENSION = 14;
 // holds knowledge on which players are known to be in checkmate R Y G B
 let knownCheckmates = [false, false, false, false];
 
+const players = ["RED", "BLUE", "YELLOW", "GREEN"];
+
+
+let turnCounter = 0;
+
 enum Colour {
     RED,
     BLUE,
@@ -43,17 +48,17 @@ window.onload = function() {
     buttons();
 }
 
+    
+
 function buttons() {
     var h = document.getElementById("homeSwap")
-    if (h) {h.onclick = swap;}
+    h!.onclick = swap;
     var bb = document.getElementById("boardBackButton")
-    if (bb) {bb.onclick = swap;}
+    bb!.onclick = swap;
     var db = document.getElementById("debugButton")
-    if (db) {db.onclick = destroy;}
+    db!.onclick = destroy;
     var draggable = document.getElementById("draggable");
-    if (draggable) {
-        dragPieceElement(draggable);
-    }
+    dragPieceElement(draggable!);
 }
 
 function destroy () {
@@ -113,17 +118,20 @@ function dragPieceElement(element: HTMLElement) {
 
     // triggered by onmousedown
     function startDrag(e: MouseEvent) {
-        if (!element) {console.error("trying to move non existent element"); return;}
-        legalSquares = []
-        // cache initial position and square in case needed to return there
-        setInitialSquare(positionToSquare([e.clientX, e.clientY]));
-        setInitialPosition(positionFromSquare(initialSquare));
-        queryLegalMoves();
-        e.preventDefault();
-        document.onmouseup = stopDrag;
-        
-        document.onmousemove = elementDrag;
-        return true;
+        if (turnCounter == 0) {
+            if (!element) {console.error("trying to move non existent element"); return;}
+            legalSquares = []
+            // cache initial position and square in case needed to return there
+            setInitialSquare(positionToSquare([e.clientX, e.clientY]));
+            setInitialPosition(positionFromSquare(initialSquare));
+            queryLegalMoves();
+            e.preventDefault();
+            document.onmouseup = stopDrag;
+            
+            document.onmousemove = elementDrag;
+            return true;
+        }
+        return false;
     }
 
     // triggered when moving
@@ -197,6 +205,12 @@ function dragPieceElement(element: HTMLElement) {
         }
         checkPromotion(element, square);
         // set element to new position
+        turnCounter = (turnCounter + 1) % 4 ;
+        console.log(`turnCounter: ${turnCounter}`);
+        let turnLabel = document.getElementById("turnLabel");
+        console.log(`turnLabel ${turnLabel}`);
+        turnLabel!.innerHTML = players[turnCounter];
+        console.log(`textContent: ${turnLabel!.innerHTML}`);
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
         // setInitialPosition(position);
@@ -245,6 +259,7 @@ function dragPieceElement(element: HTMLElement) {
                 str = str.substring(str.indexOf("M") + 1, str.lastIndexOf("M"));
                 var indices = str.split("|");
                 playMove([+indices[0], +indices[1]], [+indices[2], +indices[3]]);
+
                 return
             case "C":
                 str = str.substring(str.indexOf("C") + 1, str.lastIndexOf("C"));
@@ -546,7 +561,12 @@ function playMove(from: number[], to: number[]) {
     // potentail promotion
     // piece-bb
     checkPromotion(elem, to);
-    
+    turnCounter = (turnCounter + 1) % 4 ;
+    console.log(`turnCounter: ${turnCounter}`);
+    let turnLabel = document.getElementById("turnLabel");
+    console.log(`turnLabel ${turnLabel}`);
+    turnLabel!.innerHTML = players[turnCounter];
+    console.log(`textContent: ${turnLabel!.innerHTML}`);
     elem.style.left = tpos[0] + "px";
     elem.style.top = tpos[1] + "px";
     return;

@@ -38,6 +38,8 @@ var ws = new WebSocket("ws://".concat(window.location.host));
 var BOARDDIMENSION = 14;
 // holds knowledge on which players are known to be in checkmate R Y G B
 var knownCheckmates = [false, false, false, false];
+var players = ["RED", "BLUE", "YELLOW", "GREEN"];
+var turnCounter = 0;
 var Colour;
 (function (Colour) {
     Colour[Colour["RED"] = 0] = "RED";
@@ -76,21 +78,13 @@ window.onload = function () {
 };
 function buttons() {
     var h = document.getElementById("homeSwap");
-    if (h) {
-        h.onclick = swap;
-    }
+    h.onclick = swap;
     var bb = document.getElementById("boardBackButton");
-    if (bb) {
-        bb.onclick = swap;
-    }
+    bb.onclick = swap;
     var db = document.getElementById("debugButton");
-    if (db) {
-        db.onclick = destroy;
-    }
+    db.onclick = destroy;
     var draggable = document.getElementById("draggable");
-    if (draggable) {
-        dragPieceElement(draggable);
-    }
+    dragPieceElement(draggable);
 }
 function destroy() {
     ws.send("quit");
@@ -143,19 +137,22 @@ function dragPieceElement(element) {
     }
     // triggered by onmousedown
     function startDrag(e) {
-        if (!element) {
-            console.error("trying to move non existent element");
-            return;
+        if (turnCounter == 0) {
+            if (!element) {
+                console.error("trying to move non existent element");
+                return;
+            }
+            legalSquares = [];
+            // cache initial position and square in case needed to return there
+            setInitialSquare(positionToSquare([e.clientX, e.clientY]));
+            setInitialPosition(positionFromSquare(initialSquare));
+            queryLegalMoves();
+            e.preventDefault();
+            document.onmouseup = stopDrag;
+            document.onmousemove = elementDrag;
+            return true;
         }
-        legalSquares = [];
-        // cache initial position and square in case needed to return there
-        setInitialSquare(positionToSquare([e.clientX, e.clientY]));
-        setInitialPosition(positionFromSquare(initialSquare));
-        queryLegalMoves();
-        e.preventDefault();
-        document.onmouseup = stopDrag;
-        document.onmousemove = elementDrag;
-        return true;
+        return false;
     }
     // triggered when moving
     function elementDrag(ev) {
@@ -218,6 +215,12 @@ function dragPieceElement(element) {
         }
         checkPromotion(element, square);
         // set element to new position
+        turnCounter = (turnCounter + 1) % 4;
+        console.log("turnCounter: ".concat(turnCounter));
+        var turnLabel = document.getElementById("turnLabel");
+        console.log("turnLabel ".concat(turnLabel));
+        turnLabel.innerHTML = players[turnCounter];
+        console.log("textContent: ".concat(turnLabel.innerHTML));
         element.style.left = position[0] + "px";
         element.style.top = position[1] + "px";
         // setInitialPosition(position);
@@ -554,6 +557,12 @@ function playMove(from, to) {
     // potentail promotion
     // piece-bb
     checkPromotion(elem, to);
+    turnCounter = (turnCounter + 1) % 4;
+    console.log("turnCounter: ".concat(turnCounter));
+    var turnLabel = document.getElementById("turnLabel");
+    console.log("turnLabel ".concat(turnLabel));
+    turnLabel.innerHTML = players[turnCounter];
+    console.log("textContent: ".concat(turnLabel.innerHTML));
     elem.style.left = tpos[0] + "px";
     elem.style.top = tpos[1] + "px";
     return;

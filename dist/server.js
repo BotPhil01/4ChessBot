@@ -18,33 +18,38 @@ server = new node_http_1.Server(app);
 (0, node_assert_1.default)(server != null);
 var wss = new ws_1.WebSocketServer({ server: server });
 wss.on('connection', function (ws) {
-    // console.log("Client connected");
+    console.log("Client connected");
     var engineProcess = (0, node_child_process_1.spawn)(executablePath, {
         shell: true,
     });
     var res = engineProcess.stdin.write("js\n");
-    // console.log(`heading to js loop; ${res}`)
+    console.log("heading to js loop; ".concat(res));
     ws.on('message', function (message) {
-        // console.log(`Message received from client ${message}`);
+        console.log("Message received from client ".concat(message));
         (0, node_assert_1.default)(engineProcess.stdin != null);
         var res = engineProcess.stdin.write(message + "\n");
-        // console.log(`result after writing ${res}`);
+        console.log("result after writing ".concat(res));
     });
     (0, node_assert_1.default)(engineProcess.stdout != null);
     engineProcess.stdout.on('data', function (data) {
-        // console.log(`Process has output data: <data>${data}</data>`);
+        console.log("Process has output data: <data>".concat(data, "</data>"));
         ws.send(data);
     });
     ws.on('close', function () {
-        // console.log("Socket closed");
+        console.log("Socket closed");
         engineProcess.stdin.write("quit");
-        engineProcess.kill();
-        return;
+        var killRes = engineProcess.kill();
+        if (killRes) {
+            console.log("Process successfully killed ");
+        }
+        else {
+            console.log("Process failed to be killed");
+        }
     });
     engineProcess.stderr.on('data', function (data) {
         console.error("Engine error=".concat(data));
     });
 });
 server.listen(PORT, function () {
-    // console.log(`Server running on port: ${PORT}`);
+    console.log("Server running on port: ".concat(PORT));
 });
