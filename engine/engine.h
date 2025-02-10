@@ -5,6 +5,7 @@
 #include<exception>
 #include<numeric>
 #include<cstdint>
+#include<ctime>
 
 #include"board.h"
 #include"helper.h"
@@ -20,9 +21,12 @@ namespace engine {
             board::Board &board;
             types::PieceColour self;
             eval::Evaluator evaluator;
-
+            const double MAXTIME = 10.0; // In total we want to spend 10 seconds per move 
             int DEPTH;
             
+            // Interrupt during each step of search? Time calculation could be expensive
+            // Interrupt at top most layer? Could produce inaccurate results
+
 
         public:
             Engine(
@@ -41,7 +45,9 @@ namespace engine {
             }
 
             // returns a next move 
-            types::Move chooseNextMove() { 
+            types::Move chooseNextMove() {
+                std::time_t start = std::time(nullptr);
+                
                 // generate legal moves
                 if (board.isPlayerCheckmate(self)) {
                     return types::Move();
@@ -57,6 +63,11 @@ namespace engine {
                 std::int_fast16_t beta = 99999999;
 
                 for (unsigned int i = 0; i < moves.size(); i++) {
+                    std::time_t check = std::time(nullptr);
+                    double difference = std::difftime(check, start);
+                    if (difference >= MAXTIME) {
+                        break;
+                    }
                     types::Move m = *moves[i];
                     (*moves[i]).totalMoves = moves.size();
                     board.playMove(m);
@@ -75,10 +86,6 @@ namespace engine {
             }
 
 
-            // TODO FIX THIS ALGORITHM
-            // CURRENTLY IS NOT OPTIMISING EFFICIENTLY
-            // IT DOES OPTIMISE BUT NOT WELL
-            // 30S PER FULL MOVE 
             std::int_fast16_t alphaBetaMax(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
                 if (depth == 0) {
                     std::array<std::int_fast16_t, 4UL> e = evaluator.getEvaluation(board, board.getPlayers());
