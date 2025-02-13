@@ -105,6 +105,14 @@ class EngineProcess {
             pair<int, int> coords = fromJCoords(stoi(jSquare.substr(0, t)), stoi(jSquare.substr(t+1, jSquare.length())));
             boardIndex i = toIndex(coords.first, coords.second);
             // get indices
+            // BUG HERE DOESNT GET THE CORRECT AMOUNT OF SQUARES AFTER MOVES:
+            // M6|12|6|10M
+            // M4|13|5|11M
+            // M9|13|8|11M
+            // M5|13|8|10M
+            // S8|10S
+            // INCORRECT OUTPUT:
+            // Process has output data: <data>S9|9#10|8#S
             array<boardIndex, 41>  indices = board.genShift(i);
             // output the indices converted to jcoords
             string s = "S";
@@ -215,15 +223,11 @@ class EngineProcess {
                 for (unsigned char i = 0; i < engines.size(); ++i) {
                     Engine e = engines[i].get();
                     m = e.chooseNextMove(); 
-                    if (m.fromIndex() == 300 || m.toIndex() == 300) {
-                        parseOutput(e);
-                    } else {
+                    if (!(m.fromIndex() == 300 || m.toIndex() == 300)) {
                         updateGameState(m);
-                        parseOutput(m);
                     }
-                    cout.flush();
+                    board.printBoard();
                 }
-                board.printBoard();
             }
         }
 

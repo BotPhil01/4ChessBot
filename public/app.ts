@@ -292,6 +292,8 @@ function dragPieceElement(element: HTMLElement) {
                 alert("You win! Good job!");
                 ws.close();
                 return;
+            default:
+                return;
         }
     }
     

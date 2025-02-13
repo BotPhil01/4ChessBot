@@ -303,6 +303,8 @@ function dragPieceElement(element) {
                                 alert("You win! Good job!");
                                 ws.close();
                                 return [2 /*return*/];
+                            default:
+                                return [2 /*return*/];
                         }
                         return [2 /*return*/];
                 }

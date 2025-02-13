@@ -10,6 +10,7 @@
 #include"board.h"
 #include"helper.h"
 #include"evaluator.h"
+#include"transpo.h"
 
 #ifndef ENGINE_H
 #define ENGINE_h
@@ -22,8 +23,8 @@ namespace engine {
             types::PieceColour self;
             eval::Evaluator evaluator;
             const double MAXTIME = 10.0; // In total we want to spend 10 seconds per move 
-            int DEPTH;
-            
+            transpo::TranspositionTable trans = transpo::TranspositionTable();
+
             // Interrupt during each step of search? Time calculation could be expensive
             // Interrupt at top most layer? Could produce inaccurate results
 
@@ -32,19 +33,42 @@ namespace engine {
             Engine(
                 board::Board &b,
                 types::PieceColour p = types::PieceColour::RED, 
-                int d = 4, 
                 bool finished = false) :
             board(b),
-            self(p), 
-            DEPTH(d)
+            self(p)
             {
-                
             }
+            
             types::PieceColour getColour() {
                 return self;
             }
 
+            // enum class transpo::Node {
+            //     NONE,
+            //     PV, // Exact (root and leftmost)
+            //     ALL, // No score exceeded alpha
+            //     CUT // (beta cutoff performed)
+            // };
+            constexpr transpo::Node existsTransTableCutoff(transpo::TableData data, unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) const {
+                if (data.occupied && data.depth >= depth) {
+                    switch(data.type) {
+                        case transpo::Node::PV:
+                            return transpo::Node::PV;
+                        case transpo::Node::ALL:
+                            return data.eval < alpha ? transpo::Node::ALL : transpo::Node::NONE;
+                        case transpo::Node::CUT:
+                            return data.eval >= beta ? transpo::Node::CUT : transpo::Node::NONE;
+                        default:
+                            return transpo::Node::NONE;
+                    }
+                }
+                return transpo::Node::NONE;
+            }
+
+
+
             // returns a next move 
+            // implements iterative deepening
             types::Move chooseNextMove() {
                 std::time_t start = std::time(nullptr);
                 
@@ -54,66 +78,141 @@ namespace engine {
                 }
                 std::vector<std::unique_ptr<types::Move>> moves;
                 board.generateLegalMoves(self, moves);
+
                 if (moves.size() == 0) {
                     board.setPlayerCheckmate(self);
                     return types::Move();
                 }
-                types::Move bestMove;
-                std::int_fast16_t bestEval = -99999999;
-                std::int_fast16_t beta = 99999999;
 
-                for (unsigned int i = 0; i < moves.size(); i++) {
-                    std::time_t check = std::time(nullptr);
-                    double difference = std::difftime(check, start);
-                    if (difference >= MAXTIME) {
-                        break;
-                    }
-                    types::Move m = *moves[i];
-                    (*moves[i]).totalMoves = moves.size();
-                    board.playMove(m);
-                    std::int_fast16_t evaluation = alphaBetaMin(DEPTH, bestEval, beta);
-                    
-                    if (evaluation > bestEval) {
-                        bestMove = m;
-                        bestEval = evaluation;
-                    }
+                //iterative deepening
+                types::Move bestMove = *moves[0];
+                unsigned int depth = 0;
+                // TODO CHANGE  TO INCORPORATE SIGNALS INSTEAD OF CALCULATION
+                // REQUIRES A TIMER THREAD
+                while (std::difftime(std::time(nullptr), start) < MAXTIME) {
 
+                    std::int_fast16_t bestEval = -99999999;
+                    std::int_fast16_t beta = 99999999;
+                    // search bestIndex
+                    board.playMove(bestMove);
+                    bestEval = alphaBetaMin(depth, bestEval, beta);
                     board.unPlayMove();
+                    
+
+                    // search rest
+                    for (unsigned int i = 0; i < moves.size(); i++) {
+                        if (std::difftime(std::time(nullptr), start) >= MAXTIME) {
+                            break;
+                        }
+                        if (i != bestMove.index){
+                            types::Move m = *moves[i];
+                            board.playMove(m);
+                            std::int_fast16_t evaluation = alphaBetaMin(depth, bestEval, beta);
+                            
+                            if (evaluation > bestEval) {
+                                bestMove = m;
+                                bestEval = evaluation;
+                            }
+        
+                            board.unPlayMove();
+                        }
+                    }
+                    trans.store(bestMove, bestEval, depth, transpo::Node::PV, board.getPlayers());
+                    depth++;
                 }
                 return bestMove;
 
 
             }
 
-
+            
             std::int_fast16_t alphaBetaMax(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
                 if (depth == 0) {
                     std::array<std::int_fast16_t, 4UL> e = evaluator.getEvaluation(board, board.getPlayers());
                     return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
                 }
-
-                std::vector<std::unique_ptr<types::Move>> moves;
-                board.generateLegalMoves(board.getCurrentTurn(), moves);
-                depth--;
-                std::int_fast16_t bestEval = -99999999;
-
-                for (unsigned int i = 0; i < moves.size(); i++) {
-                    types::Move m = *moves[i];
-                    (*moves[i]).totalMoves = moves.size();
-                    board.playMove(m);
-                    std::int_fast16_t evaluation = alphaBetaMin(depth, alpha, beta);
-                    
-                    if (evaluation >= beta) {
-                        board.unPlayMove();
-                        return evaluation;
-                    }
-                    if (evaluation > bestEval) {
-                        bestEval = evaluation;
-                        if (evaluation > alpha) {
-                            alpha = bestEval;
+                
+                bool failLow = true;
+                transpo::TableData data = trans.find(board.getPlayers());
+                if (data.occupied) {
+                    const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
+                    if (transCutoff != transpo::Node::NONE) {
+                        switch (transCutoff) {
+                            case transpo::Node::PV:
+                                return data.eval;
+                            case transpo::Node::ALL:
+                                if (data.eval < alpha) {
+                                    return data.eval;
+                                }
+                                break;
+                            default:
+                                if (data.eval >= beta) {
+                                    return data.eval;
+                                }
+                                break;
                         }
+    
+                    }
+                }
+
+                std::int_fast16_t evaluation = 0;
+                std::int_fast16_t bestEval = -99999999;
+                types::Move bestMove;
+                depth--;
+                // search table's suspected best move 
+                if (data.occupied) {
+                    board.playMove(data.bestMove);
+                    if (board.getCurrentTurn() == self) {
+                        evaluation = alphaBetaMax(depth, alpha, beta);
+                    } else {
+                        evaluation = alphaBetaMin(depth, alpha, beta);
                     }
                     board.unPlayMove();
+
+                    if (evaluation >= beta) {
+                        // fail high
+                        // node is CUT
+                        trans.store(data.bestMove, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                        return evaluation;
+                    }
+                    bestEval = evaluation;
+                    bestMove = data.bestMove;
+                    if (evaluation > alpha) {
+                        failLow = false;
+                        alpha = evaluation;
+                    }
+                }
+                
+                // search rest of moves
+                std::vector<std::unique_ptr<types::Move>> moves;
+                board.generateLegalMoves(board.getCurrentTurn(), moves);
+                for (unsigned int i = 0; i < moves.size(); ++i) {
+                    if (data.bestMove.index != i) {
+                        types::Move m = *moves[i];
+                        board.playMove(m);
+                        evaluation = alphaBetaMin(depth, alpha, beta);
+                        board.unPlayMove();
+                        
+                        if (evaluation >= beta) {
+                            // fail high
+                            // node is CUT
+                            trans.store(m, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                            return evaluation;
+                        }
+                        if (evaluation > bestEval) {
+                            bestEval = evaluation;
+                            if (evaluation > alpha) {
+                                failLow = false;
+                                alpha = bestEval;
+                            }
+                        }
+                    }
+                }
+
+                if (failLow) {
+                    trans.store(bestMove, bestEval, depth, transpo::Node::ALL, board.getPlayers());
+                } else {
+                    trans.store(bestMove, bestEval, depth, transpo::Node::PV, board.getPlayers());
                 }
                 return bestEval;
             }
@@ -124,35 +223,93 @@ namespace engine {
                     return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
                 }
 
+                bool failLow = true;
+                transpo::TableData data = trans.find(board.getPlayers());
+                if (data.occupied) {
+                    const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
+                    if (transCutoff != transpo::Node::NONE) {
+                        switch (transCutoff) {
+                            case transpo::Node::PV:
+                                std::cout << "PV CUTOFF\n";
+                                return data.eval;
+                            case transpo::Node::ALL:
+                                if (data.eval < alpha) {
+                                    std::cout << "ALL CUTOFF\n";
+                                    return data.eval;
+                                }
+                                break;
+                            case transpo::Node::CUT:
+                                if (data.eval >= beta) {
+                                    std::cout << "CUT CUTOFF\n";
+                                    return data.eval;
+                                }
+                                break;
+                        }
+                    }
+                }
 
-                std::vector<std::unique_ptr<types::Move>> moves;
-                board.generateLegalMoves(board.getCurrentTurn(), moves);
-                depth--;
-                std::int_fast16_t bestEval = 99999999;
                 std::int_fast16_t evaluation;
-
-                for (unsigned int i = 0; i < moves.size(); i++) {
-                    types::Move m = *moves[i];
-                    (*moves[i]).totalMoves = moves.size();
-                    board.playMove(m);
+                std::int_fast16_t bestEval = 99999999;
+                types::Move bestMove;
+                depth--;
+                // there was data but not enough for a cutoff
+                if (data.occupied) {
+                    board.playMove(data.bestMove);
 
                     if (board.getCurrentTurn() == self) {
                         evaluation = alphaBetaMax(depth, alpha, beta);
                     } else {
                         evaluation = alphaBetaMin(depth, alpha, beta);
                     }
+                    board.unPlayMove();
 
                     if (evaluation <= alpha) {
-                        board.unPlayMove();
+                        // fail high
+                        // node is CUT
+                        trans.store(data.bestMove, evaluation, depth, transpo::Node::CUT, board.getPlayers());
                         return evaluation;
                     }
-                    if (evaluation < bestEval) {
-                        bestEval = evaluation;
-                        if (evaluation < beta) {
-                            beta = evaluation;
+                    bestEval = evaluation;
+                    if (evaluation < beta) {
+                        failLow = false;
+                        beta = evaluation;
+                    }
+                }
+
+                std::vector<std::unique_ptr<types::Move>> moves;
+                board.generateLegalMoves(board.getCurrentTurn(), moves);
+
+                for (unsigned int i = 0; i < moves.size(); i++) {
+                    if (data.bestMove.index != i) {
+                        types::Move m = *moves[i];
+                        board.playMove(m);
+    
+                        if (board.getCurrentTurn() == self) {
+                            evaluation = alphaBetaMax(depth, alpha, beta);
+                        } else {
+                            evaluation = alphaBetaMin(depth, alpha, beta);
+                        }
+                        board.unPlayMove();
+    
+                        if (evaluation <= alpha) {
+                            // fail high
+                            // node is CUT
+                            trans.store(m, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                            return evaluation;
+                        }
+                        if (evaluation < bestEval) {
+                            bestEval = evaluation;
+                            if (evaluation < beta) {
+                                failLow = false;
+                                beta = evaluation;
+                            }
                         }
                     }
-                    board.unPlayMove();
+                }
+                if (failLow) {
+                    trans.store(bestMove, bestEval, depth, transpo::Node::ALL, board.getPlayers());
+                } else {
+                    trans.store(bestMove, bestEval, depth, transpo::Node::PV, board.getPlayers());
                 }
                 return bestEval;
             }

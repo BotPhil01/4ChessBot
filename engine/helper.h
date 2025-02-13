@@ -3,6 +3,7 @@
 #include<vector>
 #include<utility>
 #include<memory>
+#include<array>
 
 #ifndef HELPER_H
 #define HELPER_H
@@ -56,7 +57,11 @@ namespace helper
     constexpr types::Direction GREENDOWNRIGHT = types::Direction::NORTHEAST;
     constexpr types::Direction GREENDOWNLEFT = types::Direction::SOUTHEAST;
     
-    constexpr std::array<const types::Direction, 8UL> DIRECTIONS = {NORTH, types::Direction::NORTHEAST, EAST, types::Direction::SOUTHEAST, SOUTH, types::Direction::SOUTHWEST, WEST, types::Direction::NORTHWEST};
+    constexpr std::array<const types::Direction, 8UL> DIRECTIONS = {
+        types::Direction::NORTH, types::Direction::NORTHEAST, 
+        types::Direction::EAST, types::Direction::SOUTHEAST, 
+        types::Direction::SOUTH, types::Direction::SOUTHWEST, 
+        types::Direction::WEST, types::Direction::NORTHWEST};
 
     constexpr unsigned char BOARDLENGTH = 196;
     constexpr unsigned char PADDEDCOLS = 16;

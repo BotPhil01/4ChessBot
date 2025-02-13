@@ -287,11 +287,11 @@ namespace board {
             }
 
 
+            public:
+            
             constexpr std::array<types::Square, 288UL> getBoard() const {
                 return boardArray;
             }
-        public:
-
 
             // Quiet move shift checks if on the board
             constexpr std::array<types::boardIndex, 41> pawnQuietShift(types::boardIndex index) const {
@@ -448,29 +448,6 @@ namespace board {
                 players[helper::indexFromColour(c)].get().setIsCheckmate(true);
             }
 
-            // // returns (c)'s last move if no move is found it returns the last move played
-            // types::Move & getLastMove(types::PieceColour c) {
-            //     assert(moveStack.size() > 0);
-            //     std::stack<types::Move, std::list<types::Move>> tmp;
-            //     unsigned int i = 0;
-            //     while(moveStack.empty() == false && i < 4) {
-            //         if (moveStack.top().fromColour() == c) {
-            //             types::Move &ret = moveStack.top();
-            //             while (!tmp.empty()) {
-            //                 moveStack.push(tmp.top());
-            //                 tmp.pop();
-            //             }
-            //             return ret;
-            //         }
-            //         ++i;
-            //     }
-            //     while (!tmp.empty()) {
-            //         moveStack.push(tmp.top());
-            //         tmp.pop();
-            //     }
-            //     return moveStack.top();
-            // } 
-
             constexpr void printPaddedBoard() const {
                 // algo is weird but prints correctly according to red
                 // orientation in order NESW = YGRB
@@ -483,20 +460,23 @@ namespace board {
                 }
             }
 
-            constexpr void printBoard() const {
+            inline void printBoard() {
                 for (short i = helper::PADDEDROWS - 3; i >= 2; --i) {
                     for (int j = 1; j < helper::PADDEDCOLS - 1; ++j) {
                         char colour = helper::colourToChar(boardArray[16 * i + j].colour());
                         char type = helper::typeToChar(boardArray[16 * i + j].type());
                         if (colour != ' ') {
-                            std::cout << colour << type << " ";
+                            std::cout << colour << type << ' ';
                         } else {
-                            std::cout << type << type << " ";
+                            std::cout << type << type << ' ';
                         }
 
                     }
                     std::cout << '\n';
                 }
+                constexpr std::string_view line{"-----------------------------------------\n"};
+                std::cout << line;
+                std::cout.flush();
             }
 
             // asks whether c's king is in check in current board position
@@ -580,6 +560,7 @@ namespace board {
                     std::unique_ptr<types::Move> &m = tmp[i];
                     virtualPlayMove(*m);
                     if (!isKingInCheck(c)) {
+                        (*m).index =  out.size();
                         out.push_back(std::move(m));
                     }
                     virtualUnPlayMove();

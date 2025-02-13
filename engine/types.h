@@ -100,7 +100,8 @@ namespace types {
         public:
             // 2 byte 
             int totalMoves; // holds how many other moves couldve been chosen at the time amongst this move
-            
+            unsigned short index = 255; // index in moves 
+
             constexpr Move() : 
             fromI(300), 
             toI(300), 
@@ -117,6 +118,8 @@ namespace types {
             constexpr Move(const Move &m) = default;
             constexpr Move(Move &&m) = default;
             constexpr Move& operator=(const Move&) = default;
+
+            bool operator==(const Move&) const = default;
 
             // generic move
             constexpr Move(
