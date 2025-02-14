@@ -47,7 +47,9 @@ namespace hasher {
                 return agg.d;
             });
         }
-        std::uint64_t hashPosition(std::array<const std::reference_wrapper<player::Player>, 4UL> players) const {
+        
+        
+        std::uint64_t hashPosition(std::array<const std::reference_wrapper<player::Player>, 4UL> players) {
             std::uint64_t hash = 0x0;
             std::for_each(players.begin(), players.end(), [&hash, this](std::reference_wrapper<player::Player> p){
                 player::Player player = p.get();

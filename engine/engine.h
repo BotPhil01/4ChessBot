@@ -1,4 +1,3 @@
-
 #include<iostream>
 #include<vector>
 #include<algorithm>
@@ -22,7 +21,7 @@ namespace engine {
             board::Board &board;
             types::PieceColour self;
             eval::Evaluator evaluator;
-            const double MAXTIME = 10.0; // In total we want to spend 10 seconds per move 
+            const double MAXTIME = 5.0; // In total we want to spend 10 seconds per move 
             transpo::TranspositionTable trans = transpo::TranspositionTable();
 
             // Interrupt during each step of search? Time calculation could be expensive
@@ -105,12 +104,12 @@ namespace engine {
                             break;
                         }
                         if (i != bestMove.index){
-                            types::Move m = *moves[i];
-                            board.playMove(m);
+                            types::Move move = *moves[i];
+                            board.playMove(move);
                             std::int_fast16_t evaluation = alphaBetaMin(depth, bestEval, beta);
                             
                             if (evaluation > bestEval) {
-                                bestMove = m;
+                                bestMove = move;
                                 bestEval = evaluation;
                             }
         
@@ -175,8 +174,8 @@ namespace engine {
                         trans.store(data.bestMove, evaluation, depth, transpo::Node::CUT, board.getPlayers());
                         return evaluation;
                     }
-                    bestEval = evaluation;
                     bestMove = data.bestMove;
+                    bestEval = evaluation;
                     if (evaluation > alpha) {
                         failLow = false;
                         alpha = evaluation;
@@ -188,18 +187,19 @@ namespace engine {
                 board.generateLegalMoves(board.getCurrentTurn(), moves);
                 for (unsigned int i = 0; i < moves.size(); ++i) {
                     if (data.bestMove.index != i) {
-                        types::Move m = *moves[i];
-                        board.playMove(m);
+                        types::Move move = *moves[i];
+                        board.playMove(move);
                         evaluation = alphaBetaMin(depth, alpha, beta);
                         board.unPlayMove();
                         
                         if (evaluation >= beta) {
                             // fail high
                             // node is CUT
-                            trans.store(m, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                            trans.store(move, evaluation, depth, transpo::Node::CUT, board.getPlayers());
                             return evaluation;
                         }
                         if (evaluation > bestEval) {
+                            bestMove = move;
                             bestEval = evaluation;
                             if (evaluation > alpha) {
                                 failLow = false;
@@ -269,6 +269,7 @@ namespace engine {
                         trans.store(data.bestMove, evaluation, depth, transpo::Node::CUT, board.getPlayers());
                         return evaluation;
                     }
+                    bestMove = data.bestMove;
                     bestEval = evaluation;
                     if (evaluation < beta) {
                         failLow = false;
@@ -281,8 +282,8 @@ namespace engine {
 
                 for (unsigned int i = 0; i < moves.size(); i++) {
                     if (data.bestMove.index != i) {
-                        types::Move m = *moves[i];
-                        board.playMove(m);
+                        types::Move move = *moves[i];
+                        board.playMove(move);
     
                         if (board.getCurrentTurn() == self) {
                             evaluation = alphaBetaMax(depth, alpha, beta);
@@ -294,11 +295,12 @@ namespace engine {
                         if (evaluation <= alpha) {
                             // fail high
                             // node is CUT
-                            trans.store(m, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                            trans.store(move, evaluation, depth, transpo::Node::CUT, board.getPlayers());
                             return evaluation;
                         }
                         if (evaluation < bestEval) {
                             bestEval = evaluation;
+                            bestMove = move; // assignment not working257
                             if (evaluation < beta) {
                                 failLow = false;
                                 beta = evaluation;

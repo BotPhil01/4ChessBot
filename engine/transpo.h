@@ -39,16 +39,15 @@ namespace transpo {
         std::uint64_t key;
         types::Move bestMove;
     };
+    hasher::Hasher HASHER = hasher::Hasher();
     constexpr TableData EMPTY = {false, Node::PV, 0, 0, 0, 0, types::Move()};
     typedef std::array<const std::reference_wrapper<player::Player>, 4UL> PlayerArrayType;
     class TranspositionTable {
-        unsigned int counter = 0;
+        unsigned int ctr = 0;
         unsigned int age = 0;
         const unsigned int AGEGAP = 50;
-        hasher::Hasher HASHER = hasher::Hasher();
         static const unsigned int SIZE = 256;
         std::array<TableData, SIZE> arr;
-        private:
         unsigned int findIndex(std::uint64_t hash) const {
             unsigned int index = hash % SIZE;
             unsigned int counter = 0;
@@ -77,23 +76,23 @@ namespace transpo {
         }
         
         void store(types::Move bestMove, int eval, unsigned int depth, Node type, PlayerArrayType players) {
-            counter++;
-            std::cout << "Storing node: " << nodeToChar(type) << "\n";
+            ctr++;
+            // std::cout << "Storing node: " << nodeToChar(type) << "\n";
             age++;
             std::uint64_t hash = HASHER.hashPosition(players);
             // find the hash
             unsigned int index = findIndex(hash);
             if (index != SIZE) {
                 arr[index] = {true, type, eval, age, depth, hash, bestMove};
+            } else {
+                // if unsuccessful find the first old one
+                index = findFirstOld(hash);
+                arr[index] = {true, type, eval, age, depth, hash, bestMove};
             }
-            // if unsuccessful find the first old one
-            index = findFirstOld(hash);
-            arr[index] = {true, type, eval, age, depth, hash, bestMove};
-            std::cout << "Transposition table size: " << counter << "\n";
-            return;
+            // std::cout << "Transposition table size: " << ctr << "\n";
         }
 
-        bool contains(PlayerArrayType players) const {
+        bool contains(PlayerArrayType players) {
             std::uint64_t hash = HASHER.hashPosition(players);
             unsigned int index = hash % SIZE;
             unsigned int counter = 0;
@@ -111,12 +110,12 @@ namespace transpo {
             unsigned int index = hash % SIZE;
             unsigned int counter = 0;
             while (arr[index].occupied && counter++ != SIZE) {
-                if (arr[index++].key == hash) {
+                if (arr[index].key == hash) {
                     TableData out = arr[index];
                     (arr[index]).age = age;
                     return out;
                 }
-                index = index % SIZE;
+                index = (index + 1) % SIZE;
             }
             return EMPTY;
         }
