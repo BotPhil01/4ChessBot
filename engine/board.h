@@ -24,7 +24,7 @@ namespace board {
         
         types::PieceColour turn = helper::initailTurn;
         std::stack<types::Move, std::list<types::Move>> moveStack; 
-
+        
         player::Player redPlayer = player::Player(types::PieceColour::RED);
         player::Player bluePlayer = player::Player(types::PieceColour::BLUE);
         player::Player yellowPlayer = player::Player(types::PieceColour::YELLOW);
@@ -288,7 +288,7 @@ namespace board {
 
 
             public:
-            
+            int halfMoveClock = 0; 
             constexpr std::array<types::Square, 288UL> getBoard() const {
                 return boardArray;
             }
@@ -480,7 +480,7 @@ namespace board {
             }
 
             // asks whether c's king is in check in current board position
-            const bool isKingInCheck(types::PieceColour c) const {
+            bool const isKingInCheck(types::PieceColour c) const {
                 assert(c != types::PieceColour::NONE);
                 player::Player &player = players[helper::indexFromColour(c)];
                 std::set<types::boardIndex> s = player.getPieces()[helper::indexFromType(types::PieceType::KING)].get();
@@ -683,6 +683,7 @@ namespace board {
                 assert(boardArray[m.fromIndex()].colour() == turn);
 
                 turn = getNextTurn(turn, 0);
+                halfMoveClock++;
                 virtualPlayMove(m);
             }
 
@@ -750,6 +751,7 @@ namespace board {
             // unplays the last played move
             void unPlayMove() {
                 turn = getPrevTurn(turn, 0);// restd::set turn counter
+                halfMoveClock--;
                 virtualUnPlayMove();
             }
     

@@ -21,21 +21,26 @@ namespace engine {
         board::Board &board;
         types::PieceColour self;
         eval::Evaluator evaluator;
-        const double MAXTIME = 10.0; // In total we want to spend 10 seconds per move 
-        transpo::TranspositionTable trans = transpo::TranspositionTable();
-        unsigned int collisions = 0;
-
-            // Interrupt during each step of search? Time calculation could be expensive
-            // Interrupt at top most layer? Could produce inaccurate results
-
-
+        const double MAXTIME = 5.0; // In total we want to spend 10 seconds per move 
+        transpo::TranspositionTable trans;
+        
+        // Interrupt during each step of search? Time calculation could be expensive
+        // Interrupt at top most layer? Could produce inaccurate results
+        
+        
         public:
+            unsigned int pvcutoff;
+            unsigned int allcutoff;
+            unsigned int cutcutoff;
+        
             Engine(
                 board::Board &b,
                 types::PieceColour p = types::PieceColour::RED, 
-                bool finished = false) :
+                bool finished = false,
+                unsigned int AGEDIFF = 100) :
             board(b),
-            self(p)
+            self(p),
+            trans(AGEDIFF)
             {
             }
             
@@ -43,15 +48,24 @@ namespace engine {
                 return self;
             }
 
-            constexpr transpo::Node existsTransTableCutoff(transpo::TableData data, unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) const {
+            transpo::Node existsTransTableCutoff(transpo::TableData data, unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
                 if (data.occupied && data.depth >= depth) {
                     switch(data.type) {
                         case transpo::Node::PV:
+                            pvcutoff++;
                             return transpo::Node::PV;
                         case transpo::Node::ALL:
-                            return data.eval < alpha ? transpo::Node::ALL : transpo::Node::NONE;
+                            if (data.eval < alpha) {
+                                allcutoff++;
+                                return transpo::Node::ALL;
+                            }
+                            return transpo::Node::NONE;
                         case transpo::Node::CUT:
-                            return data.eval >= beta ? transpo::Node::CUT : transpo::Node::NONE;
+                            if (data.eval >= beta) {
+                                cutcutoff++;
+                                return transpo::Node::CUT;
+                            }
+                            return transpo::Node::NONE;
                         default:
                             return transpo::Node::NONE;
                     }
@@ -64,6 +78,9 @@ namespace engine {
             // returns a next move 
             // implements iterative deepening
             types::Move chooseNextMove() {
+                pvcutoff = 0;
+                allcutoff = 0;
+                cutcutoff = 0;
                 std::time_t start = std::time(nullptr);
                 
                 // generate legal moves
@@ -84,7 +101,6 @@ namespace engine {
                 // TODO CHANGE  TO INCORPORATE SIGNALS INSTEAD OF CALCULATION
                 // REQUIRES A TIMER THREAD
                 while (std::difftime(std::time(nullptr), start) < MAXTIME) {
-
                     std::int_fast16_t bestEval = -99999999;
                     std::int_fast16_t beta = 99999999;
                     // search bestIndex
@@ -111,16 +127,16 @@ namespace engine {
                             board.unPlayMove();
                         }
                     }
-                    trans.store(bestMove, bestEval, depth, transpo::Node::PV, board.getPlayers());
+                    trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::PV, board.getPlayers());
                     depth++;
                 }
 
 
-                {
-                    std::ofstream ostrm("logs.txt", std::ios::app);
-                    ostrm << "colour: " << helper::colourToChar(self) << " collisions: " << collisions << std::endl; 
-                    ostrm.close();
-                }
+                // {
+                //     std::ofstream ostrm("logs.txt", std::ios::app);
+                //     ostrm << "colour: " << helper::colourToChar(self) << " collisions: " << collisions << " cumulative depth: " << cumDepth << std::endl; 
+                //     ostrm.close();
+                // }
                 return bestMove;
 
 
@@ -141,7 +157,6 @@ namespace engine {
                 bool failLow = true;
                 transpo::TableData data = trans.find(board.getPlayers());
                 if (data.occupied) {
-                    collisions++;
                     const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
                     if (transCutoff != transpo::Node::NONE) {
                         switch (transCutoff) {
@@ -171,7 +186,7 @@ namespace engine {
                     if (evaluation >= beta) {
                         // fail high
                         // node is CUT
-                        trans.store(data.bestMove, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                        trans.store(data.bestMove, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
                         return evaluation;
                     }
                     bestMove = data.bestMove;
@@ -195,7 +210,7 @@ namespace engine {
                         if (evaluation >= beta) {
                             // fail high
                             // node is CUT
-                            trans.store(move, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                            trans.store(move, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
                             return evaluation;
                         }
                         if (evaluation > bestEval) {
@@ -210,9 +225,9 @@ namespace engine {
                 }
 
                 if (failLow) {
-                    trans.store(bestMove, bestEval, depth, transpo::Node::ALL, board.getPlayers());
+                    trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::ALL, board.getPlayers());
                 } else {
-                    trans.store(bestMove, bestEval, depth, transpo::Node::PV, board.getPlayers());
+                    trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::PV, board.getPlayers());
                 }
                 return bestEval;
             }
@@ -226,23 +241,22 @@ namespace engine {
                 bool failLow = true;
                 transpo::TableData data = trans.find(board.getPlayers());
                 if (data.occupied) {
-                    collisions++;
                     const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
                     if (transCutoff != transpo::Node::NONE) {
                         switch (transCutoff) {
                             case transpo::Node::PV:
                                 // no such cutoff ever 
-                                std::cout << "PV CUTOFF\n";
+                                // std::cout << "PV CUTOFF\n";
                                 return data.eval;
                             case transpo::Node::ALL:
                                 if (data.eval < alpha) {
-                                    std::cout << "ALL CUTOFF\n";
+                                    // std::cout << "ALL CUTOFF\n";
                                     return data.eval;
                                 }
                                 break;
                             case transpo::Node::CUT:
                                 if (data.eval >= beta) {
-                                    std::cout << "CUT CUTOFF\n";
+                                    // std::cout << "CUT CUTOFF\n";
                                     return data.eval;
                                 }
                                 break;
@@ -268,7 +282,7 @@ namespace engine {
                     if (evaluation <= alpha) {
                         // fail high
                         // node is CUT
-                        trans.store(data.bestMove, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                        trans.store(data.bestMove, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
                         return evaluation;
                     }
                     bestMove = data.bestMove;
@@ -297,7 +311,7 @@ namespace engine {
                         if (evaluation <= alpha) {
                             // fail high
                             // node is CUT
-                            trans.store(move, evaluation, depth, transpo::Node::CUT, board.getPlayers());
+                            trans.store(move, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
                             return evaluation;
                         }
                         if (evaluation < bestEval) {
@@ -311,9 +325,9 @@ namespace engine {
                     }
                 }
                 if (failLow) {
-                    trans.store(bestMove, bestEval, depth, transpo::Node::ALL, board.getPlayers());
+                    trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::ALL, board.getPlayers());
                 } else {
-                    trans.store(bestMove, bestEval, depth, transpo::Node::PV, board.getPlayers());
+                    trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::PV, board.getPlayers());
                 }
                 return bestEval;
             }

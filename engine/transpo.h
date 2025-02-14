@@ -1,6 +1,7 @@
 #include"types.h"
 #include"hasher.h"
 #include"playerData.h"
+#include<cmath>
 #ifndef TRANSPO_H
 #define TRANSPO_H
 
@@ -34,7 +35,7 @@ namespace transpo {
         bool occupied;
         Node type;
         int eval;
-        unsigned int age;
+        int age;
         unsigned int depth;
         std::uint64_t key;
         types::Move bestMove;
@@ -44,31 +45,33 @@ namespace transpo {
     typedef std::array<const std::reference_wrapper<player::Player>, 4UL> PlayerArrayType;
     class TranspositionTable {
         unsigned int ctr = 0;
-        unsigned int age = 0;
-        const unsigned int AGEGAP = 50;
         static const unsigned int SIZE = 1024;
         std::array<TableData, SIZE> arr;
-        
+        unsigned int ageDiff;
+        // unsigned int findReplacement(std::uint64_t hash, unsigned int depth) {
+        //     return hash % SIZE;
+        // }
 
-        unsigned int findReplacement(std::uint64_t hash, unsigned int depth) {
-            // always replace
+        unsigned int findReplacement(std::uint64_t hash, int age, unsigned int depth) {
             unsigned int index = hash % SIZE;
-            if (arr[index].depth < depth) {
+            if (arr[index].depth < depth || std::abs(age - arr[index].age) > ageDiff) {
                 return index;
             }
             return SIZE;
         }
         public:
-        TranspositionTable() {
+        TranspositionTable(const unsigned int age_difference = 100) : 
+        ageDiff(age_difference)
+        {
             arr.fill(EMPTY);
         }
 
-        void store(types::Move bestMove, int eval, unsigned int depth, Node type, PlayerArrayType players) {
+        void store(types::Move bestMove, int eval,  int age, unsigned int depth, Node type, PlayerArrayType players) {
             assert(bestMove.fromIndex() != 300 && bestMove.toIndex() != 300);
             age++;
             std::uint64_t hash = HASHER.hashPosition(players);
             // find the hash
-            int index = findReplacement(hash, depth);
+            int index = findReplacement(hash, age, depth);
             if (index != SIZE) {
                 arr[index] = {true, type, eval, age, depth, hash, bestMove};
             }
