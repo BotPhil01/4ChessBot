@@ -678,25 +678,9 @@ namespace board {
 
             void playMove(types::Move m) {
                 // runtime check that everything is working smoothly
-                // std::cout << "nuts=" << helper::typeToChar(boardArray[m.fromIndex()).type()) << std::endl;
-                // std::cout << "nuts=" << helper::typeToChar(m.fromPiece()) << std::endl;
                 assert(boardArray[m.fromIndex()].type() == m.fromPiece());
                 assert(boardArray[m.toIndex()].type() == m.capturedPiece());
-                // if ((boardArray[m.fromIndex()).type() != m.fromPiece()) || (boardArray[m.toIndex()).type() != m.capturedPiece())) {
-                //     printPaddedBoard();
-                //     std::string s = "types::Move is poorly formed: board square does not match move square data. Board type: " 
-                //     + helper::typeToChar(boardArray[m.fromIndex()).type()) + '(' + std::to_string(m.fromIndex()) + ")" 
-                //     + ", " + helper::typeToChar(m.fromPiece()) + "(" + std::to_string(m.fromIndex()) + ")" + "\n";
-                //     throw std::invalid_argument(s);
-                // }
-
                 assert(boardArray[m.fromIndex()].colour() == turn);
-                // if (boardArray[m.fromIndex()).colour() != turn) {
-                //     std::string s = "It is not the given move's turn. Turn: " + helper::colourToChar(turn) 
-                //         + 'c' + ':' + ' ' + helper::colourToChar(m.fromColour()) + 'c' +  ':' + ' ' 
-                //         + helper::colourToChar(boardArray[m.fromIndex()).colour()) + '\n';
-                //     throw std::invalid_argument(s);
-                // }
 
                 turn = getNextTurn(turn, 0);
                 virtualPlayMove(m);

@@ -5,6 +5,7 @@
 #include<numeric>
 #include<cstdint>
 #include<ctime>
+#include<fstream>
 
 #include"board.h"
 #include"helper.h"
@@ -17,12 +18,12 @@
 namespace engine {
     
     class Engine {
-        private:
-            board::Board &board;
-            types::PieceColour self;
-            eval::Evaluator evaluator;
-            const double MAXTIME = 5.0; // In total we want to spend 10 seconds per move 
-            transpo::TranspositionTable trans = transpo::TranspositionTable();
+        board::Board &board;
+        types::PieceColour self;
+        eval::Evaluator evaluator;
+        const double MAXTIME = 10.0; // In total we want to spend 10 seconds per move 
+        transpo::TranspositionTable trans = transpo::TranspositionTable();
+        unsigned int collisions = 0;
 
             // Interrupt during each step of search? Time calculation could be expensive
             // Interrupt at top most layer? Could produce inaccurate results
@@ -42,12 +43,6 @@ namespace engine {
                 return self;
             }
 
-            // enum class transpo::Node {
-            //     NONE,
-            //     PV, // Exact (root and leftmost)
-            //     ALL, // No score exceeded alpha
-            //     CUT // (beta cutoff performed)
-            // };
             constexpr transpo::Node existsTransTableCutoff(transpo::TableData data, unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) const {
                 if (data.occupied && data.depth >= depth) {
                     switch(data.type) {
@@ -119,6 +114,13 @@ namespace engine {
                     trans.store(bestMove, bestEval, depth, transpo::Node::PV, board.getPlayers());
                     depth++;
                 }
+
+
+                {
+                    std::ofstream ostrm("logs.txt", std::ios::app);
+                    ostrm << "colour: " << helper::colourToChar(self) << " collisions: " << collisions << std::endl; 
+                    ostrm.close();
+                }
                 return bestMove;
 
 
@@ -131,9 +133,15 @@ namespace engine {
                     return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
                 }
                 
+                std::int_fast16_t evaluation = 0;
+                std::int_fast16_t bestEval = -99999999;
+                types::Move bestMove;
+                depth--;
+
                 bool failLow = true;
                 transpo::TableData data = trans.find(board.getPlayers());
                 if (data.occupied) {
+                    collisions++;
                     const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
                     if (transCutoff != transpo::Node::NONE) {
                         switch (transCutoff) {
@@ -152,14 +160,6 @@ namespace engine {
                         }
     
                     }
-                }
-
-                std::int_fast16_t evaluation = 0;
-                std::int_fast16_t bestEval = -99999999;
-                types::Move bestMove;
-                depth--;
-                // search table's suspected best move 
-                if (data.occupied) {
                     board.playMove(data.bestMove);
                     if (board.getCurrentTurn() == self) {
                         evaluation = alphaBetaMax(depth, alpha, beta);
@@ -167,7 +167,7 @@ namespace engine {
                         evaluation = alphaBetaMin(depth, alpha, beta);
                     }
                     board.unPlayMove();
-
+    
                     if (evaluation >= beta) {
                         // fail high
                         // node is CUT
@@ -226,10 +226,12 @@ namespace engine {
                 bool failLow = true;
                 transpo::TableData data = trans.find(board.getPlayers());
                 if (data.occupied) {
+                    collisions++;
                     const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
                     if (transCutoff != transpo::Node::NONE) {
                         switch (transCutoff) {
                             case transpo::Node::PV:
+                                // no such cutoff ever 
                                 std::cout << "PV CUTOFF\n";
                                 return data.eval;
                             case transpo::Node::ALL:

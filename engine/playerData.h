@@ -408,7 +408,7 @@ namespace player {
                     std::set<types::boardIndex> &pieceSet = pieces[helper::indexFromType(m.fromPiece())].get();
                     auto it = pieceSet.find(m.toIndex());
                     if (it == pieceSet.end()) {
-                        std::cout << helper::typeToChar(m.fromPiece()) << m.fromIndex() << helper::typeToChar(m.capturedPiece()) << m.toIndex() << std::endl;
+                        std::cout << helper::typeToChar(m.fromPiece()) << m.fromIndex() << helper::typeToChar(m.capturedPiece()) << m.toIndex() << "\n";
                     }
                     assert(it != pieceSet.end());
                     pieceSet.extract(it);

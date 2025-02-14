@@ -318,38 +318,22 @@ namespace helper
         return types::Square(pt != types::PieceType::BLOCK, pt, pc);
     };
 
-    template <typename T>
-    constexpr void concat(std::vector<std::unique_ptr<T>> &v1, std::vector<std::unique_ptr<T>> v2)
-    {
-        for (std::unique_ptr<T> i : v2)
-        {
-            v1.push_back(std::move(i));
-        }
-    }
-
+    // concat uses this for vectors
     template <typename T, size_t size1, size_t size2>
     constexpr void concat(std::array<T, size1> &v1, std::array<T, size2> v2) {
         unsigned int v1size = 0;
         for (unsigned int i = 0; i < v1.size(); ++i) {
             if (v1[i] == 0) {
-                v1size = i;
+                break;
             }
+            v1size = i;
         }
 
         for (unsigned int i = 0; i < v2.size(); ++i) {
-            if (v1[i] == 0) {
+            if (v2[i] == 0) {
                 break;
             }
             v1[i + v1size] = v2[i];
-        }
-    }
-
-    template <typename T>
-    constexpr void concat(std::vector<T> &v1, std::vector<T> v2)
-    {
-        for (T i : v2)
-        {
-            v1.push_back(i);
         }
     }
 
