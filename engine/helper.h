@@ -356,8 +356,7 @@ namespace helper
 
     constexpr char typeToChar(types::PieceType t)
     {
-        switch (t)
-        {
+        switch (t) {
         case types::PieceType::PAWN:
             return 'P';
         case types::PieceType::ROOK:
@@ -373,15 +372,14 @@ namespace helper
         case types::PieceType::EMPTY:
             return 'E';
         default:
-            return 'B';
+            return '#';
         };
     };
 
     constexpr char colourToChar(types::PieceColour t)
     {
         using pc = types::PieceColour;
-        switch (t)
-        {
+        switch (t) {
         case pc::RED:
             return 'R';
         case pc::GREEN:

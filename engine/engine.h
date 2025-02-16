@@ -44,7 +44,7 @@ namespace engine {
         board::Board &brd;
         types::PieceColour self;
         eval::Evaluator evaluator;
-        const double MAXTIME = 5.0; // In total we want to spend 10 seconds per move 
+        double MAXTIME; // In total we want to spend 10 seconds per move 
         transpo::TranspositionTable trans;
         // Interrupt during each step of search? Time calculation could be expensive
         // Interrupt at top most layer? Could produce inaccurate results
@@ -52,9 +52,11 @@ namespace engine {
         public:
             Engine(
                 board::Board &b,
-                types::PieceColour p = types::PieceColour::RED) :
+                types::PieceColour p = types::PieceColour::RED,
+                double maxTime = 5.0) :
             brd(b),
-            self(p)
+            self(p),
+            MAXTIME(maxTime)
             {}
             board::Board getBoard() const {
                 return brd; 
@@ -131,17 +133,7 @@ namespace engine {
                 initLock.unlock();
                 while (std::difftime(std::time(nullptr), start) < MAXTIME) {}
                 timeExceeded.request_stop();
-                std::cout << evals.size() << "\n";
-
-                std::for_each(evals.begin(), evals.end(), [](std::int_fast16_t e) {
-                    std::cout << e << std::endl;
-                });
-
-                // {
-                //     std::ofstream ostrm("logs.txt", std::ios::app);
-                //     ostrm << "colour: " << helper::colourToChar(self) << " collisions: " << collisions << " cumulative depth: " << cumDepth << std::endl; 
-                //     ostrm.close();
-                // }
+                
                 return *moves[std::distance(evals.begin(), std::max_element(evals.begin(), evals.end()))];
 
 
@@ -209,7 +201,9 @@ namespace engine {
                             }
                             break;
                     }
-
+                }
+                if (timeExceeded.stop_requested()) {
+                    return bestEval;
                 }
                 board.playMove(data.bestMove);
                 if (board.getCurrentTurn() == self) {
@@ -237,6 +231,9 @@ namespace engine {
             std::vector<std::shared_ptr<types::Move>> moves;
             board.generateLegalMoves(board.getCurrentTurn(), moves);
             for (unsigned int i = 0; i < moves.size(); ++i) {
+                if (timeExceeded.stop_requested()) {
+                    return bestEval;
+                }
                 if (data.bestMove.index != i) {
                     types::Move move = *moves[i];
                     board.playMove(move);
@@ -303,6 +300,9 @@ namespace engine {
             std::int_fast16_t bestEval = 99999999;
             types::Move bestMove;
             depth--;
+            if (timeExceeded.stop_requested()) {
+                return bestEval;
+            }
             // there was data but not enough for a cutoff
             if (data.occupied) {
                 board.playMove(data.bestMove);
@@ -332,6 +332,9 @@ namespace engine {
             board.generateLegalMoves(board.getCurrentTurn(), moves);
 
             for (unsigned int i = 0; i < moves.size(); i++) {
+                if (timeExceeded.stop_requested()) {
+                    return bestEval;
+                }
                 if (data.bestMove.index != i) {
                     types::Move move = *moves[i];
                     board.playMove(move);
@@ -438,8 +441,8 @@ namespace engine {
         std::reference_wrapper<std::mutex> initMutex,
         std::reference_wrapper<std::stop_source> timeExceeded
     ) {
-        thread_local EngineChild tmp = EngineChild(parent, moves, evals, workStack, /*workMutex,*/ timeExceeded);
-        tmp.evaluateBranch(initMutex);
+        thread_local EngineChild child = EngineChild(parent, moves, evals, workStack, timeExceeded);
+        child.evaluateBranch(initMutex);
     }
 
 

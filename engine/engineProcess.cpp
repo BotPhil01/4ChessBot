@@ -14,9 +14,12 @@ using namespace player;
 
 class EngineProcess {
     private:
-        const char CLIMODE = 0;
-        const char JSMODE = 1;
-        const char EXIT = -1;
+        enum class Options {
+            CLIMODE,
+            JSMODE,
+            EXIT,
+            ERROR
+        };
 
         // for generating legal moves
         // for predicting moves
@@ -125,25 +128,27 @@ class EngineProcess {
             cout << s << endl;
         }
 
-        int getProgramType(string input) {
-            assert(input.length() > 0);
-            if (input.compare("cli") == 0) {
-                return CLIMODE;
+        Options getProgramType(string input) {
+            if (input.length() == 0) {
+                return Options::ERROR;
             }
-            if (input.compare("js") == 0) {
-                return JSMODE;
+            if (input.compare("cli") == 0 || input.compare("1") == 0) {
+                return Options::CLIMODE;
             }
-            if (input.compare("quit") == 0) {
-                return EXIT;
+            if (input.compare("js") == 0 || input.compare("2") == 0) {
+                return Options::JSMODE;
             }
-            return 10000;
+            if (input.compare("quit") == 0 || input.compare("exit") == 0 || input.compare("3") == 0) {
+                return Options::EXIT;
+            }
+            return Options::ERROR;
         }
 
         void jsLoop() {
             string input;
             while (getline(cin, input)) {
                 if (input.compare("quit") == 0) {
-                    cout << "Comparison success exiting..." << "\n";
+                    cout << "Comparison success exiting...\n"sv;
                     break;
                 }
                 assert(input.length() != 0);
@@ -156,7 +161,7 @@ class EngineProcess {
                         updateGameState(parseJsMove(input));
                         break;
                     default:
-                        cout << "Move is poorly formed" << endl;
+                        cout << "Move is poorly formed\n"sv;
                         assert(false);
                 }
 
@@ -177,7 +182,7 @@ class EngineProcess {
                 vector<shared_ptr<Move>> moves;
                 board.generateLegalMoves(PieceColour::RED, moves);
                 if (moves.size() == 0) {
-                    cout << "L" << endl;
+                    cout << "L\n"sv;
                     return;
                 }
 
@@ -190,7 +195,7 @@ class EngineProcess {
                 }
                 
                 if (!existsEnemy) {
-                    cout << "W" << endl;
+                    cout << "W\n"sv;
                     return;
                 }
                 
@@ -200,10 +205,13 @@ class EngineProcess {
         // cli move comes in [a-n][1-14][a-n][1-14]
         // algebraic move
         Move parseCliMove(string input) {
+            if (input.length() < 4) {
+                return Move();
+            }
             // break down the 
             unsigned char fromX = asciiToCol(input[0]) + 1;
             input = input.substr(1, input.length());
-            unsigned char alphaIndex = input.find_first_of("abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            unsigned char alphaIndex = input.find_first_of("abcdefghijklmopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"sv);
             assert(alphaIndex != input.npos);
             unsigned char fromY = atoi(input.substr(0, alphaIndex).c_str()) + 1; 
             unsigned char toX = asciiToCol(input[alphaIndex]) + 1;
@@ -213,20 +221,27 @@ class EngineProcess {
 
         void cliLoop() {
             string input;
+            std::cout << "Starting cli loop\nInput move algebraically eg g2g4 or quit or exit to exit the program\n"sv;
             board.printBoard();
             while (getline(cin, input)) {
-                if(getProgramType(input) == EXIT) {
+                if(getProgramType(input) == Options::EXIT) {
                     return;
                 }
                 Move m = parseCliMove(input);
-                updateGameState(m);
-                for (unsigned char i = 0; i < engines.size(); ++i) {
-                    Engine e = engines[i].get();
-                    m = e.chooseNextMove(); 
-                    if (!(m.fromIndex() == 300 || m.toIndex() == 300)) {
-                        updateGameState(m);
+                if (m.fromIndex() == 300) {
+                    std::cout << "Incorrect input\nInput move algebraically eg: g2g4 or quit or exit to exit the program\n"sv;
+                } else {
+                    updateGameState(m);
+                    for (unsigned char i = 0; i < engines.size(); ++i) {
+                        Engine e = engines[i].get();
+                        m = e.chooseNextMove(); 
+                        if (!(m.fromIndex() == 300 || m.toIndex() == 300)) {
+                            updateGameState(m);
+                        }
+                        std::cout << helper::colourToChar(e.getColour()) << "'s move:\n"sv;
+                        board.printBoard();
                     }
-                    board.printBoard();
+                    std::cout << "Awaiting input\n"sv;
                 }
             }
         }
@@ -234,21 +249,22 @@ class EngineProcess {
     public:
         int start() {
             string input;
-            cout << "enter mode: 1.cli 2.js 3.exit" << endl;
-            getline(cin, input);
-            int programType = getProgramType(input);
-            if (programType ==  JSMODE) {
-                jsLoop();
-                return 0;
+            while (true) {
+                cout << "Enter mode: 1.cli 2.js 3.exit\n";
+                getline(cin, input);
+                Options programType = getProgramType(input);
+                switch(programType) {
+                    case Options::JSMODE:
+                        jsLoop();
+                    case Options::CLIMODE:
+                        cliLoop();
+                    case Options::EXIT:
+                        return 0;
+                    default:
+                        cout << "Invalid option\n";
+                }
+
             }
-            if (programType == CLIMODE) {
-                cliLoop();
-                return 0;
-            }
-            if (programType == EXIT) {
-                return 0;
-            }
-            return 0;
         }
             
 

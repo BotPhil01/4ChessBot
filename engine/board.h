@@ -8,6 +8,7 @@
 #include<list>
 #include<memory>
 #include<iostream>
+#include<string_view>
 
 #ifndef BOARD_H
 #define BOARD_H
@@ -18,6 +19,9 @@
 // a size checker (how much of the array is correctly filled)
 // a default incorrect value
 namespace board {
+    // causes namespace pollution
+    using std::string_view_literals::operator""sv;
+
     // board is padded to 16x18
     class Board {
         std::array<types::Square, 288UL> boardArray; 
@@ -465,14 +469,20 @@ namespace board {
             for (short i = helper::PADDEDROWS - 1; i >= 0; --i) {
                 for (int j = 0; j < helper::PADDEDCOLS; ++j) {
                     types::PieceType type = boardArray[16 * i + j].type();
-                    std::cout << helper::typeToChar(type) << " ";
+                    std::cout << helper::typeToChar(type) << ' ';
                 }
                 std::cout << '\n';
             }
         }
 
         inline void printBoard() {
+            short row = 14;
             for (short i = helper::PADDEDROWS - 3; i >= 2; --i) {
+                if (row < 10) {
+                    std::cout << '0';
+                }
+                std::cout << row << '|';
+                row--;
                 for (int j = 1; j < helper::PADDEDCOLS - 1; ++j) {
                     char colour = helper::colourToChar(boardArray[16 * i + j].colour());
                     char type = helper::typeToChar(boardArray[16 * i + j].type());
@@ -485,8 +495,7 @@ namespace board {
                 }
                 std::cout << '\n';
             }
-            constexpr std::string_view line{"-----------------------------------------\n"};
-            std::cout << line;
+            std::cout << "---aa-bb-cc-dd-ee-ff-gg-hh-ii-jj-kk-ll-mm-nn\n"sv;
             std::cout.flush();
         }
 
@@ -551,7 +560,6 @@ namespace board {
                     break;
                 }
                 if (existsEnemyPiece(kingIndex, index) && boardArray[index].type() == types::PieceType::KNIGHT) {
-                    // std::cout << "knight ray found\n";
                     return true;
                 }
             }
@@ -725,7 +733,6 @@ namespace board {
             types::Move fromPrevMove; 
             types::Move toPrevMove; 
             std::stack<types::Move, std::list<types::Move>> tmp;
-            // std::cout << "clearing movestack\n";
             while (!moveStack.empty() && (fromPrevMove.fromIndex() == 300 || toPrevMove.fromIndex() == 300)) {
                 if (fromPrevMove.fromIndex() == 300 && moveStack.top().toIndex() == lastMove.fromIndex()) {
                     fromPrevMove = moveStack.top();
@@ -736,21 +743,11 @@ namespace board {
                 tmp.push(moveStack.top());
                 moveStack.pop();
             }
-            // std::cout << "movestack cleared\n";
             while (!tmp.empty()) {
                 moveStack.push(tmp.top());
                 tmp.pop();
             }
-            // std::cout << "movestack reinstantiated\n";
-            // for (types::Move m : moveStack) {
-            //     if (m.toIndex() == lastMove.fromIndex()) {
-            //         fromPrevMove = m;
-            //     }
-            //     if (m.toIndex() == lastMove.toIndex()) {
-            //         toPrevMove = m;
-            //     }
-            // }
-
+            
             for (auto p : players) {
                 p.get().revert(lastMove, fromPrevMove, toPrevMove);
             }
