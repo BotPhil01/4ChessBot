@@ -26,7 +26,7 @@ namespace transpo {
             case Node::CUT:
                 return 'C';
                 break;
-            Default:
+            default:
                 assert(false);
         }
         assert(false);
@@ -42,16 +42,13 @@ namespace transpo {
     };
     hasher::Hasher HASHER = hasher::Hasher();
     constexpr TableData EMPTY = {false, Node::PV, 0, 0, 0, 0, types::Move()};
-    typedef std::array<const std::reference_wrapper<player::Player>, 4UL> PlayerArrayType;
+    typedef std::array<std::reference_wrapper<player::Player>, 4UL> PlayerArrayType;
     class TranspositionTable {
         unsigned int ctr = 0;
         static const unsigned int SIZE = 1024;
         std::array<TableData, SIZE> arr;
-        unsigned int ageDiff;
-        // unsigned int findReplacement(std::uint64_t hash, unsigned int depth) {
-        //     return hash % SIZE;
-        // }
-
+        unsigned int ageDiff = 3;
+        
         unsigned int findReplacement(std::uint64_t hash, int age, unsigned int depth) {
             unsigned int index = hash % SIZE;
             if (arr[index].depth < depth || std::abs(age - arr[index].age) > ageDiff) {
@@ -60,8 +57,7 @@ namespace transpo {
             return SIZE;
         }
         public:
-        TranspositionTable(const unsigned int age_difference = 100) : 
-        ageDiff(age_difference)
+        TranspositionTable()
         {
             arr.fill(EMPTY);
         }

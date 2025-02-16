@@ -23,7 +23,7 @@ namespace player {
             std::set<types::boardIndex> kings;
             std::set<types::boardIndex> movedPieces;
             // for iteration through pieces
-            std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces;
+            std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces;
             
 
             std::set<types::Move> playedMoves;
@@ -221,12 +221,12 @@ namespace player {
         public:
             Player(const types::PieceColour c) :
             clr(c),
-            pieces({ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)})
+            pieces({std::ref(pawns), std::ref(rooks), std::ref(knights), std::ref(bishops), std::ref(queens), std::ref(kings)})
             {
                 genPieces();                
             }
 
-            Player(Player& p) :
+            Player(const Player& p) :
             clr(p.clr),
             pawns(p.pawns),
             rooks(p.rooks),
@@ -235,8 +235,20 @@ namespace player {
             queens(p.queens),
             kings(p.kings),
             movedPieces(p.movedPieces),
-            pieces({ref(pawns), ref(rooks), ref(knights), ref(bishops), ref(queens), ref(kings)})
-            {
+            pieces({std::ref(pawns), std::ref(rooks), std::ref(knights), std::ref(bishops), std::ref(queens), std::ref(kings)})
+            {}
+
+            Player& operator=(const Player &other) {
+                clr = other.clr;
+                pawns = other.pawns;
+                rooks = other.rooks;
+                knights = other.knights;
+                bishops = other.bishops;
+                queens = other.queens;
+                kings = other.kings;
+                movedPieces = other.movedPieces;
+                pieces = { std::ref(pawns), std::ref(rooks), std::ref(knights), std::ref(bishops), std::ref(queens), std::ref(kings) };
+                return *this;
             }
 
             constexpr bool isCheckmate() const {
@@ -251,7 +263,7 @@ namespace player {
                 return clr;
             }
 
-            constexpr std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6> getPieces() const {
+            constexpr std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6> getPieces() const {
                 return pieces;
             }
 

@@ -174,7 +174,7 @@ class EngineProcess {
                 }
 
                 // check loss condition
-                vector<unique_ptr<Move>> moves;
+                vector<shared_ptr<Move>> moves;
                 board.generateLegalMoves(PieceColour::RED, moves);
                 if (moves.size() == 0) {
                     cout << "L" << endl;

@@ -19,7 +19,6 @@ namespace hasher {
         } ranAgg;
         
         ranAgg ranInit(std::uint64_t seed) {
-            std::uint64_t i;
             ranAgg out;
             out.a = 0xf1ea5eed;
             out.b = out.c = out.d = seed;
@@ -49,12 +48,12 @@ namespace hasher {
         }
         
         
-        std::uint64_t hashPosition(std::array<const std::reference_wrapper<player::Player>, 4UL> players) const {
+        std::uint64_t hashPosition(std::array<std::reference_wrapper<player::Player>, 4UL> players) const {
             std::uint64_t hash = 0x0;
             std::for_each(players.begin(), players.end(), [&hash, this](std::reference_wrapper<player::Player> p){
                 player::Player player = p.get();
                 unsigned int colourIndex = helper::indexFromColour(player.colour());
-                std::array<const std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = player.getPieces();
+                std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = player.getPieces();
                 for (unsigned int pieceIndex = 0; pieceIndex < pieces.size(); ++pieceIndex) {
                     std::set<types::boardIndex> set = pieces[pieceIndex].get();
                     unsigned int offset = colourIndex * pieceIndex * 144;
