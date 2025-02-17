@@ -9,20 +9,21 @@ Report issues or code suggestions by creating an issue on github.
 
 ## Safe
 ### Docker (recommended)
-If you are new to programming and/or want a step by step guide docker is recommended.
-If you haven't already install docker following the steps here: https://docs.docker.com/get-started/get-docker/
-Docker Desktop or Docker engine will work 
 This project is accessible as a docker container on dockerhub. See https://hub.docker.com/r/botphil01/4chessbot
+- If you are new to programming and/or want a step by step guide docker is recommended.
+- If you haven't already install docker following the steps here: https://docs.docker.com/get-started/get-docker/
+- Docker Desktop or Docker engine will work however docker desktop is recommended for those unfamiliar with the terminal
 
-If using docker desktop search for the dockerhub repository in the search bar
+### Docker desktop (Non programmers)
+Install docker desktop as above and search for the dockerhub repository in the search bar.
 ![image](https://github.com/user-attachments/assets/7e92b0d4-ed28-4f7c-a709-c98450928e5f)
 Then pull the latest version and run with advanced option port = 3000 and navigate to http://127.0.0.1:3000 in a web browser
 
-If using docker engine:
-Pull the image with this command:
-`docker pull botphil01/4chessbot:v1.0.0`
-To run the image use the command:
-`docker run -d -p 127.0.0.1:3000:3000 botphil01/4chessbot:v1.0.0`
+### If using docker engine and the terminal:
+- Pull the image with this command:
+- `docker pull botphil01/4chessbot:v1.0.0`
+- To run the image use the command:
+- `docker run -d -p 127.0.0.1:3000:3000 botphil01/4chessbot:v1.0.0`
 and then navigate to http://127.0.0.1:3000 in a web browser
 
 ## UNSAFE
