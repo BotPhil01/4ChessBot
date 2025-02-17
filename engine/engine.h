@@ -154,14 +154,17 @@ namespace engine {
             if (data.occupied && data.depth >= depth) {
                 switch(data.type) {
                     case transpo::Node::PV:
+                        // std::cout << "transpo cutoff pv\n";
                         return transpo::Node::PV;
                     case transpo::Node::ALL:
                         if (data.eval < alpha) {
+                            // std::cout << "transpo cutoff all\n";
                             return transpo::Node::ALL;
                         }
                         return transpo::Node::NONE;
                     case transpo::Node::CUT:
                         if (data.eval >= beta) {
+                            // std::cout << "transpo cutoff cut\n";
                             return transpo::Node::CUT;
                         }
                         return transpo::Node::NONE;
@@ -408,6 +411,7 @@ namespace engine {
         // process for child threads 
         // child threads require atomic popping of shared workStack, a local board variable, shared access to evals  
         void evaluateBranch(std::mutex &initMutex) {
+            // std::cout << "evaluating branch\n";
             // hangs while unique_lock is locked
             std::unique_lock tmpLock{initMutex};
             tmpLock.unlock();

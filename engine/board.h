@@ -121,7 +121,7 @@ namespace board {
             return boardArray[i].type() == types::PieceType::EMPTY;
         }
 
-        constexpr bool isOnBoard(types::boardIndex i) const{
+        constexpr bool isOnBoard(types::boardIndex i) const {
             for (types::boardIndex c : helper::cornerIndices) { // not in corners
                 if (c == i) {
                     return false;
@@ -459,7 +459,7 @@ namespace board {
             out.shrink_to_fit();
         }
 
-        void setPlayerCheckmate(types::PieceColour c) {
+        void setPlayerCheckmate(const types::PieceColour c) {
             players[helper::indexFromColour(c)].get().setIsCheckmate(true);
         }
 

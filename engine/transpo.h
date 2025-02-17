@@ -45,9 +45,9 @@ namespace transpo {
     typedef std::array<std::reference_wrapper<player::Player>, 4UL> PlayerArrayType;
     class TranspositionTable {
         unsigned int ctr = 0;
-        static const unsigned int SIZE = 1024;
+        static const unsigned int SIZE = 2048;
         std::array<TableData, SIZE> arr;
-        unsigned int ageDiff = 3;
+        unsigned int ageDiff = 2;
         
         unsigned int findReplacement(std::uint64_t hash, int age, unsigned int depth) {
             unsigned int index = hash % SIZE;
