@@ -81,7 +81,29 @@ namespace helper
 
     constexpr types::PieceColour initailTurn = types::PieceColour::RED;
 
-
+    constexpr const int indexFromDirection(types::Direction dir) {
+        switch(dir) {
+            case types::Direction::NORTH:
+                return 0;
+            case types::Direction::NORTHEAST:
+                return 1;
+            case types::Direction::EAST:
+                return 2;
+            case types::Direction::SOUTHEAST:
+                return 3;
+            case types::Direction::SOUTH:
+                return 4;
+            case types::Direction::SOUTHWEST:
+                return 5;
+            case types::Direction::WEST:
+                return 6;
+            case types::Direction::NORTHWEST:
+                return 7;
+            default:
+                return -1;
+        }
+        return -1;
+    }
 
     constexpr const int indexFromType(types::PieceType t) {
         assert(t != types::PieceType::BLOCK && t != types::PieceType::EMPTY);
