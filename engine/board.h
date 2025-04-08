@@ -1,162 +1,214 @@
-#include"helper.h"
-#include"playerData.h"
-#include"types.h"
-
-#include<cstdint>
-#include<sstream>
-#include <string_view>
-#include<utility>
-
 #ifndef BOARD_H
 #define BOARD_H
+#include"helper.h"
+#include "boardDefaults.h"
+#include"types.h"
+#include"bitboard.h"
+#include "move.h"
 
-#define ROWS 4
-#define COLS 5
-#define DIRLEN 8
-// TODO convert the vector usage to array usage
-// TOOD make a fixed size variably filled array
+#include<cstdint>
+#include <functional>
+#include <ios>
+#include<sstream>
+#include <stack>
+#include <string_view>
+#include<utility>
+#include<list>
+
+
 // requires a looping mechanism,
 // a size checker (how much of the array is correctly filled)
 // a default incorrect value
 namespace board {
     // causes namespace pollution
     using std::string_view_literals::operator""sv;
-    using bitsType = std::array<std::array<std::uint16_t, COLS>, ROWS>;
 
-    class BitBoard {
-        bitsType bits;
-        public:
-        BitBoard(bitsType _bits) : bits(_bits)
-        {
-        }
-        // bitboard is padded to include empty rows follwoing a 16*18 pattern
-        // uses 16 8 20 implementation due to lack of precisely sized words
-        // (4*5) * 16 = 16 x 20 board = 320 -> alot less overhead
-        // use little endian for board layout
-        // so a1 = bits[0][0] & 2^9
-        // a5 = bits[1][0] & 2^1
+    class Board {
+        std::stack<move::Move, std::list<move::Move>> moveStack;
+        public: 
 
-        // starting at north and going clockwisee
-        const std::array<const std::uint16_t, DIRLEN> excludeMasks = {0xFFF0, 0, 0xEEEE, 0, 0x0FFF, 0, 0x7777, 0};
-        // lshifts
-        // const std::array<const int, DIRLEN> shifts = {4, 5, 1, -3, -4, -5, -1, 3};
-        const std::array<const int, DIRLEN> shifts = {4, 0, 1, 0, -4, 0, -1, 0};
+            std::vector<move::Move> generatePseudoLegalMoves(types::PieceColour colour) {
+                std::vector<move::Move> ret = {};
 
-        const std::array<const int, DIRLEN> cornerMasks = {0x0, 0x8000, 0x0, 0x0008, 0x0, 0x0001, 0x0, 0x1000};
-        const std::array<const int, DIRLEN> cornerShifts = {0, -15, 0, 9, 0, 15, 0, -9};
-        // const std::array<const int, DIRLEN> horiMasks = {0x0, 0x0888, 0x8888, 0x8880, 0x0, 0x1110, 0x1111, 0x0111};
-        const std::array<const int, DIRLEN> horiMasks = {0, 0, 0x8888, 0, 0, 0, 0x1111, 0};
-        // const std::array<const int, DIRLEN> horiShifts = {0, 1, -3, -7, 0, -1, 3, 7};
-        const std::array<const int, DIRLEN> horiShifts = {0, 0, -3, 0, 0, 0, 3, 0};
-        // const std::array<const int, DIRLEN> vertMasks = {0xF000, 0x7000, 0x0, 0x0007, 0x000F, 0x0007, 0x0, 0x7000};
-        // const std::array<const int, DIRLEN> vertShifts = {-12, -11, 0, 13, 12, 11, 0, -13};
-        const std::array<const int, DIRLEN> vertMasks = {0xF000, 0, 0, 0, 0x000F, 0, 0, 0};
-        const std::array<const int, DIRLEN> vertShifts = {-12, 0, 0, 0, 12, 0, 0, 0};
+                const int colourIndex = helper::indexFromColour(colour);
+                std::array<bitboard::Bitboard, 6> boards = allPieces[colourIndex]; 
+                for (int i = 0; i < boards.size(); i++) {
+                    bitboard::Bitboard board = boards[i];
+                    types::PieceType type = helper::playablePieces[i];
+                    bitboard::Bitboard friendlies = getFriendlies(colour);
+                    bitboard::Bitboard blockers = getBlockers(board, colour);
+                    bitboard::Bitboard enemies = getEnemies(colour);
+                    bitboard::Bitboard shifts = bitboard::Bitboard(boardDefaults::zeroed);
+                    bitboard::Bitboard unmovedRooks = getUnmovedRooks(colour);
+                    std::pair<int, int> hasCastlingRights = castlingRights[colourIndex];
 
-        const std::array<const int, DIRLEN> vertIndex = {-1, -1, 0, 1, 1, 1, 0, -1};
-        const std::array<const int, DIRLEN> horiIndex = {0, 1, 1, 1, 0, -1, -1, -1};
-
-        // same as >> but with defined behaviour for - values
-        std::uint16_t rShift(const std::uint16_t val, const int shift) {
-            if (shift < 0) {
-                return lShift(val, -shift);
-            }
-            return val >> shift;
-        }
-
-        // same as << but with defined behaviour for - values
-        std::uint16_t lShift(const std::uint16_t val, const int shift) {
-            if (shift < 0) {
-                return rShift(val, -shift);
-            }
-            return val << shift;
-        }
-
-        // shifts the whole bitboard in one direction
-        // accounts for overeflow between constituent parts
-        void shiftOne(const types::Direction dir) {
-            switch (dir) {
-                case types::Direction::NORTHEAST:
-                    shiftOne(types::Direction::NORTH);
-                    shiftOne(types::Direction::EAST);
-                    break;
-                case types::Direction::SOUTHEAST:
-                    shiftOne(types::Direction::SOUTH);
-                    shiftOne(types::Direction::EAST);
-                    break;
-                case types::Direction::SOUTHWEST:
-                    shiftOne(types::Direction::SOUTH);
-                    shiftOne(types::Direction::WEST);
-                    break;
-                case types::Direction::NORTHWEST:
-                    shiftOne(types::Direction::NORTH);
-                    shiftOne(types::Direction::WEST);
-                    break;
-                default:
-                    bitsType overflows = {{
-                        {{0, 0, 0, 0, 0}},
-                        {{0, 0, 0, 0, 0}},
-                        {{0, 0, 0, 0, 0}},
-                        {{0, 0, 0, 0, 0}},
-                    }};
-                    const int dirIndex = helper::indexFromDirection(dir);
-                    for (int rowIndex = 0; rowIndex < ROWS; rowIndex++) {
-                        for (int colIndex = 0; colIndex < COLS; colIndex++) {
-                            const std::uint16_t subBoard = bits[rowIndex][colIndex];
-                            // carry over
-                            // const std::uint16_t corner = lShift(subBoard & cornerMasks[dirIndex], cornerShifts[dirIndex]);
-                            const std::uint16_t vert = lShift(subBoard & vertMasks[dirIndex], vertShifts[dirIndex]);
-                            const std::uint16_t hori = lShift(subBoard & horiMasks[dirIndex], horiShifts[dirIndex]);
-                            const int newRowIndex = rowIndex + vertIndex[dirIndex];
-                            const int newColIndex = colIndex + horiIndex[dirIndex];
-
-                            if (newRowIndex >= 0 && newRowIndex < ROWS) {
-                                overflows[newRowIndex][colIndex] |= vert;
-                            }
-                            if (newColIndex >= 0 && newColIndex < COLS) {
-                                overflows[rowIndex][newColIndex] |= hori;
-                            }
-                            // change original bitboard
-                            bits[rowIndex][colIndex] = lShift(subBoard, shifts[dirIndex]) & excludeMasks[dirIndex];
+                    bitboard::Bitboard srcBit = board.popBit();
+                    while (!srcBit.empty()) {
+                        std::cout << srcBit.empty() << "\n";
+                        switch (type) {
+                            case types::PieceType::PAWN:
+                                shifts = srcBit.genPawnShift(colour, blockers, enemies, friendlies);
+                                break;
+                            case types::PieceType::KNIGHT:
+                                shifts = srcBit.genKnightShift(friendlies);
+                                break;
+                            case types::PieceType::BISHOP:
+                                shifts = srcBit.genBishopShift(blockers, friendlies);
+                                break;
+                            case types::PieceType::ROOK:
+                                shifts = srcBit.genRookShift(blockers, friendlies);
+                                break;
+                            case types::PieceType::QUEEN:
+                                shifts = srcBit.genQueenShift(blockers, friendlies);
+                                break;
+                            case types::PieceType::KING:
+                                shifts = srcBit.genKingShift(hasCastlingRights, colour, blockers, unmovedRooks, friendlies);
+                                break;
+                            default:
+                                // how did we get here?
+                                return {};
                         }
+                        // keep isolating destBits and forming moves until empty
+                        bitboard::Bitboard destBit = shifts.popBit();
+                        while (!destBit.empty()) {
+                            ret.emplace_back(board, destBit);
+                            destBit = shifts.popBit();
+                        }
+                        srcBit = board.popBit();
                     }
-                    for (int rowIndex = 0; rowIndex < ROWS; rowIndex++) {
-                        for (int colIndex = 0; colIndex < COLS; colIndex++) {
-                            bits[rowIndex][colIndex] |= overflows[rowIndex][colIndex];
-                        }
-                    }
+
+                }
+                return ret;
             }
-        }
 
-        // uses little endianness for everythin
-        void print(std::string_view header = "BitBoard") {
-            const int iBoardDimensions = 4;
-            std::array<std::ostringstream, ROWS * iBoardDimensions> tmp;
+            std::vector<move::Move> generateLegalMoves(types::PieceColour colour) {
+                std::vector<move::Move> ret = {};
+                std::vector<move::Move> moves = generatePseudoLegalMoves(colour);
+                for (move::Move m : moves) {
+                    playMove(m);
+                    if(!kingInCheck()) {
+                        ret.emplace_back(m);
+                    }
+                    unPlayMove();
+                }
+                return ret;
+            }
 
-            for (int oRowIndex = 0; oRowIndex < ROWS; oRowIndex++) {
-                for (int oColIndex = 0; oColIndex < COLS; oColIndex++) {
-                    const std::uint16_t subBoard = bits[oRowIndex][oColIndex];
-                    for (int i = 0; i < iBoardDimensions; i++) {
-                        const std::uint16_t rowBits = 0xF000 & (subBoard << (iBoardDimensions * i));
-                        for (int j = 0; j < iBoardDimensions; j++) {
-                            // get each least significant bit in the row and add to print object
-                            const int lsb = 0x1000 & (rowBits >> j);
-                            tmp[oRowIndex * iBoardDimensions + i] << (lsb ? '1' : '0');
-                        }
+            // plays a move
+            void playMove(move::Move) {
+            }
+
+            // unplays a move
+            void unPlayMove() {
+                move::Move move = moveStack.top();
+                moveStack.pop();
+            }
+
+            // checks whether the king is in check
+            int kingInCheck(types::PieceColour colour) {
+                return 0;
+            }
+
+            std::array<bitboard::Bitboard, 6> redPieces = {
+                boardDefaults::redPawns,
+                boardDefaults::redRooks,
+                boardDefaults::redKnights,
+                boardDefaults::redBishops,
+                boardDefaults::redQueens,
+                boardDefaults::redKings
+            };
+            std::array<bitboard::Bitboard, 6> bluePieces = {
+                boardDefaults::bluePawns,
+                boardDefaults::blueRooks,
+                boardDefaults::blueKnights,
+                boardDefaults::blueBishops,
+                boardDefaults::blueQueens,
+                boardDefaults::blueKings
+            };
+            std::array<bitboard::Bitboard, 6> greenPieces = {
+                boardDefaults::greenPawns,
+                boardDefaults::greenRooks,
+                boardDefaults::greenKnights,
+                boardDefaults::greenBishops,
+                boardDefaults::greenQueens,
+                boardDefaults::greenKings
+            };
+            std::array<bitboard::Bitboard, 6> yellowPieces = {
+                boardDefaults::yellowPawns,
+                boardDefaults::yellowRooks,
+                boardDefaults::yellowKnights,
+                boardDefaults::yellowBishops,
+                boardDefaults::yellowQueens,
+                boardDefaults::yellowKings,
+            };
+
+            std::array<std::reference_wrapper<std::array<bitboard::Bitboard, 6>>, 4> allPieces = {std::ref(redPieces), std::ref(bluePieces), std::ref(greenPieces), std::ref(yellowPieces)};
+            std::array<bitboard::Bitboard, 4> pieceSums = {
+                boardDefaults::redPieces,
+                boardDefaults::bluePieces,
+                boardDefaults::yellowPieces,
+                boardDefaults::greenPieces
+            };
+
+            std::array<std::pair<int, int>, 4> castlingRights = {
+                std::pair(1, 1),
+                std::pair(1, 1),
+                std::pair(1, 1),
+                std::pair(1, 1)
+            };
+
+            bitboard::Bitboard getFriendlies(types::PieceColour colour) {
+                int index = helper::indexFromColour(colour);
+                return pieceSums[index];
+            }
+
+            bitboard::Bitboard getBlockers(bitboard::Bitboard board, types::PieceColour col) {
+                const int colIndex = helper::indexFromColour(col);
+                bitboard::Bitboard ret = boardDefaults::zeroed;
+                for (int i = 0; i < pieceSums.size(); i++) {
+                    if (i == colIndex) {
+                        ret = ret.combine(pieceSums[i].subtract(board));
+                    } else {
+                        ret = ret.combine(pieceSums[i]);
                     }
                 }
+                return ret;
             }
-            
 
-            std::cout << "------"sv;
-            std::cout << header;
-            std::cout << "------\n"sv;
-            for (unsigned int i = 0; i < tmp.size(); i++) {
-                std::cout << tmp[i].str() << '\n';
+            bitboard::Bitboard getEnemies(types::PieceColour col) {
+                const int colIndex = helper::indexFromColour(col);
+                bitboard::Bitboard ret = boardDefaults::zeroed;
+                for (int i = 0; i < pieceSums.size(); i++) {
+                    if (i != colIndex) {
+                        ret = ret.combine(pieceSums[i]);
+                    }
+                }
+                return ret;
             }
-            std::cout << "--------------------\n"sv;
-            std::cout.flush();
-        }
+
+            bitboard::Bitboard getUnmovedRooks(types::PieceColour col) {
+                const int colourIndex = helper::indexFromColour(col);
+                const int rookIndex = helper::indexFromType(types::PieceType::ROOK);
+                bitboard::Bitboard rooks = allPieces[colourIndex].get()[rookIndex];
+                bitboard::Bitboard defaultRooks = boardDefaults::zeroed;
+                switch(col) {
+                    case types::PieceColour::RED:
+                        defaultRooks = boardDefaults::redRooks;
+                        break;
+                    case types::PieceColour::BLUE:
+                        defaultRooks = boardDefaults::blueRooks;
+                        break;
+                    case types::PieceColour::YELLOW:
+                        defaultRooks = boardDefaults::yellowRooks;
+                        break;
+                    case types::PieceColour::GREEN:
+                        defaultRooks = boardDefaults::greenRooks;
+                        break;
+                    default:
+                        break;
+                }
+                return rooks.intersect(defaultRooks);
+            }
     };
 };
 

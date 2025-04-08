@@ -26,7 +26,7 @@ namespace player {
             std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces;
             
 
-            std::set<types::Move> playedMoves;
+            std::set<move::Move> playedMoves;
             inline void genPawns() {
                 int lo = 0;
                 int hi = 0;
@@ -207,7 +207,7 @@ namespace player {
             // used in reverting a move
             // NOTE i should not equal last.toIndex();
             // i is assumed to be in our control
-            inline void handleMoved(types::boardIndex i, types::Move last) {
+            inline void handleMoved(types::boardIndex i, move::Move last) {
                 assert(i != last.toIndex()); // bad usage
                 auto it = movedPieces.find(i); 
                 assert(it != movedPieces.end());
@@ -270,7 +270,7 @@ namespace player {
             // updates data to be consistent with a move
             // strategy design
             // returns the captured piece type if a capture was handled else empty piecetype
-            types::PieceType update(types::Move m) {
+            types::PieceType update(move::Move m) {
                 
                 // check whether we are being taken or taking someone else
                 std::set<types::boardIndex> &fromSet = pieces[helper::indexFromType(m.fromPiece())].get();
@@ -343,7 +343,7 @@ namespace player {
             }
             // updates data to remove a move
             // takes a move to remove and the previous moves of the involved indices
-            void revert(types::Move m, types::Move &fromPrev, types::Move &captPrev) {
+            void revert(move::Move m, move::Move &fromPrev, move::Move &captPrev) {
                 if (m.fromColour() != clr && !m.isCapture()) {
                     return;
                 }

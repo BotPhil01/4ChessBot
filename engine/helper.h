@@ -321,24 +321,24 @@ namespace helper
         return notInCorners && in14Square;
     }
 
-    constexpr types::Square generateSquare(short i) {
-        // assign colour
-        types::PieceColour pc = types::PieceColour ::NONE;
-        pc = isRedStart(i) ? types::PieceColour::RED : isBlueStart(i) ? types::PieceColour::BLUE
-                                            : isYellowStart(i) ? types::PieceColour::YELLOW
-                                            : isGreenStart(i)  ? types::PieceColour::GREEN
-                                                               : types::PieceColour::NONE;
-        // assign type
-        types::PieceType pt = types::PieceType::BLOCK;
-        pt = isEmptyStart(i) ? types::PieceType::EMPTY : pt; // empty
-        pt = isRookStart(i) ? types::PieceType::ROOK : isKnightStart(i) ? types::PieceType::KNIGHT
-                                            : isBishopStart(i)   ? types::PieceType::BISHOP
-                                                                 : pt;
-        pt = isPawnStart(i) ? types::PieceType::PAWN : isKingStart(i) ? types::PieceType::KING
-                                            : isQueenStart(i)  ? types::PieceType::QUEEN
-                                                               : pt;
-        return types::Square(pt != types::PieceType::BLOCK, pt, pc);
-    };
+    // constexpr types::Square generateSquare(short i) {
+    //     // assign colour
+    //     types::PieceColour pc = types::PieceColour ::NONE;
+    //     pc = isRedStart(i) ? types::PieceColour::RED : isBlueStart(i) ? types::PieceColour::BLUE
+    //                                         : isYellowStart(i) ? types::PieceColour::YELLOW
+    //                                         : isGreenStart(i)  ? types::PieceColour::GREEN
+    //                                                            : types::PieceColour::NONE;
+    //     // assign type
+    //     types::PieceType pt = types::PieceType::BLOCK;
+    //     pt = isEmptyStart(i) ? types::PieceType::EMPTY : pt; // empty
+    //     pt = isRookStart(i) ? types::PieceType::ROOK : isKnightStart(i) ? types::PieceType::KNIGHT
+    //                                         : isBishopStart(i)   ? types::PieceType::BISHOP
+    //                                                              : pt;
+    //     pt = isPawnStart(i) ? types::PieceType::PAWN : isKingStart(i) ? types::PieceType::KING
+    //                                         : isQueenStart(i)  ? types::PieceType::QUEEN
+    //                                                            : pt;
+    //     return types::Square(pt != types::PieceType::BLOCK, pt, pc);
+    // };
 
     // concat uses this for vectors
     template <typename T, size_t size1, size_t size2>

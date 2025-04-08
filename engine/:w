@@ -1,0 +1,388 @@
+#ifndef BITBOARD_H
+#define BITBOARD_H
+
+#include <algorithm>
+#include<array>
+#include<cstdint>
+#include <sstream>
+#include<string_view>
+#include<iostream>
+#include<limits.h>
+#include "boardDefaults.h"
+#include"types.h"
+#include"helper.h"
+
+#define ROWS 4
+#define COLS 4
+#define DIRLEN 8
+namespace bitboard {
+    using bitsType = std::array<std::array<std::uint16_t, COLS>, ROWS>;
+    // starting at north and going clockwisee
+    const std::array<const std::uint16_t, DIRLEN> excludeMasks = {0xFFF0, 0, 0xEEEE, 0, 0x0FFF, 0, 0x7777, 0};
+    // lshifts
+    const std::array<const int, DIRLEN> shifts = {4, 0, 1, 0, -4, 0, -1, 0};
+
+    const std::array<const int, DIRLEN> cornerMasks = {0x0, 0x8000, 0x0, 0x0008, 0x0, 0x0001, 0x0, 0x1000};
+    const std::array<const int, DIRLEN> cornerShifts = {0, -15, 0, 9, 0, 15, 0, -9};
+    const std::array<const int, DIRLEN> horiMasks = {0, 0, 0x8888, 0, 0, 0, 0x1111, 0};
+    const std::array<const int, DIRLEN> horiShifts = {0, 0, -3, 0, 0, 0, 3, 0};
+    const std::array<const int, DIRLEN> vertMasks = {0xF000, 0, 0, 0, 0x000F, 0, 0, 0};
+    const std::array<const int, DIRLEN> vertShifts = {-12, 0, 0, 0, 12, 0, 0, 0};
+
+    const std::array<const int, DIRLEN> vertIndex = {-1, -1, 0, 1, 1, 1, 0, -1};
+    const std::array<const int, DIRLEN> horiIndex = {0, 1, 1, 1, 0, -1, -1, -1};
+
+    std::uint16_t lShift(const std::uint16_t val, const int shift);
+
+    // same as >> but with defined behaviour for - values
+    std::uint16_t rShift(const std::uint16_t val, const int shift) {
+        if (shift < 0) {
+            return lShift(val, -shift);
+        }
+        return val >> shift;
+    }
+
+    // same as << but with defined behaviour for - values
+    std::uint16_t lShift(const std::uint16_t val, const int shift) {
+        if (shift < 0) {
+            return rShift(val, -shift);
+        }
+        return val << shift;
+    }
+
+    // rotates 90 degrees anticlockwise about center
+    std::uint16_t rotateWord(const std::uint16_t word, const int count) {
+        std::uint16_t tmp = 0;
+        std::array<std::uint16_t, 16> map = {
+            0x0008, 0x0080, 0x0800, 0x8000,
+            0x0004, 0x0040, 0x0400, 0x4000,
+            0x0002, 0x0020, 0x0200, 0x2000,
+            0x0001, 0x0010, 0x0100, 0x1000,
+        };
+        for (int i = 0; i < 16; i++) {
+            // isolate each bit and get mapped value
+            const std::uint16_t bit = 1 & (word >> i);
+            if (bit) {
+                tmp |= map[i];
+            }
+        }
+        return tmp;
+    }
+
+    class BitBoard {
+        public:
+        bitsType bits;
+        BitBoard(bitsType _bits) : bits(_bits) {}
+        // bitboard is padded to include empty rows follwoing a 16*18 pattern
+        // uses 16 8 20 implementation due to lack of precisely sized words
+        // (4*5) * 16 = 16 x 20 board = 320 -> alot less overhead
+        // use little endian for board layout
+        // so a1 = bits[0][0] & 2^9
+        // a5 = bits[1][0] & 2^1
+
+
+        // rotates 90 degrees anticlockwise about center
+        void rotate() {
+            bitsType tmp = bits;
+            // transpose and reverse 
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    bits[ROWS - j - 1][i] = rotateWord(tmp[i][j], 1);
+                }
+            }
+        }
+
+        // shifts the whole bitboard in one direction
+        // accounts for overeflow between constituent parts
+        void shiftOne(const types::Direction dir) {
+            switch (dir) {
+                case types::Direction::NORTHEAST:
+                    shiftOne(types::Direction::NORTH);
+                    shiftOne(types::Direction::EAST);
+                    break;
+                case types::Direction::SOUTHEAST:
+                    shiftOne(types::Direction::SOUTH);
+                    shiftOne(types::Direction::EAST);
+                    break;
+                case types::Direction::SOUTHWEST:
+                    shiftOne(types::Direction::SOUTH);
+                    shiftOne(types::Direction::WEST);
+                    break;
+                case types::Direction::NORTHWEST:
+                    shiftOne(types::Direction::NORTH);
+                    shiftOne(types::Direction::WEST);
+                    break;
+                default:
+                    bitsType overflows = boardDefaults::zeroed;
+                    const int dirIndex = helper::indexFromDirection(dir);
+
+                    for (int rowIndex = 0; rowIndex < ROWS; rowIndex++) {
+                        for (int colIndex = 0; colIndex < COLS; colIndex++) {
+                            const std::uint16_t subBoard = bits[rowIndex][colIndex];
+                            // carry over
+                            // const std::uint16_t corner = lShift(subBoard & cornerMasks[dirIndex], cornerShifts[dirIndex]);
+                            const std::uint16_t vert = lShift(subBoard & vertMasks[dirIndex], vertShifts[dirIndex]);
+                            const std::uint16_t hori = lShift(subBoard & horiMasks[dirIndex], horiShifts[dirIndex]);
+                            const int newRowIndex = rowIndex + vertIndex[dirIndex];
+                            const int newColIndex = colIndex + horiIndex[dirIndex];
+
+                            if (newRowIndex >= 0 && newRowIndex < ROWS) {
+                                overflows[newRowIndex][colIndex] |= vert;
+                            }
+                            if (newColIndex >= 0 && newColIndex < COLS) {
+                                overflows[rowIndex][newColIndex] |= hori;
+                            }
+                            // change original bitboard
+                            bits[rowIndex][colIndex] = lShift(subBoard, shifts[dirIndex]) & excludeMasks[dirIndex];
+                        }
+                    }
+                    for (int rowIndex = 0; rowIndex < ROWS; rowIndex++) {
+                        for (int colIndex = 0; colIndex < COLS; colIndex++) {
+                            bits[rowIndex][colIndex] |= overflows[rowIndex][colIndex];
+                        }
+                    }
+            }
+        }
+
+        void printValues(std::string_view header = "BitBoard") {
+            using namespace std::string_view_literals;
+            std::cout << "    "sv << header << "    \n";
+            for (int i = 0; i < ROWS; i++) {
+                std::cout << "{{"sv;
+                for (int j = 0; j < COLS; j++) {
+                    std::cout << "0x"sv << std::hex << bits[i][j];
+                    if (j != COLS - 1) {
+                        std::cout << ", "sv;
+                    }
+                }
+
+                std::cout << "}},\n"sv;
+            }
+        }
+
+        // uses little endianness for everythin
+        void print(std::string_view header = "BitBoard") {
+            const int iBoardDimensions = 4;
+            std::array<std::stringstream, ROWS * iBoardDimensions> tmp;
+
+            for (int oRowIndex = 0; oRowIndex < ROWS; oRowIndex++) {
+                for (int oColIndex = 0; oColIndex < COLS; oColIndex++) {
+                    const std::uint16_t subBoard = bits[oRowIndex][oColIndex];
+                    for (int i = 0; i < iBoardDimensions; i++) {
+                        const std::uint16_t rowBits = 0xF000 & (subBoard << (iBoardDimensions * i));
+                        for (int j = 0; j < iBoardDimensions; j++) {
+                            // get each least significant bit in the row and add to print object
+                            const int lsb = 0x1000 & (rowBits >> j);
+                            tmp[oRowIndex * iBoardDimensions + i] << (lsb ? '1' : '0');
+                            if ((oColIndex == 0 && tmp[oRowIndex * iBoardDimensions + i].str().length() == 1)
+                                    || (oColIndex == COLS - 1 && tmp[oRowIndex * iBoardDimensions + i].str().length() == 16)) {
+                                tmp[oRowIndex * iBoardDimensions + i] << '|';
+                            }
+                        }
+                    }
+                }
+            }
+            
+
+            using namespace std::string_view_literals;
+            std::cout << "    "sv;
+            std::cout << header;
+            std::cout << "    \n"sv;
+            for (unsigned int i = 0; i < tmp.size(); i++) {
+                std::cout << tmp[i].str() << '\n';
+                if (i == 0 || i == tmp.size() - 2) {
+                    std::cout << "-|--------------|-\n"sv;
+                }
+            }
+            std::cout << "            \n"sv;
+            std::cout.flush();
+        }
+
+        //shifts
+        void pawnShift() {
+            boundsCheck();
+        }
+
+        void rookShift() {
+            boundsCheck();
+        }
+
+        void clearInaccessible() {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    bits[i][j] &= boardDefaults::inBoard[i][j];
+                }
+            }
+        }
+
+        // gets the ray shift for a singular attacker on the board
+        void rayShift(bitsType blockers) {
+            std::array<bitsType, DIRLEN> results = {{
+                boardDefaults::zeroed,
+                boardDefaults::zeroed,
+                boardDefaults::zeroed,
+                boardDefaults::zeroed,
+                boardDefaults::zeroed,
+                boardDefaults::zeroed,
+                boardDefaults::zeroed,
+                boardDefaults::zeroed
+            }};
+            bitsType starting = bits;
+            bitsType stopCase = bitsApplyOr(boardDefaults::inaccessible, blockers);
+            for (int i = 0; i < DIRLEN; i++) {
+                std::cout << "DIRECTION: " << i << "\n";
+                types::Direction dir = helper::DIRECTIONS[i];
+                while (true) {
+                    // reached the borders or reached the blockers
+                    if (sum(bitsApplyAnd(bits, stopCase))) {
+                        // finished with this direction
+                        results[i] = bits;
+                        break;
+                    }
+                    shiftOne(dir);
+                }
+                // shift 14 times in a direction
+                bits = starting;
+            }
+            bits = boardDefaults::zeroed;
+            for (bitsType res : results) {
+                bits = bitsApplyOr(bits, res);
+            }
+        }
+
+        std::uint16_t bitscanForward(const std::uint16_t word) {
+            return word & -word;
+        }
+
+        int popCount(std::uint16_t word) {
+            if (!word) {
+                return 0;
+            }
+            if (word == 0xFFFF) {
+                return 16;
+            }
+            int count = 0;
+            
+            while (word) {
+                count++;
+                word &= word - 1;
+            }
+            return count;
+        }
+
+        int bitsPopCount() {
+            int count = 0;
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    count += popCount(bits[i][j]);
+                }
+            }
+            return count;
+        }
+
+        bitsType bitsApplyOr(bitsType bits1, const bitsType bits2) {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    bits1[i][j] |= bits2[i][j];
+                }
+            }
+            return bits1;
+        }
+
+        bitsType bitsApplyOrWord(bitsType bits, std::uint16_t word) {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    bits[i][j] |= word;
+                }
+            }
+            return bits;
+        }
+
+        bitsType bitsApplyAnd(bitsType bits1, const bitsType bits2) {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    bits1[i][j] &= bits2[i][j];
+                }
+            }
+            return bits1;
+        }
+
+        bitsType bitsApplyAndWord(bitsType bits, const std::uint16_t word) {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    bits[i][j] &= word;
+                }
+            }
+            return bits;
+        }
+
+        std::uint16_t sum(bitsType _bits) {
+            std::uint16_t s = 0;
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j <COLS; j++) {
+                    // check for overflow
+                    if (UINT16_MAX - s  < _bits[i][j]) {
+                        return UINT16_MAX;
+                    }
+                    s += _bits[i][j];
+                }
+            }
+            return s;
+        }
+
+
+        
+        void knightShift() {
+            boundsCheck();
+            const bitsType base = bits;
+            const int dirsLength = 8;
+            std::array<std::array<types::Direction, 3>, dirsLength> dirs = {{
+                {{helper::NORTH, helper::NORTH, helper::EAST}},
+                {{helper::NORTH, helper::NORTH, helper::WEST}},
+                {{helper::SOUTH, helper::SOUTH, helper::EAST}},
+                {{helper::SOUTH, helper::SOUTH, helper::WEST}},
+                {{helper::EAST, helper::EAST, helper::NORTH}},
+                {{helper::EAST, helper::EAST, helper::SOUTH}},
+                {{helper::WEST, helper::WEST, helper::NORTH}},
+                {{helper::WEST, helper::WEST, helper::SOUTH}}
+            }};
+            
+            std::array<bitsType, dirsLength> results;
+
+            for (int i = 0; i < dirsLength; i++) {
+                shiftOne(dirs[i][0]);
+                shiftOne(dirs[i][1]);
+                shiftOne(dirs[i][2]);
+                results[i] = bits;
+                bits = base;
+            }
+            bits = boardDefaults::zeroed;
+
+            for (int i = 0; i < dirsLength; i++) {
+                for (int r = 0; r < ROWS; r++) {
+                    for (int c = 0; c < COLS; c++) {
+                        bits[r][c] |= results[i][r][c];
+                    }
+                }
+            }
+            
+            for (int r = 0; r < ROWS; r++) {
+                for (int c = 0; c < COLS; c++) {
+                    bits[r][c] &= boardDefaults::inBoard[r][c];
+                }
+            }
+        }
+
+        void boundsCheck() {
+            for (int i = 0; i < ROWS; i++) {
+                for (int j = 0; j < COLS; j++) {
+                    assert(!(bits[i][j] & boardDefaults::inaccessible[i][j]));
+                }
+            }
+        }
+
+
+    };
+}
+
+#endif
