@@ -1,6 +1,6 @@
 #include"types.h"
 #include"helper.h"
-#include"playerData.h"
+// #include"playerData.h"
 #include"board.h"
 #include<array>
 #include<functional> 
@@ -118,58 +118,68 @@ namespace eval{
         0, 0, 0, -550, -550, -550, -550, -550, -550, -550, -550, 0, 0, 0,
         0, 0, 0, -600, -600, -600, -600, -600, -600, -600, -600, 0, 0, 0,
     };
-    constexpr std::array<std::reference_wrapper<const std::array<const std::int_fast16_t, helper::BOARDLENGTH>>, 6> POSITIONS = {std::cref(PPOS), std::cref(RPOS), std::cref(NPOS), std::cref(BPOS), std::cref(QPOS), std::cref(KPOS)};
+    std::array<std::reference_wrapper<const std::array<const std::int_fast16_t, helper::BOARDLENGTH>>, 6> POSITIONS = {std::cref(PPOS), std::cref(RPOS), std::cref(NPOS), std::cref(BPOS), std::cref(QPOS), std::cref(KPOS)};
 
     class Evaluator {
         // P R N B Q K
         // evaluates a single 14x14 index 
         // uses strategy pattern for different piece colours
-        constexpr std::int_fast16_t evaluateIndexPosition(types::boardIndex i, types::PieceType t, types::PieceColour c) const {
-            // adjust for colour
-            unsigned int ci = helper::indexFromColour(c);
-            types::boardIndex tmp = helper::rotate90degrees(i, ci);
+        // constexpr std::int_fast16_t evaluateIndexPosition(types::boardIndex i, types::PieceType t, types::PieceColour c) const {
+        //     // adjust for colour
+        //     unsigned int ci = helper::indexFromColour(c);
+        //     types::boardIndex tmp = helper::rotate90degrees(i, ci);
 
-            const int typeIndex = helper::indexFromType(t);
-            assert(typeIndex > -1 && typeIndex < 7);
-            return POSITIONS[typeIndex].get()[tmp] * PIECEVALUES[typeIndex];
-        }
+        //     const int typeIndex = helper::indexFromType(t);
+        //     assert(typeIndex > -1 && typeIndex < 7);
+        //     return POSITIONS[typeIndex].get()[tmp] * PIECEVALUES[typeIndex];
+        // }
 
-        constexpr void evaluateMaterial(std::array<std::int_fast16_t, 4> &out, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
-            for (unsigned int i = 0; i < playersData.size(); ++i) {
-                player::Player &p = playersData[i].get();
-                const std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
-                for (unsigned int j = 0; j < pieces.size(); ++j) {
-                    out[i] += (pieces.size() * PIECEVALUES[j]);
+        // constexpr void evaluateMaterial(std::array<std::int_fast16_t, 4> &out, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
+        void evaluateMaterial(std::array<std::int_fast16_t, 4> &out, const board::Board board) const {
+            for (int i = 0; i < helper::playableColours.size(); i++) {
+                types::PieceColour colour = helper::playableColours[i];
+                const std::array<int, 6> counts = board.getPlayerCounts(colour);
+                for (int j = 0; j < counts.size(); j++) {
+                    const int count = counts[j];
+                    out[i] = count * PIECEVALUES[j];
                 }
             }
+            // for (unsigned int i = 0; i < playersData.size(); ++i) {
+            //     // player::Player &p = playersData[i].get();
+            //     const std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
+            //     for (unsigned int j = 0; j < pieces.size(); ++j) {
+            //         out[i] += (pieces.size() * PIECEVALUES[j]);
+            //     }
+            // }
         }
 
-        constexpr void evaluatePosition(std::array<std::int_fast16_t, 4> &out, const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
-            // we need to evaluate position in correct dimension hence rotations should be considered
-            for (unsigned int i = 0; i < playersData.size(); ++i) {
-                player::Player &p = playersData[i].get();
-                std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
+        // void evaluatePosition(std::array<std::int_fast16_t, 4> &out, const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
+        //     // we need to evaluate position in correct dimension hence rotations should be considered
+        //     for (unsigned int i = 0; i < playersData.size(); ++i) {
+        //         player::Player &p = playersData[i].get();
+        //         std::array<std::reference_wrapper<std::set<types::boardIndex>>, 6UL> pieces = p.getPieces();
 
-                for (unsigned int j = 0; j < playersData.size(); ++j) {
-                    std::set<types::boardIndex> &pieceSet = pieces[j].get();
-                    types::PieceType type = helper::playablePieces[j];
+        //         for (unsigned int j = 0; j < playersData.size(); ++j) {
+        //             std::set<types::boardIndex> &pieceSet = pieces[j].get();
+        //             types::PieceType type = helper::playablePieces[j];
 
-                    std::for_each(pieceSet.cbegin(), pieceSet.cend(), [&type, &out, &i, &p, this](types::boardIndex index) {
-                        index = helper::to14BoardIndex(index);
-                        out[i] += evaluateIndexPosition(index, type, p.colour());
-                    });
-                }
-            }
-        }
+        //             std::for_each(pieceSet.cbegin(), pieceSet.cend(), [&type, &out, &i, &p, this](types::boardIndex index) {
+        //                 index = helper::to14BoardIndex(index);
+        //                 out[i] += evaluateIndexPosition(index, type, p.colour());
+        //             });
+        //         }
+        //     }
+        // }
 
         public:
-            constexpr std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
+            // constexpr std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
+            std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board) const {
                 std::array<std::int_fast16_t, 4> out {0, 0, 0, 0};
-                evaluateMaterial(out, playersData);
-                evaluatePosition(out, board, playersData);
+                evaluateMaterial(out, board);
+                // evaluateMaterial(out, playersData);
+                // evaluatePosition(out, board, playersData);
                 return out;
             }
-
     };
 
 

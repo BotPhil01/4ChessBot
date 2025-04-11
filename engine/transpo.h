@@ -1,11 +1,20 @@
 #include"types.h"
-#include"hasher.h"
-#include"playerData.h"
+// #include"hasher.h"
+// #include"playerData.h"
 #include<cmath>
 #ifndef TRANSPO_H
 #define TRANSPO_H
 
 namespace transpo {
+    struct TableData {
+        bool occupied;
+        Node type;
+        int eval;
+        int age;
+        unsigned int depth;
+        std::uint64_t key;
+        move::Move bestMove;
+    };
     enum class Node {
         NONE,
         PV,
@@ -31,18 +40,11 @@ namespace transpo {
         }
         assert(false);
     }
-    struct TableData {
-        bool occupied;
-        Node type;
-        int eval;
-        int age;
-        unsigned int depth;
-        std::uint64_t key;
-        types::Move bestMove;
-    };
+
     hasher::Hasher HASHER = hasher::Hasher();
-    constexpr TableData EMPTY = {false, Node::PV, 0, 0, 0, 0, types::Move()};
-    typedef std::array<std::reference_wrapper<player::Player>, 4UL> PlayerArrayType;
+    const TableData EMPTY = {false, Node::PV, 0, 0, 0, 0, move::Move()};
+    // typedef std::array<std::reference_wrapper<player::Player>, 4UL> PlayerArrayType;
+
     class TranspositionTable {
         unsigned int ctr = 0;
         static const unsigned int SIZE = 2048;
@@ -62,8 +64,8 @@ namespace transpo {
             arr.fill(EMPTY);
         }
 
-        void store(types::Move bestMove, int eval,  int age, unsigned int depth, Node type, PlayerArrayType players) {
-            assert(bestMove.fromIndex() != 300 && bestMove.toIndex() != 300);
+        void store(move::Move bestMove, int eval,  int age, unsigned int depth, Node type, PlayerArrayType players) {
+            // assert(bestMove.fromIndex() != 300 && bestMove.toIndex() != 300);
             age++;
             std::uint64_t hash = HASHER.hashPosition(players);
             // find the hash
@@ -73,20 +75,20 @@ namespace transpo {
             }
         }
 
-        bool contains(PlayerArrayType players) const {
-            std::uint64_t hash = HASHER.hashPosition(players);
-            unsigned int index = hash % SIZE;
-            return arr[index].key == hash;
-        }
+        // bool contains(PlayerArrayType players) const {
+        //     std::uint64_t hash = HASHER.hashPosition(players);
+        //     unsigned int index = hash % SIZE;
+        //     return arr[index].key == hash;
+        // }
 
-        TableData find(PlayerArrayType players) {
-            std::uint64_t hash = HASHER.hashPosition(players);
-            unsigned int index = hash % SIZE;
-            if (arr[index].key == hash) {
-                return arr[index];
-            }
-            return EMPTY;
-        }
+        // TableData find(PlayerArrayType players) {
+        //     std::uint64_t hash = HASHER.hashPosition(players);
+        //     unsigned int index = hash % SIZE;
+        //     if (arr[index].key == hash) {
+        //         return arr[index];
+        //     }
+        //     return EMPTY;
+        // }
     };
 }
 

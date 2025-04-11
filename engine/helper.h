@@ -1,5 +1,7 @@
+#include "bitboard.h"
 #include"types.h"
 #include<cassert>
+#include <string_view>
 #include<vector>
 #include<utility>
 #include<memory>
@@ -73,11 +75,11 @@ namespace helper
     constexpr std::size_t NPIECES = 6;
     constexpr std::size_t NCOLOURS = 4;
 
-    constexpr std::array<types::boardIndex, 36> cornerIndices = {
-        33, 34, 35, 49, 50, 51, 65, 66, 67,           // sw
-        44, 45, 46, 60, 61, 62, 76, 77, 78,           // se
-        209, 210, 211, 225, 226, 227, 241, 242, 243,  // nw
-        220, 221, 222, 236, 237, 238, 252, 253, 254}; // ne
+    // constexpr std::array<types::boardIndex, 36> cornerIndices = {
+    //     33, 34, 35, 49, 50, 51, 65, 66, 67,           // sw
+    //     44, 45, 46, 60, 61, 62, 76, 77, 78,           // se
+    //     209, 210, 211, 225, 226, 227, 241, 242, 243,  // nw
+    //     220, 221, 222, 236, 237, 238, 252, 253, 254}; // ne
 
     constexpr types::PieceColour initailTurn = types::PieceColour::RED;
 
@@ -233,93 +235,93 @@ namespace helper
         }
     }
     
-    constexpr bool indexInCorners(types::boardIndex i) {
-        for (auto index : cornerIndices) {
-            if (index == i) {
-                return true;
-            }
-        }
-        return false;
-    }
+    // constexpr bool indexInCorners(types::boardIndex i) {
+    //     for (auto index : cornerIndices) {
+    //         if (index == i) {
+    //             return true;
+    //         }
+    //     }
+    //     return false;
+    // }
     
-    constexpr bool indexOnBoard(types::boardIndex const i) {
-        int rem = i % 16;
-        return (i > 35 && i < 252 && rem != 0 && rem != 15 && !indexInCorners(i));
-    }
+    // constexpr bool indexOnBoard(types::boardIndex const i) {
+    //     int rem = i % 16;
+    //     return (i > 35 && i < 252 && rem != 0 && rem != 15 && !indexInCorners(i));
+    // }
 
-    constexpr bool isRedStart(types::boardIndex const i)
-    {
-        return (i > 35 && i < 44) || (i > 51 && i < 60);
-    }
+    // constexpr bool isRedStart(types::boardIndex const i)
+    // {
+    //     return (i > 35 && i < 44) || (i > 51 && i < 60);
+    // }
 
-    constexpr bool isYellowStart(types::boardIndex const i)
-    {
-        return (i > 227 && i < 236) || (i > 243 && i < 252);
-    }
+    // constexpr bool isYellowStart(types::boardIndex const i)
+    // {
+    //     return (i > 227 && i < 236) || (i > 243 && i < 252);
+    // }
 
-    constexpr bool isBlueStart(types::boardIndex const i)
-    {
-        short rem = i % 16;
-        return (rem == 1 || rem == 2) && i < 195 && i > 80;
-    }
+    // constexpr bool isBlueStart(types::boardIndex const i)
+    // {
+    //     short rem = i % 16;
+    //     return (rem == 1 || rem == 2) && i < 195 && i > 80;
+    // }
 
-    constexpr bool isGreenStart(types::boardIndex const i)
-    {
-        short rem = i % 16;
-        return (rem == 13 || rem == 14) && i > 92 && i < 207;
-    }
+    // constexpr bool isGreenStart(types::boardIndex const i)
+    // {
+    //     short rem = i % 16;
+    //     return (rem == 13 || rem == 14) && i > 92 && i < 207;
+    // }
 
-    constexpr bool isPawnStart(types::boardIndex const i)
-    {
-        if ((i > 51 && i < 60) || (i > 227 && i < 236))
-        { // red and yellow
-            return true;
-        }
-        short rem = i % 16;
-        return (i > 81 && i < 207 && (rem == 13 || rem == 2));
-    }
+    // constexpr bool isPawnStart(types::boardIndex const i)
+    // {
+    //     if ((i > 51 && i < 60) || (i > 227 && i < 236))
+    //     { // red and yellow
+    //         return true;
+    //     }
+    //     short rem = i % 16;
+    //     return (i > 81 && i < 207 && (rem == 13 || rem == 2));
+    // }
 
-    constexpr bool isRookStart(types::boardIndex const i)
-    {
-        return i == 36 || i == 43 || i == 81 || i == 94 || i == 193 || i == 206 || i == 244 || i == 251;
-    }
+    // constexpr bool isRookStart(types::boardIndex const i)
+    // {
+    //     return i == 36 || i == 43 || i == 81 || i == 94 || i == 193 || i == 206 || i == 244 || i == 251;
+    // }
 
-    constexpr bool isKnightStart(types::boardIndex const i)
-    {
-        return i == 37 || i == 42 || i == 97 || i == 110 || i == 177 || i == 190 || i == 245 || i == 250;
-    }
+    // constexpr bool isKnightStart(types::boardIndex const i)
+    // {
+    //     return i == 37 || i == 42 || i == 97 || i == 110 || i == 177 || i == 190 || i == 245 || i == 250;
+    // }
 
-    constexpr bool isBishopStart(types::boardIndex const i)
-    {
-        return i == 38 || i == 41 || i == 113 || i == 126 || i == 161 || i == 174 || i == 246 || i == 249;
-    }
+    // constexpr bool isBishopStart(types::boardIndex const i)
+    // {
+    //     return i == 38 || i == 41 || i == 113 || i == 126 || i == 161 || i == 174 || i == 246 || i == 249;
+    // }
 
-    constexpr bool isQueenStart(types::boardIndex const i)
-    {
-        return i == 39 || i == 129 || i == 158 || i == 248;
-    }
+    // constexpr bool isQueenStart(types::boardIndex const i)
+    // {
+    //     return i == 39 || i == 129 || i == 158 || i == 248;
+    // }
 
-    constexpr bool isKingStart(types::boardIndex const i)
-    {
-        return i == 40 || i == 145 || i == 142 || i == 247;
-    }
+    // constexpr bool isKingStart(types::boardIndex const i)
+    // {
+    //     return i == 40 || i == 145 || i == 142 || i == 247;
+    // }
 
-    constexpr bool isEmptyStart(types::boardIndex const i)
-    {
-        short tmp = i % 16;
-        bool in14Square = (i > 32 && i < 255 && tmp != 15 && tmp != 0);
-        bool notInCorners = true;
-        
-        for (unsigned int j = 0; j < cornerIndices.size() ; ++j) {
-            types::boardIndex tmpIndex = cornerIndices[j];
-            if (i == tmpIndex)
-            {
-                notInCorners = false;
-                break;
-            }
-        }
-        return notInCorners && in14Square;
-    }
+    // constexpr bool isEmptyStart(types::boardIndex const i)
+    // {
+    //     short tmp = i % 16;
+    //     bool in14Square = (i > 32 && i < 255 && tmp != 15 && tmp != 0);
+    //     bool notInCorners = true;
+    //     
+    //     for (unsigned int j = 0; j < cornerIndices.size() ; ++j) {
+    //         types::boardIndex tmpIndex = cornerIndices[j];
+    //         if (i == tmpIndex)
+    //         {
+    //             notInCorners = false;
+    //             break;
+    //         }
+    //     }
+    //     return notInCorners && in14Square;
+    // }
 
     // constexpr types::Square generateSquare(short i) {
     //     // assign colour
@@ -452,122 +454,146 @@ namespace helper
         }
         return types::PieceColour::NONE;
     }
-    // assumes there is a valid non diagonal straight path towards tgt from src
-    constexpr types::Direction getDirection(types::boardIndex src, types::boardIndex tgt) {
-        short diff = tgt - src;
-        if (diff > 0) {
-            if (diff > PADDEDCOLS) {
-                return types::Direction::NORTH;
-            }
-            return types::Direction::EAST;
-        }
-        if (-diff > PADDEDCOLS) {
-            return types::Direction::SOUTH;
-        }
-        return types::Direction::WEST;
-    }
+    // // assumes there is a valid non diagonal straight path towards tgt from src
+    // constexpr types::Direction getDirection(types::boardIndex src, types::boardIndex tgt) {
+    //     short diff = tgt - src;
+    //     if (diff > 0) {
+    //         if (diff > PADDEDCOLS) {
+    //             return types::Direction::NORTH;
+    //         }
+    //         return types::Direction::EAST;
+    //     }
+    //     if (-diff > PADDEDCOLS) {
+    //         return types::Direction::SOUTH;
+    //     }
+    //     return types::Direction::WEST;
+    // }
 
-    constexpr types::boardIndex shiftOne(const types::boardIndex i, const types::Direction d) {
-        switch (d) {
-            case types::Direction::NORTH: 
-                return i + 16;
-            case types::Direction::NORTHEAST: 
-                return i + 17;
-            case types::Direction::EAST:
-                return i + 1;
-            case types::Direction::SOUTHEAST:
-                return i - 15;
-            case types::Direction::SOUTH:
-                return i - 16;
-            case types::Direction::SOUTHWEST:
-                return i - 17;
-            case types::Direction::WEST:
-                return i - 1;
-            case types::Direction::NORTHWEST:
-                return i + 15;
-            default:
-                return i;
-        };
-    }
+    // constexpr types::boardIndex shiftOne(const types::boardIndex i, const types::Direction d) {
+    //     switch (d) {
+    //         case types::Direction::NORTH: 
+    //             return i + 16;
+    //         case types::Direction::NORTHEAST: 
+    //             return i + 17;
+    //         case types::Direction::EAST:
+    //             return i + 1;
+    //         case types::Direction::SOUTHEAST:
+    //             return i - 15;
+    //         case types::Direction::SOUTH:
+    //             return i - 16;
+    //         case types::Direction::SOUTHWEST:
+    //             return i - 17;
+    //         case types::Direction::WEST:
+    //             return i - 1;
+    //         case types::Direction::NORTHWEST:
+    //             return i + 15;
+    //         default:
+    //             return i;
+    //     };
+    // }
 
-    // returns types::boardIndex from 16 * 18  coordinates
-    constexpr types::boardIndex toIndex( unsigned char c, unsigned char r) { 
-        return (r * 16 + c);
-    }
+    // // returns types::boardIndex from 16 * 18  coordinates
+    // constexpr types::boardIndex toIndex( unsigned char c, unsigned char r) { 
+    //     return (r * 16 + c);
+    // }
 
-    // translates a types::boardIndex to a padded row column pair
-    constexpr std::pair<int, int> to16RC(types::boardIndex i) {
-        int x = (i % 16);
-        int y = (i - x) / 16;
-        return std::pair(x,y);
-    }
 
-    constexpr unsigned int asciiToCol(char x) {
+    constexpr unsigned int asc2PadCol(char x) {
+        // lowercase the char
         x = x < (int) 'a' ? x + 32: x;
-        return (int) x - (int) 'a';
-    }
-
-    // rotates a 14x14 index 90 degrees counter clockwise
-    constexpr types::boardIndex rotate90degrees(types::boardIndex i, unsigned char count) {
-        std::pair<int, int> coords = {i % 14, (i - i % 14) / 14 };
-        // find quadrant
-        if (coords.second < 7) {
-            // lower
-            if (coords.first < 7) {
-                // left
-                coords.first -= 7;
-                coords.second -= 7;
-            } else {
-                // right
-                coords.first -= 6;
-                coords.second -= 7;
-            }
-        } else {
-            // upper
-            if (coords.first < 7) {
-                // left
-                coords.first -= 6;
-                coords.second -= 6;
-            } else {
-                // right
-                coords.first -= 7;
-                coords.second -= 6;
-            }
-        }
-
-        while (count > 0) {   
-            int tmp = coords.first;
-            coords.first = -coords.second;
-            coords.second = tmp;
-            count--;
-        }
-
-        if (coords.first > 0) {
-            coords.first += 6;
-            if (coords.second > 0) {
-                coords.second += 6;
-            } else {
-                coords.second += 7;
-            }
-        } else {
-            coords.first += 7;
-            if (coords.second > 0) {
-                coords.second += 6;
-            } else {
-                coords.second += 7;
-            }
-        }
-
-        i = coords.first + coords.second * 14;
-        return i;
+        // geet index
+        x = x - 'a';
+        // add padding
+        return x + 1;
     }
     
-    constexpr types::boardIndex to14BoardIndex(types::boardIndex i) {
-        unsigned int rem = i % 16;
-        assert(i > 32 && i < 255 && rem != 0 && rem != 15);
-        i = (i -rem) / 16;
-        return rem - 1 + ((i - 2) * 14);
+    // passes in '1' -> '14'
+    constexpr unsigned int asc2PadRow(std::string_view str) {
+        const size_t size = str.length();
+        int first = 0;
+        int second = 0;
+        int index = -1;
+        switch (size) {
+            case 1:
+                // convert to index 
+                index = 14 - (str[0] - '0');
+                // add padding
+                return index + 1;
+                break;
+            case 2:
+                first = str[0] - '0';
+                second = str[1] - '0';
+                index = 14 - (first * 10 - second);
+                // add padding 
+                return index + 1;
+                break;
+            default:
+                assert(false);
+        }
+        return -1;
     }
+
+    // // rotates a 14x14 index 90 degrees counter clockwise
+    // constexpr types::boardIndex rotate90degrees(types::boardIndex i, unsigned char count) {
+    //     std::pair<int, int> coords = {i % 14, (i - i % 14) / 14 };
+    //     // find quadrant
+    //     if (coords.second < 7) {
+    //         // lower
+    //         if (coords.first < 7) {
+    //             // left
+    //             coords.first -= 7;
+    //             coords.second -= 7;
+    //         } else {
+    //             // right
+    //             coords.first -= 6;
+    //             coords.second -= 7;
+    //         }
+    //     } else {
+    //         // upper
+    //         if (coords.first < 7) {
+    //             // left
+    //             coords.first -= 6;
+    //             coords.second -= 6;
+    //         } else {
+    //             // right
+    //             coords.first -= 7;
+    //             coords.second -= 6;
+    //         }
+    //     }
+
+    //     while (count > 0) {   
+    //         int tmp = coords.first;
+    //         coords.first = -coords.second;
+    //         coords.second = tmp;
+    //         count--;
+    //     }
+
+    //     if (coords.first > 0) {
+    //         coords.first += 6;
+    //         if (coords.second > 0) {
+    //             coords.second += 6;
+    //         } else {
+    //             coords.second += 7;
+    //         }
+    //     } else {
+    //         coords.first += 7;
+    //         if (coords.second > 0) {
+    //             coords.second += 6;
+    //         } else {
+    //             coords.second += 7;
+    //         }
+    //     }
+
+    //     i = coords.first + coords.second * 14;
+    //     return i;
+    // }
+    // 
+    // constexpr types::boardIndex to14BoardIndex(types::boardIndex i) {
+    //     unsigned int rem = i % 16;
+    //     assert(i > 32 && i < 255 && rem != 0 && rem != 15);
+    //     i = (i -rem) / 16;
+    //     return rem - 1 + ((i - 2) * 14);
+    // }
 };
 
 #endif
