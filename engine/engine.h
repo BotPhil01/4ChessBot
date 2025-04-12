@@ -1,4 +1,5 @@
 #include<iostream>
+#include<limits.h>
 #include<vector>
 #include<algorithm>
 #include<exception>
@@ -10,6 +11,7 @@
 #include<stop_token>
 #include<mutex>
 
+#include "bitboard.h"
 #include"board.h"
 #include"helper.h"
 #include"evaluator.h"
@@ -19,450 +21,204 @@
 #ifndef ENGINE_H
 #define ENGINE_h
 
+
 namespace engine {
-    static thread_local std::mutex workMutex;
-
-    // TODO PROBLEM THIS FUNCTION REQUIRES NOT ONLY ENGINE BUT ALSO ENGINE::ENGINECHILD
-    // ITS POSSIBLE TO FORWARD DECLARE ENGINE BUT NOT THE NESTED ENGINECHILD
-    // A FEW OPTIONS:
-    // PASS THE FUNCTION AS PARAM TO ENGINE -> LOOKS MESSY
-    // UNNEST THE CLASS -> PUT IN PRIVATE NAMESPACE MAYBE?
-    // MOST LIKELY WILL UNNEST AND PUT BOTH FUNCTION AND CHILD IN BLANK NAMESPACE AND FORWARD DECLARE JUST ENGINE 
-    // ITS 2:20AM IM GOING TO SLEEP 
-    // FUCK THIS
-    class Engine;
-    void startChild(
-            Engine *parent, 
-            std::reference_wrapper<std::vector<std::int_fast16_t>> evals, 
-            std::reference_wrapper<std::stack<unsigned int, std::list<unsigned int>>> workStack,
-            std::reference_wrapper<std::mutex> initMutex,
-            std::reference_wrapper<std::stop_source> timeExceeded
-            );
-    class EngineChild;
+    // want an engine 
+    // want a master process
+    // need to use alpha beta
+    // paranoid evaluation is already implemented
+    namespace {
+        const int MIN = 0;
+        const int MAX = 1;
+    }
     class Engine {
-        board::Board &brd;
-        types::PieceColour self;
-        eval::Evaluator evaluator;
-        double MAXTIME; // In total we want to spend 10 seconds per move 
-                        // transpo::TranspositionTable trans;
-                        // Interrupt during each step of search? Time calculation could be expensive
-                        // Interrupt at top most layer? Could produce inaccurate results
-
         public:
-        Engine(
-                board::Board &b,
-                types::PieceColour p = types::PieceColour::RED,
-                double maxTime = 5.0) :
-            brd(b),
-            self(p),
-            MAXTIME(maxTime)
-        {}
-        board::Board getBoard() const {
-            return brd; 
-        }
-        constexpr types::PieceColour getColour() const {
-            return self;
-        }
-        constexpr eval::Evaluator getEvaluator() const {
-            return evaluator;
-        }
-        // transpo::TranspositionTable &getTrans() {
-        //     return trans;
-        // }
+            Engine(board::Board &board, types::PieceColour colour) :
+                m_board(board),
+                d_copy(board),
+                m_selfColour(colour)
+            {}
 
+            move::Move chooseNextMove() {
+                debug = 0;
+                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_selfColour);
 
-        move::Move chooseNextMove() {
-            // MULTITHREADING STEPS:
-            // MAIN THREAD:
-            // GENERATE ALL LEGAL MOVES
-            // FOR EACH LEGAL MOVE POP IT ONTO A WORK STACK
-            // CREATE ARRAY WITH LENGTH = NUMBER OF MOVES
-            // SPAWN AND START N THREADS
-            // HANG WHILE TIME LEFT 
-            // KILL THREADS WHEN TIME HAS RAN OUT
+                assert(m_board == d_copy);
 
-            // THREAD PROCESS:
-            // POP OFF THE MOVE FROM THE WORKSTACK
-            // PLAY THE MOVE AND PERFORM ITERATIVE DEEPENING
-            // FOREACH ITERATION:
-            // PERFORM THE SEARCH
-            // STORE EVALUATION IN MASTER THREAD DS
-
-            // PROBLEMS:
-            // EACH THREAD REQUIRES ITS OWN BOARD INSTANCE
-            // THREADS MAY SHARE TT -> CAUSES DATA CORRUPTION -> MUTEXES -> SLOW
-            std::time_t start = std::time(nullptr);
-
-            // generate legal moves
-            // if (brd.isPlayerCheckmate(self)) {
-            //     return move::Move();
-            // }
-
-            std::vector<move::Move> moves = brd.generateLegalMoves(self);
-            const size_t movesSize = moves.size();
-            // cant generate moves here as the move contains a refereeence 
-            // and when shared between the threads it is vulnereable to corruption
-            // need a differeent method
-            // all children will start with from the same position hence they could be able to generate them on their own
-            // it adds extra computation but I dont think that matters
-            if(movesSize == 0) {
-                brd.setPlayerCheckmate(self);
-                return move::Move();
-            }
-
-            // push to work stack for reference later for children 
-            std::stack<unsigned int, std::list<unsigned int>> workStack {};
-            for (int i = 0; i < movesSize; i++) {
-                workStack.push(i);
-            }
-
-            // evals can be shared beetween children as only 1 should access it at a timee
-            std::vector<std::int_fast16_t> evals {};
-            evals.reserve(workStack.size());
-            evals.insert(evals.end(), evals.capacity(), -9999999);
-
-            // create a threadpool so that we can reference children later
-            // const unsigned int THREADSIZE = movesSize;
-            const unsigned int THREADSIZE = 2;
-
-            std::vector<std::jthread> threadPool;
-            threadPool.reserve(THREADSIZE);
-
-            // timer stop sourcee
-            std::stop_source timeExceeded;
-            std::mutex initMutex;
-            std::unique_lock initLock{initMutex};
-
-            std::vector<std::reference_wrapper<EngineChild>> children;
-            children.reserve(THREADSIZE);
-
-            auto threadFunction = std::bind(startChild, 
-                    this, std::ref(evals), std::ref(workStack), std::ref(initMutex), std::ref(timeExceeded));
-            for (unsigned int i = 0; i < THREADSIZE; ++i) {
-                threadPool.emplace_back(std::jthread(threadFunction));
-            }
-            initLock.unlock();
-
-            // check timer
-            while (std::difftime(std::time(nullptr), start) < MAXTIME) {}
-            timeExceeded.request_stop();
-
-            return moves[std::distance(evals.begin(), std::max_element(evals.begin(), evals.end()))];
-
-
-        }
-    };
-
-    class EngineChild {
-        board::Board board; // board for altering state
-        types::PieceColour self; // colour for evaluation
-        eval::Evaluator evaluator; // evaluator for evaluation
-                                   // transpo::TranspositionTable &trans; // transposition table accessed by all threads
-        std::vector<std::int_fast16_t> &out; // out vector to hold result of work
-        std::stack<unsigned int, std::list<unsigned int>> &workStack; // work stack for holidng work to be done
-        std::stop_source &source;
-        std::stop_token timeExceeded; // stop when time exceeded
-
-        public:
-        EngineChild(
-                engine::Engine *parent,
-                std::vector<std::int_fast16_t> &_out, 
-                std::stack<unsigned int, std::list<unsigned int>> &workStack,
-                // std::mutex &workMutex,
-                std::stop_source &_timeExceeded
-                ) : 
-            board((*parent).getBoard()),
-            self((*parent).getColour()),
-            evaluator((*parent).getEvaluator()),
-            // trans((*parent).getTrans()),
-            out(_out),
-            workStack(workStack),
-            // workMutex(workMutex),
-            source(_timeExceeded),
-            timeExceeded(_timeExceeded.get_token())
-        {}
-
-        EngineChild &operator=(const EngineChild &other)
-        {
-            board = other.board;
-            self = other.self;
-            evaluator = other.evaluator;
-            // trans = other.trans;
-            out = other.out;
-            workStack = other.workStack;
-            // workMutex = other.workMutex;
-            source = other.source;
-            timeExceeded = other.source.get_token();
-            return *this;
-        }
-
-        void evaluateBranch(std::mutex &initMutex) {
-            // create moves
-
-            std::vector<move::Move> moves = board.generateLegalMoves(board.getCurrentTurn());
-            unsigned int moveIndex;
-            std::unique_lock<std::mutex> workLock = std::unique_lock(engine::workMutex, std::defer_lock);
-
-            waitToStart(initMutex);
-            while (!workStack.empty()) {
-                // get work from workstack
-                workLock.lock();
-                moveIndex = workStack.top();
-                workStack.pop();
-                workLock.unlock();
-
-                // find corresponding move
-                const move::Move move = moves[moveIndex];
                 unsigned int depth = 0;
-                // find current best in the evals
-                while (!timeExceeded.stop_requested()) {
-                    //iterative deepening
-                    board.playMove(move);
-                    out[moveIndex] = alphaBetaMin(depth, -99999999, 99999999);
-                    board.unPlayMove();
+                unsigned int bestIndex = 0;
+
+                std::int_fast16_t beta = INT_FAST16_MAX;
+
+                while (!timeUp()) {
+                    std::int_fast16_t bestEval = evalBest(playableMoves[bestIndex], INT_FAST16_MIN, beta, depth, MIN);
+
+                    for (int i = 0; i < playableMoves.size(); i++) {
+                        std::cout << "evaluating move " << i << "\n";
+                        move::Move currentMove = playableMoves[i];
+                        m_board.playMove(currentMove);
+
+                        const std::int_fast16_t currentEval = alphaBetaMin(bestEval, beta, depth);
+
+                        if (currentEval > bestEval) {
+                            bestEval = currentEval;
+                            bestIndex = i;
+                        }
+
+                        m_board.unPlayMove();
+                        assert(m_board == d_copy);
+                    }
                     depth++;
                 }
-            }
-        }
-        private:
 
-        void waitToStart(std::mutex &initMutex) {
-            std::unique_lock tmpLock{initMutex};
-            tmpLock.unlock();
-        }
-        // transpo::Node existsTransTableCutoff(transpo::TableData data, unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
-        //     if (data.occupied && data.depth >= depth) {
-        //         switch(data.type) {
-        //             case transpo::Node::PV:
-        //                 // std::cout << "transpo cutoff pv\n";
-        //                 return transpo::Node::PV;
-        //             case transpo::Node::ALL:
-        //                 if (data.eval < alpha) {
-        //                     // std::cout << "transpo cutoff all\n";
-        //                     return transpo::Node::ALL;
-        //                 }
-        //                 return transpo::Node::NONE;
-        //             case transpo::Node::CUT:
-        //                 if (data.eval >= beta) {
-        //                     // std::cout << "transpo cutoff cut\n";
-        //                     return transpo::Node::CUT;
-        //                 }
-        //                 return transpo::Node::NONE;
-        //             default:
-        //                 return transpo::Node::NONE;
-        //         }
-        //     }
-        //     return transpo::Node::NONE;
-        // }   
-        // process for child threads 
-        // child threads require atomic popping of shared workStack, a local board variable, shared access to evals  
-        std::int_fast16_t alphaBetaMax(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
-            if (depth == 0) {
-                std::array<std::int_fast16_t, 4UL> e = evaluator.getEvaluation(board);
-                return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
+                assert(m_board == d_copy);
+                return playableMoves[bestIndex];
             }
 
-            std::int_fast16_t evaluation = 0;
-            std::int_fast16_t bestEval = -99999999;
-            move::Move bestMove;
-            depth--;
+            // evaluates an individual move
+            std::int_fast16_t evalMove(const move::Move p_move) {
+                debug = 0;
+                m_board.playMove(p_move);
 
-            bool failLow = true;
-            // transpo::TableData data = trans.find(board.getPlayers());
-            // if (data.occupied) {
-            //     const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
-            //     if (transCutoff != transpo::Node::NONE) {
-            //         switch (transCutoff) {
-            //             case transpo::Node::PV:
-            //                 return data.eval;
-            //             case transpo::Node::ALL:
-            //                 if (data.eval < alpha) {
-            //                     return data.eval;
-            //                 }
-            //                 break;
-            //             default:
-            //                 if (data.eval >= beta) {
-            //                     return data.eval;
-            //                 }
-            //                 break;
-            //         }
-            //     }
-            //     if (timeExceeded.stop_requested()) {
-            //         return bestEval;
-            //     }
-            //     board.playMove(data.bestMove);
-            //     if (board.getCurrentTurn() == self) {
-            //         evaluation = alphaBetaMax(depth, alpha, beta);
-            //     } else {
-            //         evaluation = alphaBetaMin(depth, alpha, beta);
-            //     }
-            //     board.unPlayMove();
+                std::int_fast16_t bestEval = INT_FAST16_MIN;
+                std::int_fast16_t beta = INT_FAST16_MAX;
+                unsigned int bestIndex = 0;
 
-            //     if (evaluation >= beta) {
-            //         // fail high
-            //         // node is CUT
-            //         trans.store(data.bestMove, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
-            //         return evaluation;
-            //     }
-            //     bestMove = data.bestMove;
-            //     bestEval = evaluation;
-            //     if (evaluation > alpha) {
-            //         failLow = false;
-            //         alpha = evaluation;
-            //     }
-            // }
+                int depth = 0;
 
-            // search rest of moves
-            std::vector<move::Move> moves;
-            moves = board.generateLegalMoves(board.getCurrentTurn());
-            for (unsigned int i = 0; i < moves.size(); ++i) {
-                if (timeExceeded.stop_requested()) {
-                    return bestEval;
+                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
+
+                while (!timeUp()) {
+                    bestEval = evalBest(playableMoves[bestIndex], INT_FAST16_MIN, beta, depth -1, MIN);
+                    beta = INT_FAST16_MAX;
+
+                    for (unsigned int i = 0; i < playableMoves.size(); i++) {
+                        std::cout << "evaluating move " << i << "\n";
+                        const move::Move currentMove = playableMoves[i];
+                        m_board.playMove(currentMove);
+
+                        const std::int_fast16_t currentEval = alphaBetaMin(bestEval, beta, depth - 1);
+
+                        if (currentEval > bestEval) {
+                            bestEval = currentEval;
+                            bestIndex = i;
+                        }
+
+                        m_board.unPlayMove();
+                    }
+                    depth++;
                 }
-                // if (data.bestMove.index != i) {
-                //     move::Move move = *moves[i];
-                //     board.playMove(move);
-                //     evaluation = alphaBetaMin(depth, alpha, beta);
-                //     board.unPlayMove();
-                //     
-                //     if (evaluation >= beta) {
-                //         // fail high
-                //         // node is CUT
-                //         trans.store(move, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
-                //         return evaluation;
-                //     }
-                //     if (evaluation > bestEval) {
-                //         bestMove = move;
-                //         bestEval = evaluation;
-                //         if (evaluation > alpha) {
-                //             failLow = false;
-                //             alpha = bestEval;
-                //         }
-                //     }
-                // }
-            }
 
-            // if (failLow) {
-            //     trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::ALL, board.getPlayers());
-            // } else {
-            //     trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::PV, board.getPlayers());
-            // }
-            return bestEval;
-        }
-        std::int_fast16_t alphaBetaMin(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
-            if (depth == 0) {
-                std::array<std::int_fast16_t, 4UL> e = evaluator.getEvaluation(board);
-                return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
-            }
-
-            bool failLow = true;
-            // transpo::TableData data = trans.find(board.getPlayers());
-            // if (data.occupied) {
-            //     const transpo::Node transCutoff = existsTransTableCutoff(data, depth, alpha, beta);
-            //     if (transCutoff != transpo::Node::NONE) {
-            //         switch (transCutoff) {
-            //             case transpo::Node::PV:
-            //                 // no such cutoff ever 
-            //                 // std::cout << "PV CUTOFF\n";
-            //                 return data.eval;
-            //             case transpo::Node::ALL:
-            //                 if (data.eval < alpha) {
-            //                     // std::cout << "ALL CUTOFF\n";
-            //                     return data.eval;
-            //                 }
-            //                 break;
-            //             default:
-            //                 if (data.eval >= beta) {
-            //                     // std::cout << "CUT CUTOFF\n";
-            //                     return data.eval;
-            //                 }
-            //                 break;
-            //         }
-            //     }
-            // }
-
-            std::int_fast16_t evaluation;
-            std::int_fast16_t bestEval = 99999999;
-            move::Move bestMove;
-            depth--;
-            if (timeExceeded.stop_requested()) {
+                m_board.unPlayMove();
+                assert(m_board == d_copy);
                 return bestEval;
             }
-            // there was data but not enough for a cutoff
-            // if (data.occupied) {
-            //     board.playMove(data.bestMove);
 
-            //     if (board.getCurrentTurn() == self) {
-            //         evaluation = alphaBetaMax(depth, alpha, beta);
-            //     } else {
-            //         evaluation = alphaBetaMin(depth, alpha, beta);
-            //     }
-            //     board.unPlayMove();
-
-            //     if (evaluation <= alpha) {
-            //         // fail high
-            //         // node is CUT
-            //         // trans.store(data.bestMove, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
-            //         return evaluation;
-            //     }
-            //     bestMove = data.bestMove;
-            //     bestEval = evaluation;
-            //     if (evaluation < beta) {
-            //         failLow = false;
-            //         beta = evaluation;
-            //     }
-            // }
-
-            // HERE
-            std::vector<move::Move> moves = board.generateLegalMoves(board.getCurrentTurn());
-
-            for (unsigned int i = 0; i < moves.size(); i++) {
-                if (timeExceeded.stop_requested()) {
-                    return bestEval;
-                }
-                move::Move move = moves[i];
-                board.playMove(move);
-
-                if (board.getCurrentTurn() == self) {
-                    evaluation = alphaBetaMax(depth, alpha, beta);
-                } else {
-                    evaluation = alphaBetaMin(depth, alpha, beta);
-                }
-                board.unPlayMove();
-
-                if (evaluation <= alpha) {
-                    // fail high
-                    // node is CUT
-                    // trans.store(move, evaluation, board.halfMoveClock, depth, transpo::Node::CUT, board.getPlayers());
-                    return evaluation;
-                }
-                if (evaluation < bestEval) {
-                    bestEval = evaluation;
-                    bestMove = move; // assignment not working257
-                    if (evaluation < beta) {
-                        failLow = false;
-                        beta = evaluation;
-                    }
-                }
+            board::Board getBoard() {
+                return m_board;
             }
-            // if (failLow) {
-            //     trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::ALL, board.getPlayers());
-            // } else {
-            //     trans.store(bestMove, bestEval, board.halfMoveClock, depth, transpo::Node::PV, board.getPlayers());
-            // }
-            return bestEval;
-        }
-    };
-    void startChild(
-            Engine *parent, 
-            std::reference_wrapper<std::vector<std::int_fast16_t>> evals, 
-            std::reference_wrapper<std::stack<unsigned int, std::list<unsigned int>>> workStack,
-            std::reference_wrapper<std::mutex> initMutex,
-            std::reference_wrapper<std::stop_source> timeExceeded
-            ) {
-        thread_local EngineChild child = EngineChild(parent, evals, workStack, timeExceeded);
-        child.evaluateBranch(initMutex);
-    }
+            types::PieceColour getColour() {
+                return m_selfColour;
+            }
+        private:
+            int debug = 0;
+            board::Board d_copy;
+            board::Board &m_board;
+            eval::Evaluator m_evaluator;
+            types::PieceColour m_selfColour;
+            std::int_fast16_t evalBest(move::Move p_best, std::int_fast16_t p_alpha, std::int_fast16_t p_beta, unsigned int p_depth, int p_mode) {
+                m_board.playMove(p_best);
+                if (p_depth == 0) { 
+                    return m_evaluator.evalParanoid(m_board, m_selfColour);
+                }
+                std::int_fast16_t eval = 0;
+                switch (p_mode) {
+                    case MIN:
+                        eval = alphaBetaMin(p_alpha, p_beta, p_depth - 1);
+                    case MAX:
+                        eval = alphaBetaMax(p_alpha, p_beta, p_depth - 1);
+                    default:
+                        // how did we get here?
+                        assert(false);
+                }
+                m_board.unPlayMove();
+                return eval;
+            }
 
+            int timeUp() {
+                std::cout << "incrementing clock " << debug << "\n";
+                debug++;
+                return debug == 2;
+            }
+
+            std::int_fast16_t alphaBetaMax(int p_alpha, int p_beta, int p_depth) {
+                // std::cout << "maximising\n";
+                if (p_depth == 0) {
+                    return m_evaluator.evalParanoid(m_board, m_selfColour); 
+                }
+                std::int_fast16_t bestEval = INT_FAST16_MIN;
+                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
+
+                for (int i = 0; i < playableMoves.size(); i++) {
+                    const move::Move currentMove = playableMoves[i];
+                    m_board.playMove(currentMove);
+
+                    const std::int_fast16_t currentEval = alphaBetaMin(p_alpha, p_beta, p_depth - 1);
+
+                    if (currentEval > p_beta) {
+                        std::cout << "fail high\n";
+                        // failhigh 
+                        return currentEval;
+                    }
+                    if (currentEval > bestEval) {
+                        bestEval = currentEval;
+                        if (currentEval > p_alpha) {
+                            p_alpha = currentEval;
+                        }
+                    }
+
+                    m_board.unPlayMove();
+                }
+                return bestEval;
+            }
+
+            std::int_fast16_t alphaBetaMin(int p_alpha, int p_beta, int p_depth) {
+                // std::cout << "minimising\n";
+                if (p_depth == 0) {
+                    return m_evaluator.evalParanoid(m_board, m_selfColour);
+                }
+                std::int_fast16_t bestEval = INT_FAST16_MAX;
+                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
+
+                for (int i = 0; i < playableMoves.size(); i++) {
+                    const move::Move currentMove = playableMoves[i];
+                    m_board.playMove(currentMove);
+
+                    const std::int_fast16_t currentEval = getNextMiniMax(p_alpha, p_beta, p_depth - 1);
+
+                    if (currentEval < p_alpha) {
+                        // fail low
+                        std::cout << "fail low\n";
+                        return currentEval;
+                    }
+                    if (currentEval > bestEval) {
+                        bestEval = currentEval;
+                        if (currentEval < p_beta) {
+                            p_beta = currentEval;
+                        }
+                    }
+
+                    m_board.unPlayMove();
+                }
+                return bestEval;
+            }
+
+            std::int_fast16_t getNextMiniMax (int p_alpha, int p_beta, int p_depth) {
+                if (m_board.getCurrentTurn() == m_selfColour) {
+                    return alphaBetaMax(p_alpha, p_beta, p_depth);
+                }
+                return alphaBetaMin(p_alpha, p_beta, p_depth);
+            }
+    };
 };
 #endif

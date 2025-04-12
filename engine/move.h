@@ -74,8 +74,6 @@ namespace move {
                 return *this;
             }
 
-            bool operator==(const Move&) const = default;
-
             // generic move
             Move(
                     bitboard::Bitboard &sumBoard,
@@ -118,9 +116,24 @@ namespace move {
                 toP(types::PieceType::EMPTY),
                 totalMoves(0),
                 index(0)
-        {}
+           {}
 
-
+            bool operator==(const Move &other) const {
+                    return (
+                            d_fromColour == other.d_fromColour &&
+                            d_toColour == other.d_toColour &&
+                            d_fromPiece == other.d_fromPiece &&
+                            d_toPiece == other.d_toPiece &&
+                            // sumBoard == other.sumBoard &&
+                            // srcBoard == other.srcBoard &&
+                            unarySrcBoard == other.unarySrcBoard &&
+                            destBoard == other.destBoard &&
+                            specialBoard == other.specialBoard &&
+                            toP == other.toP &&
+                            totalMoves == other.totalMoves &&
+                            index == other.index
+                            );
+            }
     };
 }
 #endif

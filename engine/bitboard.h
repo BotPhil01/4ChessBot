@@ -464,7 +464,7 @@ namespace bitboard {
 
     // should represent a set of pieces on the board according to a colour
     class Bitboard {
-            BitsType bits;
+        BitsType bits;
         public:
             Bitboard(std::pair<int, int> pCoords)
             : bits(boardDefaults::zeroed)
@@ -486,6 +486,13 @@ namespace bitboard {
             // so a1 = bits[0][0] & 2^9
             // a5 = bits[1][0] & 2^1
 
+            bool operator==(const Bitboard &other) const {
+                return bits == other.bits;
+            }
+            
+            bool operator!=(const Bitboard &other) const {
+                return !(*this == other);
+            }
 
             // uses little endianness for everythin
             void print(std::string_view header = "BitBoard") {
@@ -525,7 +532,7 @@ namespace bitboard {
                 std::cout.flush();
             }
 
-            coords bitIndex() {
+            coords bitIndex() const {
                 coords ret = {0, 0, 3, 3};
                 std::uint16_t bit = 0;
                 for (int i = 0; i < ROWS; i++) {
@@ -586,12 +593,12 @@ namespace bitboard {
                 return Bitboard(data);
             }
 
-            int empty() {
+            int empty() const {
                 return !nonZero(bits);
             }
 
-            int unary() {
-                BitsType tmp = bits;
+            int unary() const {
+                const BitsType tmp = bits;
                 int sum = 0;
                 for (int i = 0; i < ROWS; i++) {
                     for (int j = 0; j < COLS; j++) {
@@ -618,27 +625,11 @@ namespace bitboard {
                 return count;
             }
 
-            int equals(const Bitboard board) {
-                for (int i = 0; i < ROWS; i++) {
-                    for (int j = 0; j < COLS; j++) {
-                        if (bits[i][j] != board.bits[i][j]) {
-                            return 0;
-                        }
-                    }
-                }
-                return 1;
-            }
-            Bitboard subtract(const Bitboard board) {
-                Bitboard tmp = bits;
-                for (int i = 0; i < ROWS; i++) {
-                    for (int j = 0; j < COLS; j++) {
-                        tmp.bits[i][j] = bits[i][j] - board.bits[i][j];
-                    }
-                }
-                return Bitboard(tmp);
+            Bitboard subtract(const Bitboard board) const {
+                return intersect(board.inverse());
             }
 
-            Bitboard inverse() {
+            Bitboard inverse() const {
                 return Bitboard(bitsApplyNot(bits));
             }
 
@@ -646,55 +637,56 @@ namespace bitboard {
              * combines 2 bitboard as a union
              *
              */
-            Bitboard combine(Bitboard board) {
+            Bitboard combine(const Bitboard board) const {
                 return Bitboard(bitsApplyOr(board.bits, bits));
             }
 
-            Bitboard intersect(Bitboard board) {
+            Bitboard intersect(const Bitboard board) const {
                 return Bitboard(bitsApplyAnd(bits, board.bits));
             }
 
-            Bitboard genRookShift(Bitboard blockers, const Bitboard friendlies) {
+            Bitboard genRookShift(Bitboard blockers, const Bitboard friendlies) const {
                 return Bitboard(rookShift(bits, blockers.bits, friendlies.bits));
             }
 
-            Bitboard genBishopShift(Bitboard blockers, const Bitboard friendlies) {
+            Bitboard genBishopShift(Bitboard blockers, const Bitboard friendlies) const {
                 return Bitboard(bishopShift(bits, blockers.bits, friendlies.bits));
             }
 
-            Bitboard genKnightShift(const Bitboard friendlies) {
+            Bitboard genKnightShift(const Bitboard friendlies) const {
                 return Bitboard(knightShift(bits, friendlies.bits));
             }
 
-            Bitboard genQueenShift(Bitboard blockers, const Bitboard friendlies) {
+            Bitboard genQueenShift(Bitboard blockers, const Bitboard friendlies) const {
                 return Bitboard(queenShift(bits, blockers.bits, friendlies.bits));
             }
 
-            Bitboard genKingShift(const std::pair<int, int> hasCastlingRights, const types::PieceColour colour, const Bitboard blockers, const Bitboard unMovedRooks, const Bitboard friendlies) {
+            Bitboard genKingShift(
+                    const std::pair<int, int> hasCastlingRights, 
+                    const types::PieceColour colour, const Bitboard blockers, 
+                    const Bitboard unMovedRooks, const Bitboard friendlies) const {
                 return Bitboard(kingShift(bits, hasCastlingRights, colour, blockers.bits, unMovedRooks.bits, friendlies.bits));
             }
 
-            Bitboard genPawnShift(types::PieceColour col, Bitboard blockers, Bitboard enemies, const Bitboard friendlies) {
+            Bitboard genPawnShift(types::PieceColour col, Bitboard blockers, Bitboard enemies, const Bitboard friendlies) const {
                 return Bitboard(pawnShift(bits, col, blockers.bits, enemies.bits, friendlies.bits));
             }
             
             // translates a bitboard to a 16* 16 index
-            std::pair<int, int> to16RC() {
-                BitsType tmp = bits;
+            std::pair<int, int> to16RC() const {
                 assert(unary());
                 bitboard::coords c = bitIndex();
                 int x = (c.innerX + c.outerX * 4);
                 int y = (c.innerY + c.outerY * 4);
-                bits = tmp;
 
                 return std::pair(x,y);
             }
 
-            void boundsCheck() {
+            void boundsCheck() const {
                 ::bitboard::boundsCheck(bits);
             }
 
-            int boolBoundsCheck() __attribute__((noinline)){
+            int boolBoundsCheck() const __attribute__((noinline)) {
                 return ::bitboard::boolBoundsCheck(bits);
             }
     };

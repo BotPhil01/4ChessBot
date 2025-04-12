@@ -171,7 +171,7 @@ class EngineProcess {
                     Move m = e.chooseNextMove();
 
                     // if (m.fromIndex() == 300 || m.toIndex() == 300) {
-                    if (m.destBoard.equals(bitboard::nullBoard)) {
+                    if (m.destBoard == bitboard::nullBoard) {
                         parseOutput(e);
                     } else {
                         updateGameState(m);
@@ -231,7 +231,7 @@ class EngineProcess {
                     return;
                 }
                 Move m = parseCliMove(input);
-                if (m.unarySrcBoard.equals(bitboard::nullBoard)) {
+                if (m.unarySrcBoard == bitboard::nullBoard) {
                     std::cout << "Incorrect input\nInput move algebraically eg: g2g4 or quit or exit to exit the program\n"sv;
                 } else {
                     updateGameState(m);

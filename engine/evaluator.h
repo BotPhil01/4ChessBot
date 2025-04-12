@@ -171,7 +171,6 @@ namespace eval{
         //     }
         // }
 
-        public:
             // constexpr std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board, const std::array<std::reference_wrapper<player::Player>, 4UL> &playersData) const {
             std::array<std::int_fast16_t, 4> getEvaluation(const board::Board &board) const {
                 std::array<std::int_fast16_t, 4> out {0, 0, 0, 0};
@@ -180,9 +179,22 @@ namespace eval{
                 // evaluatePosition(out, board, playersData);
                 return out;
             }
+        public:
+            std::int_fast16_t evalParanoid(const board::Board &board, const types::PieceColour self) const {
+                const std::array<std::int_fast16_t, 4> evals = getEvaluation(board);
+                const int selfIndex = helper::indexFromColour(self);
+                std::int_fast16_t selfEval = 0;
+                std::int_fast16_t enemyEval = 0;
+                for (int i = 0; i < evals.size(); i++) {
+                    if (selfIndex == i) {
+                        selfEval = evals[i];
+                    } else {
+                        enemyEval += evals[i];
+                    }
+                }
+                return selfEval  - enemyEval;
+            }
     };
-
-
 };
 
 #endif

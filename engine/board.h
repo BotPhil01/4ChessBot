@@ -53,6 +53,19 @@ namespace board {
 
         std::array<int, 4> playerCheckmate = {0, 0, 0, 0};
 
+        void asserts() {
+            for (int i = 0; i < allPieces.size(); i++) {
+                std::array<bitboard::Bitboard, 6> boards = allPieces[i].get();
+                for (bitboard::Bitboard b : boards) {
+                    b.boundsCheck();
+                }
+            }
+            for (int i = 0; i <pieceSums.size(); i++) {
+                bitboard::Bitboard b = pieceSums[i];
+                b.boundsCheck();
+            }
+        }
+
         public: 
 
         Board(bitboard::Bitboard b, types::PieceType type) :
@@ -141,17 +154,33 @@ namespace board {
             asserts();
         }
 
-        void asserts() {
+        bool operator==(const Board &other) const {
+            if (
+                    !(currentTurn == other.currentTurn ||
+                    redPieces == other.redPieces ||
+                    bluePieces == other.bluePieces ||
+                    greenPieces == other.greenPieces ||
+                    yellowPieces == other.yellowPieces ||
+                    pieceSums == other.pieceSums ||
+                    castlingRights == other.castlingRights ||
+                    moveStack == other.moveStack
+                    )) {
+                std::cout << "unequal in board.h\n";
+                return 0;
+            }
             for (int i = 0; i < allPieces.size(); i++) {
                 std::array<bitboard::Bitboard, 6> boards = allPieces[i].get();
-                for (bitboard::Bitboard b : boards) {
-                    b.boundsCheck();
+                std::array<bitboard::Bitboard, 6> otherBoards = other.allPieces[i].get();
+                if (!(boards == otherBoards)) {
+                    std::cout << "unequal in board.h all pieces\n";
+                    std::cout << "board index: " << i << "\n";
+                    return 0;
                 }
             }
-            for (int i = 0; i <pieceSums.size(); i++) {
-                bitboard::Bitboard b = pieceSums[i];
-                b.boundsCheck();
-            }
+            return 1;
+        }
+        int operator!=(Board other) {
+            return !(*this == other);
         }
 
         types::PieceColour getCurrentTurn() {
@@ -212,7 +241,7 @@ namespace board {
                 for (int j = 0; j < 6; j++) {
                     tmp = tmp.combine(allPieces[i].get()[j]);
                 }
-                assert(tmp.equals(pieceSums[i]));
+                assert(tmp == pieceSums[i]);
             }
             bitboard::Bitboard tmp = boardDefaults::zeroed;
             // check the overlap
@@ -222,9 +251,9 @@ namespace board {
                 for (int j = 0; j < 6; j++) {
                     inner = inner.intersect(allPieces[i].get()[j]);
                 }
-                assert(inner.equals(boardDefaults::zeroed));
+                assert(inner == boardDefaults::zeroed);
             }
-            assert(tmp.equals(boardDefaults::zeroed));
+            assert(tmp == boardDefaults::zeroed);
 
         }
 
@@ -376,7 +405,7 @@ namespace board {
             std::vector<move::Move> ret = {};
             std::vector<move::Move> moves = generatePseudoLegalMoves(colour);
             for (int i = 0; i < moves.size(); i++) {
-                move::Move m = moves[i];
+                const move::Move m = moves[i];
                 playMove(m);
                 if(!kingInCheck(colour)) {
                     ret.emplace_back(m);
@@ -391,7 +420,7 @@ namespace board {
         }
         // plays a move
         // TODO expand for special moves
-        void playMove(move::Move m) {
+        void playMove(const move::Move m) {
             assert(m.unarySrcBoard.unary());
             assert(m.destBoard.unary());
             m.srcBoard = m.srcBoard.subtract(m.unarySrcBoard).combine(m.destBoard);
