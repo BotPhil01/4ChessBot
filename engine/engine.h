@@ -89,7 +89,7 @@ namespace engine {
                 const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
 
                 while (!timeUp()) {
-                    bestEval = evalBest(playableMoves[bestIndex], INT_FAST16_MIN, beta, depth -1, MIN);
+                    bestEval = evalBest(playableMoves[bestIndex], INT_FAST16_MIN, beta, depth, MIN);
                     beta = INT_FAST16_MAX;
 
                     for (unsigned int i = 0; i < playableMoves.size(); i++) {
@@ -97,7 +97,7 @@ namespace engine {
                         const move::Move currentMove = playableMoves[i];
                         m_board.playMove(currentMove);
 
-                        const std::int_fast16_t currentEval = alphaBetaMin(bestEval, beta, depth - 1);
+                        const std::int_fast16_t currentEval = alphaBetaMin(bestEval, beta, depth);
 
                         if (currentEval > bestEval) {
                             bestEval = currentEval;
