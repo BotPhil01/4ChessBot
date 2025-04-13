@@ -205,7 +205,7 @@ namespace engine {
                         // std::cout << "fail low\n";
                         return currentEval;
                     }
-                    if (currentEval > bestEval) {
+                    if (currentEval < bestEval) {
                         bestEval = currentEval;
                         if (currentEval < p_beta) {
                             p_beta = currentEval;

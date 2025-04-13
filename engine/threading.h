@@ -91,7 +91,7 @@ namespace threading {
         // waits for the mutex to be unlocked by the timer
         void waitToStart() {
             std::cout << "waiting to start\n";
-            std::lock_guard<std::mutex> lock(m_workMutex);
+            std::lock_guard<std::mutex> lock(m_workMutex.get());
             std::cout << "waiting finished\n";
         }
     };
@@ -117,9 +117,11 @@ namespace threading {
 
             // causes seg fault 
             void init() {
+                m_results.clear();
+                m_threads.clear();
                 // add work to workstack
-                // const int movesSize = p_data.board.generateLegalMoves(p_data.colour).size();
-                const int movesSize = 1;
+                // const int movesSize = m_board.get().generateLegalMoves(m_colour).size();
+                const int movesSize = 3; //DEBUG
                 m_results.reserve(movesSize);
                 m_threads.reserve(movesSize);
 
@@ -149,6 +151,9 @@ namespace threading {
                     continue;
                 }
                 joinThreads();
+            }
+
+            void reset() {
                 m_timer.reset();
                 init();
             }
@@ -192,6 +197,11 @@ namespace threading {
             int index = 0;
             std::int_fast16_t bestEval = INT_FAST16_MIN;
             std::vector<std::int_fast16_t> results = m_threadPool.getResults();
+
+            // only want to reset after relevant data (results) has been read
+            m_threadPool.reset();
+
+            // find the best result
             for (int i = 0; i < results.size(); i++) {
                 if (results[i] > bestEval) {
                     bestEval = results[i];
