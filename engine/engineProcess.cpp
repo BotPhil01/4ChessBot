@@ -12,8 +12,8 @@ class EngineProcess {
         
     board::Board m_board = board::Board();
     threading::MasterThread m_bEngine = threading::MasterThread(m_board, types::PieceColour::BLUE);
-    threading::MasterThread m_yEngine = threading::MasterThread(m_board, types::PieceColour::YELLOW);
-    threading::MasterThread m_gEngine = threading::MasterThread(m_board, types::PieceColour::GREEN);
+    // threading::MasterThread m_yEngine = threading::MasterThread(m_board, types::PieceColour::YELLOW);
+    // threading::MasterThread m_gEngine = threading::MasterThread(m_board, types::PieceColour::GREEN);
 
     parser::Parser m_parser = parser::Parser(m_board);
     public:

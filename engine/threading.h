@@ -75,6 +75,12 @@ namespace threading {
             m_thread = std::jthread(func);
         }
 
+        void join() {
+            if (m_thread.joinable()) {
+                m_thread.join();
+            }
+        }
+
         private:
         // the thread function
         void eval() {
@@ -92,43 +98,46 @@ namespace threading {
 
     namespace {
         class EngineThreadPool {
-            std::vector<ChildThread> threads;
-            std::vector<std::int_fast16_t> results;
-            chessTimer::Timer m_timer;
+            std::vector<ChildThread> m_threads;
+            std::vector<std::int_fast16_t> m_results;
             std::mutex m_workMutex;
+            chessTimer::Timer m_timer;
+            std::reference_wrapper<board::Board> m_board;
+            types::PieceColour m_colour;
 
             public:
             EngineThreadPool(std::reference_wrapper<board::Board> p_board, types::PieceColour p_colour) :
                 m_workMutex(),
-                m_timer(m_workMutex, 6)
+                m_timer(m_workMutex, 6),
+                m_board(p_board),
+                m_colour(p_colour)
             {
-                init(p_board, p_colour);
+                init();
             }
 
-
-
-            void init(std::reference_wrapper<board::Board> p_board, types::PieceColour p_colour) {
+            // causes seg fault 
+            void init() {
                 // add work to workstack
                 // const int movesSize = p_data.board.generateLegalMoves(p_data.colour).size();
                 const int movesSize = 1;
-                results.reserve(movesSize);
-                threads.reserve(movesSize);
+                m_results.reserve(movesSize);
+                m_threads.reserve(movesSize);
 
-                // create the threads
+                // create the m_threads
                 for (int i = 0; i < movesSize; i++) {
-                    threads.emplace_back(
-                            p_board,
-                            p_colour,
+                    m_threads.emplace_back(
+                            m_board,
+                            m_colour,
                             std::ref(m_workMutex),
                             i,
-                            std::ref(results)
+                            std::ref(m_results)
                             );
-                    results.emplace_back(INT_FAST16_MIN);
+                    m_results.emplace_back(INT_FAST16_MIN);
                 }
             }
 
             const std::vector<std::int_fast16_t> getResults() {
-                return results;
+                return m_results;
             }
 
             void start() {
@@ -139,6 +148,17 @@ namespace threading {
                 while (!chessTimer::Timer::s_finished) {
                     continue;
                 }
+                joinThreads();
+                m_timer.reset();
+                init();
+            }
+
+            private:
+            void joinThreads() {
+                for (int i = 0; i < m_threads.size(); i++) {
+                    m_threads[i].join();
+                }
+                std::cout << "threadpool threads finished\n";
             }
         };
     }
