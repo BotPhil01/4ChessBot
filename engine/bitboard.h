@@ -469,10 +469,10 @@ namespace bitboard {
             Bitboard(std::pair<int, int> pCoords)
             : bits(boardDefaults::zeroed)
             {
-                int outerRow = pCoords.first / 4;
-                int innerRow = pCoords.first % 4;
-                int outerCol = pCoords.second / 4;
-                int innerCol = pCoords.second % 4;
+                int outerCol = pCoords.first / 4;
+                int innerCol = pCoords.first % 4;
+                int outerRow = pCoords.second / 4;
+                int innerRow = pCoords.second % 4;
                 std::uint16_t word = 1 << innerCol;
                 word = word << ((3 - innerRow) * 4);
                 bits[outerRow][outerCol] = word;
@@ -577,6 +577,10 @@ namespace bitboard {
              * @returns a unary bitboard with the popped bit
              */
             Bitboard popBit() {
+                if (empty()) {
+                    // std::cout << "empty oop";
+                    return bits;
+                }
                 BitsType data = boardDefaults::zeroed;
                 for (int i = 0; i < ROWS; i++) {
                     for (int j = 0; j < COLS; j++) {

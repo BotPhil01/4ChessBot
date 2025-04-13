@@ -134,6 +134,10 @@ namespace move {
                             index == other.index
                             );
             }
+
+            bool isBroken() {
+                return (srcBoard == boardDefaults::nullBoard);
+            }
     };
 }
 #endif

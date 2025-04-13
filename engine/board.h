@@ -39,16 +39,15 @@ namespace board {
         };
         std::stack<move::Move, std::list<move::Move>> moveStack;
 
-        std::array<bitboard::Bitboard, 4> initSums() {
+        void initSums() {
             std::array<bitboard::Bitboard, 4> ret;
             for (int i = 0; i < 4; i++) {
                 bitboard::Bitboard tmp = boardDefaults::zeroed;
                 for (int j = 0; j < 6; j++) {
                     tmp = tmp.combine(allPieces[i].get()[j]);
                 }
-                ret[i] = tmp;
+                pieceSums[i] = tmp;
             }
-            return ret;
         }
 
         std::array<int, 4> playerCheckmate = {0, 0, 0, 0};
@@ -104,12 +103,12 @@ namespace board {
             allPieces({
                     std::ref(redPieces), std::ref(bluePieces), 
                     std::ref(yellowPieces), std::ref(greenPieces)
-                    }),
-            pieceSums(initSums())
+                    })
             {
+                
                 int index = helper::indexFromType(type);
                 redPieces[index] = b;
-                pieceSums = initSums();
+                initSums();
             }
 
         Board() :
@@ -148,11 +147,48 @@ namespace board {
             allPieces({
                     std::ref(redPieces), std::ref(bluePieces), 
                     std::ref(yellowPieces), std::ref(greenPieces)
-                    }),
-            pieceSums(initSums())
+                    })
         {
+            initSums();
             asserts();
         }
+
+        Board operator=(const Board &other) {
+            redPieces = other.redPieces;
+            bluePieces = other.bluePieces;
+            yellowPieces = other.yellowPieces;
+            greenPieces = other.greenPieces;
+            allPieces = {
+                    std::ref(redPieces), std::ref(bluePieces), 
+                    std::ref(yellowPieces), std::ref(greenPieces)
+            };
+            initSums();
+            return *this;
+        }
+
+        Board(const Board &&other) :
+            redPieces(other.redPieces),
+            bluePieces(other.bluePieces),
+            yellowPieces(other.yellowPieces),
+            greenPieces(other.greenPieces),
+            allPieces({std::ref(redPieces), std::ref(bluePieces), 
+                    std::ref(yellowPieces), std::ref(greenPieces)
+                    })
+            {
+                initSums();
+            }
+
+        Board(const Board &other) :
+            redPieces(other.redPieces),
+            bluePieces(other.bluePieces),
+            yellowPieces(other.yellowPieces),
+            greenPieces(other.greenPieces),
+            allPieces({std::ref(redPieces), std::ref(bluePieces), 
+                    std::ref(yellowPieces), std::ref(greenPieces)
+                    })
+            {
+                initSums();
+            }
 
         bool operator==(const Board &other) const {
             if (
@@ -165,15 +201,13 @@ namespace board {
                     castlingRights == other.castlingRights ||
                     moveStack == other.moveStack
                     )) {
-                std::cout << "unequal in board.h\n";
+                // std::cout << "unequal in board.h\n";
                 return 0;
             }
             for (int i = 0; i < allPieces.size(); i++) {
                 std::array<bitboard::Bitboard, 6> boards = allPieces[i].get();
                 std::array<bitboard::Bitboard, 6> otherBoards = other.allPieces[i].get();
                 if (!(boards == otherBoards)) {
-                    std::cout << "unequal in board.h all pieces\n";
-                    std::cout << "board index: " << i << "\n";
                     return 0;
                 }
             }
@@ -188,9 +222,8 @@ namespace board {
         }
 
         move::Move indicesToMove(std::pair<int, int> from, std::pair<int, int> to) {
-            std::cout << allPieces[0].get()[0].boolBoundsCheck();
             bitboard::Bitboard unaryFrom(from);
-            bitboard::Bitboard unaryTo(from);
+            bitboard::Bitboard unaryTo(to);
 
             types::PieceColour colour;
             // scan through all the players and search for the bits in the associated from board
@@ -225,8 +258,6 @@ namespace board {
             }
             return ret;
         }
-            
-
 
         void setPlayerCheckmate(types::PieceColour col) {
             const int index = helper::indexFromColour(col);
@@ -268,7 +299,7 @@ namespace board {
                 str += helper::colourToChar(colour);
                 str += helper::typeToChar(type);
 
-                bitboard::Bitboard bit =  board.popBit();
+                bitboard::Bitboard bit = board.popBit();
                 while (!bit.empty()) {
                     bitboard::coords coords = bit.bitIndex();
                     const int col = coords.outerX * 4 + coords.innerX;
@@ -361,7 +392,6 @@ namespace board {
                 bitboard::Bitboard unmovedRooks = getUnmovedRooks(colour);
                 std::pair<int, int> hasCastlingRights = castlingRights[colourIndex];
 
-                // srcbit is incorrect heere
                 bitboard::Bitboard srcBit = tmp.popBit();
                 while (!srcBit.empty()) {
                     switch (type) {
@@ -405,7 +435,7 @@ namespace board {
             std::vector<move::Move> ret = {};
             std::vector<move::Move> moves = generatePseudoLegalMoves(colour);
             for (int i = 0; i < moves.size(); i++) {
-                const move::Move m = moves[i];
+                move::Move &m = moves[i];
                 playMove(m);
                 if(!kingInCheck(colour)) {
                     ret.emplace_back(m);
@@ -420,13 +450,13 @@ namespace board {
         }
         // plays a move
         // TODO expand for special moves
-        void playMove(const move::Move m) {
+        void playMove(move::Move &m) {
             assert(m.unarySrcBoard.unary());
             assert(m.destBoard.unary());
+            auto abc = m.srcBoard;
             m.srcBoard = m.srcBoard.subtract(m.unarySrcBoard).combine(m.destBoard);
             m.srcBoard.boundsCheck();
-            m.sumBoard = m.sumBoard.subtract(m.unarySrcBoard).combine(m.destBoard);
-            m.sumBoard.boundsCheck();
+            initSums();
             moveStack.push(m);
             incrementCurrentTurn();
         }

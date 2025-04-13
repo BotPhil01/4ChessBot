@@ -1,3 +1,4 @@
+#include <functional>
 #include<iostream>
 #include<limits.h>
 #include<vector>
@@ -8,19 +9,19 @@
 #include<ctime>
 #include<fstream>
 #include<thread>
-#include<stop_token>
 #include<mutex>
+#include<stop_token>
 
 #include "bitboard.h"
 #include"board.h"
 #include"helper.h"
 #include"evaluator.h"
 #include "move.h"
+#include "timer.h"
 // #include"transpo.h"
 
 #ifndef ENGINE_H
 #define ENGINE_h
-
 
 namespace engine {
     // want an engine 
@@ -32,18 +33,20 @@ namespace engine {
         const int MAX = 1;
     }
     class Engine {
+        int debug = 0;
+        board::Board m_board;
+        eval::Evaluator m_evaluator;
+        types::PieceColour m_selfColour;
         public:
-            Engine(board::Board &board, types::PieceColour colour) :
-                m_board(board),
-                d_copy(board),
-                m_selfColour(colour)
+            Engine(board::Board p_board, types::PieceColour p_colour) :
+                m_board(p_board),
+                m_selfColour(p_colour)
             {}
 
             move::Move chooseNextMove() {
                 debug = 0;
-                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_selfColour);
+                std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_selfColour);
 
-                assert(m_board == d_copy);
 
                 unsigned int depth = 0;
                 unsigned int bestIndex = 0;
@@ -54,7 +57,53 @@ namespace engine {
                     std::int_fast16_t bestEval = evalBest(playableMoves[bestIndex], INT_FAST16_MIN, beta, depth, MIN);
 
                     for (int i = 0; i < playableMoves.size(); i++) {
-                        std::cout << "evaluating move " << i << "\n";
+                        move::Move &currentMove = playableMoves[i];
+                        m_board.playMove(currentMove);
+
+                        const std::int_fast16_t currentEval = alphaBetaMin(bestEval, beta, depth);
+
+                        if (currentEval > bestEval) {
+                            bestEval = currentEval;
+                            bestIndex = i;
+                        }
+
+                        m_board.unPlayMove();
+                    }
+                    depth++;
+                }
+
+                return playableMoves[bestIndex];
+            }
+
+            void print() {
+                m_board.print();
+            }
+
+            std::int_fast16_t evalIndex(const unsigned int p_moveIndex) {
+                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
+                const move::Move move = playableMoves[p_moveIndex];
+                return evalMove(move);
+            }
+
+            // evaluates an individual move
+            std::int_fast16_t evalMove(move::Move p_move) {
+                debug = 0;
+                m_board.playMove(p_move); // corrupts the board?
+
+                std::int_fast16_t bestEval = INT_FAST16_MIN;
+                std::int_fast16_t beta = INT_FAST16_MAX;
+                unsigned int bestIndex = 0;
+
+                int depth = 0;
+
+                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
+
+                while (!timeUp()) {
+                    move::Move bestMove = playableMoves[bestIndex];
+                    bestEval = evalBest(bestMove, INT_FAST16_MIN, beta, depth, MIN);
+                    beta = INT_FAST16_MAX;
+
+                    for (unsigned int i = 0; i < playableMoves.size(); i++) {
                         move::Move currentMove = playableMoves[i];
                         m_board.playMove(currentMove);
 
@@ -66,51 +115,11 @@ namespace engine {
                         }
 
                         m_board.unPlayMove();
-                        assert(m_board == d_copy);
-                    }
-                    depth++;
-                }
-
-                assert(m_board == d_copy);
-                return playableMoves[bestIndex];
-            }
-
-            // evaluates an individual move
-            std::int_fast16_t evalMove(const move::Move p_move) {
-                debug = 0;
-                m_board.playMove(p_move);
-
-                std::int_fast16_t bestEval = INT_FAST16_MIN;
-                std::int_fast16_t beta = INT_FAST16_MAX;
-                unsigned int bestIndex = 0;
-
-                int depth = 0;
-
-                const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
-
-                while (!timeUp()) {
-                    bestEval = evalBest(playableMoves[bestIndex], INT_FAST16_MIN, beta, depth, MIN);
-                    beta = INT_FAST16_MAX;
-
-                    for (unsigned int i = 0; i < playableMoves.size(); i++) {
-                        std::cout << "evaluating move " << i << "\n";
-                        const move::Move currentMove = playableMoves[i];
-                        m_board.playMove(currentMove);
-
-                        const std::int_fast16_t currentEval = alphaBetaMin(bestEval, beta, depth);
-
-                        if (currentEval > bestEval) {
-                            bestEval = currentEval;
-                            bestIndex = i;
-                        }
-
-                        m_board.unPlayMove();
                     }
                     depth++;
                 }
 
                 m_board.unPlayMove();
-                assert(m_board == d_copy);
                 return bestEval;
             }
 
@@ -121,12 +130,7 @@ namespace engine {
                 return m_selfColour;
             }
         private:
-            int debug = 0;
-            board::Board d_copy;
-            board::Board &m_board;
-            eval::Evaluator m_evaluator;
-            types::PieceColour m_selfColour;
-            std::int_fast16_t evalBest(move::Move p_best, std::int_fast16_t p_alpha, std::int_fast16_t p_beta, unsigned int p_depth, int p_mode) {
+            std::int_fast16_t evalBest(move::Move &p_best, std::int_fast16_t p_alpha, std::int_fast16_t p_beta, unsigned int p_depth, int p_mode) {
                 m_board.playMove(p_best);
                 if (p_depth == 0) { 
                     return m_evaluator.evalParanoid(m_board, m_selfColour);
@@ -135,8 +139,10 @@ namespace engine {
                 switch (p_mode) {
                     case MIN:
                         eval = alphaBetaMin(p_alpha, p_beta, p_depth - 1);
+                        break;
                     case MAX:
                         eval = alphaBetaMax(p_alpha, p_beta, p_depth - 1);
+                        break;
                     default:
                         // how did we get here?
                         assert(false);
@@ -145,22 +151,20 @@ namespace engine {
                 return eval;
             }
 
-            int timeUp() {
-                std::cout << "incrementing clock " << debug << "\n";
-                debug++;
-                return debug == 2;
+            bool timeUp() const {
+                // check if the its time up
+                return chessTimer::Timer::s_finished;
             }
 
             std::int_fast16_t alphaBetaMax(int p_alpha, int p_beta, int p_depth) {
-                // std::cout << "maximising\n";
-                if (p_depth == 0) {
+                if (p_depth == 0 || timeUp()) {
                     return m_evaluator.evalParanoid(m_board, m_selfColour); 
                 }
                 std::int_fast16_t bestEval = INT_FAST16_MIN;
                 const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
 
                 for (int i = 0; i < playableMoves.size(); i++) {
-                    const move::Move currentMove = playableMoves[i];
+                    move::Move currentMove = playableMoves[i];
                     m_board.playMove(currentMove);
 
                     const std::int_fast16_t currentEval = alphaBetaMin(p_alpha, p_beta, p_depth - 1);
@@ -184,21 +188,21 @@ namespace engine {
 
             std::int_fast16_t alphaBetaMin(int p_alpha, int p_beta, int p_depth) {
                 // std::cout << "minimising\n";
-                if (p_depth == 0) {
+                if (p_depth == 0 || timeUp()) {
                     return m_evaluator.evalParanoid(m_board, m_selfColour);
                 }
                 std::int_fast16_t bestEval = INT_FAST16_MAX;
                 const std::vector<move::Move> playableMoves = m_board.generateLegalMoves(m_board.getCurrentTurn());
 
                 for (int i = 0; i < playableMoves.size(); i++) {
-                    const move::Move currentMove = playableMoves[i];
+                    move::Move currentMove = playableMoves[i];
                     m_board.playMove(currentMove);
 
                     const std::int_fast16_t currentEval = getNextMiniMax(p_alpha, p_beta, p_depth - 1);
 
                     if (currentEval < p_alpha) {
                         // fail low
-                        std::cout << "fail low\n";
+                        // std::cout << "fail low\n";
                         return currentEval;
                     }
                     if (currentEval > bestEval) {
