@@ -37,9 +37,9 @@ namespace engine {
         board::Board m_board;
         eval::Evaluator m_evaluator;
         types::PieceColour m_selfColour;
-        std::reference_wrapper<bool> m_finishedFlag;
+        std::reference_wrapper<chessTimer::Flag> m_finishedFlag;
         public:
-            Engine(board::Board p_board, types::PieceColour p_colour, std::reference_wrapper<bool> p_finishedFlag) :
+            Engine(board::Board p_board, types::PieceColour p_colour, std::reference_wrapper<chessTimer::Flag> p_finishedFlag) :
                 m_board(p_board),
                 m_selfColour(p_colour),
                 m_finishedFlag(p_finishedFlag)
@@ -155,7 +155,7 @@ namespace engine {
 
             bool timeUp() const {
                 // check if the its time up
-                return m_finishedFlag.get();
+                return m_finishedFlag.get().getState();
             }
 
             std::int_fast16_t alphaBetaMax(int p_alpha, int p_beta, int p_depth) {

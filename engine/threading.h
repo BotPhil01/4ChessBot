@@ -61,9 +61,9 @@ namespace threading {
                 std::reference_wrapper<std::mutex> p_workMutex,
                 int p_workIndex,
                 std::reference_wrapper<std::vector<std::int_fast16_t>> p_resultVector,
-                std::reference_wrapper<bool> m_finished
+                std::reference_wrapper<chessTimer::Flag> p_finished
                 ) : 
-            m_engine(p_board, p_colour, m_finished),
+            m_engine(p_board, p_colour, p_finished),
             m_workMutex(p_workMutex),
             m_workIndex(p_workIndex),
             m_resultVector(p_resultVector)
@@ -136,7 +136,7 @@ namespace threading {
                             std::ref(m_workMutex),
                             i,
                             std::ref(m_results),
-                            std::ref(m_timer.s_finished)
+                            std::ref(m_timer.p_finished)
                             );
                     m_results.emplace_back(INT_FAST16_MIN);
                 }
@@ -151,9 +151,13 @@ namespace threading {
                 m_timer.start();
             }
             void waitForFinish() {
-                while (!m_timer.s_finished) {
-                    continue;
-                }
+                // this is a loop without side effects hence optimised out by compiler
+                // convert into a binary semaphore?
+
+                m_timer.p_finished.wait();
+                // while (!m_timer.p_finished) {
+                //     continue;
+                // }
                 joinThreads();
             }
 
@@ -189,15 +193,6 @@ namespace threading {
             m_colour(p_colour)
         {}
 
-        // void printSequentially() {
-        //     std::reference_wrapper<bool> signal = m_timer.getFinishedSignal();
-        //     int i = 0;
-        //     while (!signal.get()) {
-        //         std::this_thread::sleep_for(3000ms);
-        //         std::cout << i++ << "\n";
-        //         m_data.board.get().print();
-        //     }
-        // }
         move::Move chooseNextMove() {
             m_threadPool.start();
             m_threadPool.waitForFinish();

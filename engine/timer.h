@@ -8,19 +8,73 @@
 #include <memory>
 #include <iostream>
 #include <mutex>
+#include <semaphore>
 
 #ifndef CHESSTIMER_H
 #define CHESSTIMER_H
 namespace chessTimer {
+    // a flag that can be signalled on and off and can be waited on
+    // blocks when the 
+    class Flag {
+        // flag is in a true state if we can successfully acquire the semaphore
+        std::binary_semaphore m_sem;
+
+        public:
+
+        Flag() :
+            m_sem{0}
+        {}
+
+        bool operator=(bool val) {
+            return set(val);
+        }
+
+        bool set(bool val) {
+            if (val) {
+                m_sem.release();
+                return true;
+            } else {
+                return m_sem.try_acquire();
+            }
+        }
+
+        // return the state of the flag
+        // does not block
+        bool getState() {
+            bool res = m_sem.try_acquire();
+            if (res) {
+                m_sem.release();
+            }
+            return res;
+        }
+        // explicit operator bool() {
+        //     bool res = m_sem.try_acquire();
+        //     if (res) {
+        //         m_sem.release();
+        //     }
+        //     return res;
+        // }
+
+        // wait for the flag to be in a true state
+        void wait() {
+            m_sem.acquire();
+            m_sem.release();
+        }
+    };
     class Timer {
-        bool s_started = false;
-        bool s_mutexLocked = false;
+        // convert these into semaphores
+        Flag m_started;
+        Flag m_mutexLocked;
+
+        // bool m_started = false;
+        // bool m_mutexLocked = false;
         double m_maxDuration;
         std::jthread m_timingThread;
         std::mutex &m_startMutex;
 
         public:
-        bool s_finished = false;
+        // bool p_finished = false;
+        Flag p_finished;
         inline static bool s_terminating = false;
             Timer(std::mutex &mutex, double maxDuration = 5.0) :
             m_maxDuration(maxDuration),
@@ -30,25 +84,26 @@ namespace chessTimer {
             }
 
             void start() {
-                s_started = true;
+                m_started = true;
             }
 
             bool awaitFinish() {
-                while (!s_finished) {
-                    continue;
-                }
-                return s_finished;
+                p_finished.wait();
+                // while (!p_finished) {
+                //     continue;
+                // }
+                return p_finished.getState();
             }
 
             void reset() {
-                s_started = false;
-                s_finished = false;
-                s_mutexLocked = false;
+                m_started = false;
+                p_finished = false;
+                m_mutexLocked = false;
                 threadInit();
             }
 
             void terminate() {
-                s_started = true;
+                m_started = true;
                 s_terminating = true;
             }
         private:
@@ -69,10 +124,7 @@ namespace chessTimer {
                 // the alternative because this keeps the thread awake is to sleep the thread or introduce another mutex
                 // The problem with sleeping is that it could be a lot of time for an uneccessary wait
                 // The problem with introducing another mutex is the risk of deadlocking if poor logic
-                while (!s_mutexLocked) {
-                    continue;
-                }
-
+                m_mutexLocked.wait();
             }
             // in the timing thread
             void childInit() {
@@ -85,18 +137,16 @@ namespace chessTimer {
                     assert(false);
                 }
                 // cant use try_lock because threadInit is also attempting to lock it as it must block 
-                s_mutexLocked = true;
+                m_mutexLocked = true;
                 // block while we havent started
 
-                while (!s_started) {
-                    continue;
-                }
+                m_started.wait();
                 // unlock the mutex to start the work
                 lock.unlock();
                 if (!s_terminating) {
                     count();
                 }
-                s_finished = true;
+                p_finished = true;
             }
 
             void count() {
