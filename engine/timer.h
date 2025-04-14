@@ -9,19 +9,19 @@
 #include <iostream>
 #include <mutex>
 
-
 #ifndef CHESSTIMER_H
 #define CHESSTIMER_H
 namespace chessTimer {
     class Timer {
-        inline static bool s_started = false;
-        inline static bool s_mutexLocked = false;
+        bool s_started = false;
+        bool s_mutexLocked = false;
         double m_maxDuration;
         std::jthread m_timingThread;
         std::mutex &m_startMutex;
 
         public:
-        inline static bool s_finished = false;
+        bool s_finished = false;
+        inline static bool s_terminating = false;
             Timer(std::mutex &mutex, double maxDuration = 5.0) :
             m_maxDuration(maxDuration),
                 m_startMutex(mutex)
@@ -29,30 +29,31 @@ namespace chessTimer {
                 threadInit();
             }
 
-            // Timer(const Timer &other) {
-            // }
-
             void start() {
-                Timer::s_started = true;
+                s_started = true;
             }
 
             bool awaitFinish() {
-                while (!Timer::s_finished) {
+                while (!s_finished) {
                     continue;
                 }
-                return Timer::s_finished;
+                return s_finished;
             }
 
             void reset() {
-                Timer::s_started = false;
-                Timer::s_finished = false;
-                Timer::s_mutexLocked = false;
+                s_started = false;
+                s_finished = false;
+                s_mutexLocked = false;
                 threadInit();
             }
 
+            void terminate() {
+                s_started = true;
+                s_terminating = true;
+            }
         private:
             void threadInit() {
-                auto f = std::bind_front(&Timer::childInit, this);
+                auto f = std::bind_front(&chessTimer::Timer::childInit, this);
                 m_timingThread = std::jthread(f);
                 // ensure that the child thread has locked it successfully
                 // sometimes after exiting this the thread pool threads are able to start execution without the 
@@ -68,7 +69,7 @@ namespace chessTimer {
                 // the alternative because this keeps the thread awake is to sleep the thread or introduce another mutex
                 // The problem with sleeping is that it could be a lot of time for an uneccessary wait
                 // The problem with introducing another mutex is the risk of deadlocking if poor logic
-                while (!Timer::s_mutexLocked) {
+                while (!s_mutexLocked) {
                     continue;
                 }
 
@@ -84,16 +85,18 @@ namespace chessTimer {
                     assert(false);
                 }
                 // cant use try_lock because threadInit is also attempting to lock it as it must block 
-                Timer::s_mutexLocked = true;
+                s_mutexLocked = true;
                 // block while we havent started
 
-                while (!Timer::s_started) {
+                while (!s_started) {
                     continue;
                 }
                 // unlock the mutex to start the work
                 lock.unlock();
-                count();
-                Timer::s_finished = true;
+                if (!s_terminating) {
+                    count();
+                }
+                s_finished = true;
             }
 
             void count() {

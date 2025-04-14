@@ -21,25 +21,25 @@ namespace threading {
         std::reference_wrapper<bool> timerSignal;
     } ThreadData;
 
-    class EngineThread {
-        // spawns a thread 
-        engine::Engine engine;
-        std::jthread thread;
-        public:
-        EngineThread(ThreadData p_data) : 
-        engine(p_data.board.get(), p_data.colour) 
-        {}
+    // class EngineThread {
+    //     // spawns a thread 
+    //     engine::Engine engine;
+    //     std::jthread thread;
+    //     public:
+    //     EngineThread(ThreadData p_data) : 
+    //     engine(p_data.board.get(), p_data.colour) 
+    //     {}
 
-        void start(std::reference_wrapper<move::Move> out) {
-            auto func = std::bind_front(&EngineThread::foo, this, out);
-            thread = std::jthread(func);
-        }
+    //     void start(std::reference_wrapper<move::Move> out) {
+    //         auto func = std::bind_front(&EngineThread::foo, this, out);
+    //         thread = std::jthread(func);
+    //     }
 
-        private:
-        void foo(std::reference_wrapper<move::Move> out) {
-            out.get() = engine.chooseNextMove();
-        }
-    };
+    //     private:
+    //     void foo(std::reference_wrapper<move::Move> out) {
+    //         out.get() = engine.chooseNextMove();
+    //     }
+    // };
 
     // this object will be copied anyway 
     // copying the reference_wrapper object is an actual reference
@@ -60,9 +60,10 @@ namespace threading {
                 types::PieceColour p_colour,
                 std::reference_wrapper<std::mutex> p_workMutex,
                 int p_workIndex,
-                std::reference_wrapper<std::vector<std::int_fast16_t>> p_resultVector
+                std::reference_wrapper<std::vector<std::int_fast16_t>> p_resultVector,
+                std::reference_wrapper<bool> m_finished
                 ) : 
-            m_engine(p_board, p_colour),
+            m_engine(p_board, p_colour, m_finished),
             m_workMutex(p_workMutex),
             m_workIndex(p_workIndex),
             m_resultVector(p_resultVector)
@@ -85,7 +86,9 @@ namespace threading {
         // the thread function
         void eval() {
             waitToStart();
-            m_resultVector.get()[m_workIndex] = m_engine.evalIndex(m_workIndex);
+            if (!chessTimer::Timer::s_terminating) {
+                m_resultVector.get()[m_workIndex] = m_engine.evalIndex(m_workIndex);
+            }
         }
 
         // waits for the mutex to be unlocked by the timer
@@ -132,7 +135,8 @@ namespace threading {
                             m_colour,
                             std::ref(m_workMutex),
                             i,
-                            std::ref(m_results)
+                            std::ref(m_results),
+                            std::ref(m_timer.s_finished)
                             );
                     m_results.emplace_back(INT_FAST16_MIN);
                 }
@@ -147,7 +151,7 @@ namespace threading {
                 m_timer.start();
             }
             void waitForFinish() {
-                while (!chessTimer::Timer::s_finished) {
+                while (!m_timer.s_finished) {
                     continue;
                 }
                 joinThreads();
@@ -156,6 +160,10 @@ namespace threading {
             void reset() {
                 m_timer.reset();
                 init();
+            }
+
+            void terminate() {
+                m_timer.terminate();
             }
 
             private:
@@ -215,9 +223,10 @@ namespace threading {
             return moves[index];
         }
 
+        void terminate() {
+            m_threadPool.terminate();
+        }
     };
 
 }
-
-
 #endif
