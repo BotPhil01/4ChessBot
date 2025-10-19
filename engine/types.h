@@ -215,6 +215,5 @@ namespace types {
                 return fromC;
             }
     };
-
 };
 #endif

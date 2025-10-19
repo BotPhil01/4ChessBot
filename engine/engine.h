@@ -106,6 +106,8 @@ namespace engine {
                     return types::Move();
                 }
 
+                // 0x7ffffffd3cc0
+                // 0x7ffffffd3cc0
                 std::stack<unsigned int, std::list<unsigned int>> workStack {};
                 unsigned int workCounter = 0;
                 while (workCounter != moves.size()) {
@@ -133,10 +135,12 @@ namespace engine {
                 initLock.unlock();
                 while (std::difftime(std::time(nullptr), start) < MAXTIME) {}
                 timeExceeded.request_stop();
+                // wait for children to finish
+                for (unsigned int i = 0; i < THREADSIZE; ++i) {
+                    threadPool[i].join();
+                }
                 
                 return *moves[std::distance(evals.begin(), std::max_element(evals.begin(), evals.end()))];
-
-
             }
     };
     class EngineChild {
@@ -149,6 +153,7 @@ namespace engine {
         std::stack<unsigned int, std::list<unsigned int>> &workStack; // work stack for holidng work to be done
         std::stop_source &source;
         std::stop_token timeExceeded; // stop when time exceeded
+        std::uint64_t nodesTravelled = 0;
 
         transpo::Node existsTransTableCutoff(transpo::TableData data, unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
             if (data.occupied && data.depth >= depth) {
@@ -175,6 +180,7 @@ namespace engine {
             return transpo::Node::NONE;
         }   
         std::int_fast16_t alphaBetaMax(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
+            nodesTravelled++;
             if (depth == 0) {
                 std::array<std::int_fast16_t, 4UL> e = evaluator.getEvaluation(board, board.getPlayers());
                 return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
@@ -268,6 +274,7 @@ namespace engine {
             return bestEval;
         }
         std::int_fast16_t alphaBetaMin(unsigned int depth, std::int_fast16_t alpha, std::int_fast16_t beta) {
+            nodesTravelled++;
             if (depth == 0) {
                 std::array<std::int_fast16_t, 4UL> e = evaluator.getEvaluation(board, board.getPlayers());
                 return 2 * e[helper::indexFromColour(self)] - std::accumulate(e.begin(), e.end(), 0);
@@ -307,7 +314,7 @@ namespace engine {
                 return bestEval;
             }
             // there was data but not enough for a cutoff
-            if (data.occupied) {
+            if (data.occupied && board.isValidPlay(data.bestMove)) {
                 board.playMove(data.bestMove);
 
                 if (board.getCurrentTurn() == self) {
@@ -412,7 +419,6 @@ namespace engine {
         // child threads require atomic popping of shared workStack, a local board variable, shared access to evals  
         void evaluateBranch(std::mutex &initMutex) {
             // std::cout << "evaluating branch\n";
-            // hangs while unique_lock is locked
             std::unique_lock tmpLock{initMutex};
             tmpLock.unlock();
             unsigned int moveIndex;
@@ -434,6 +440,7 @@ namespace engine {
                     depth++;
                 }
             }
+            std::cout << "nodes travelled: " << nodesTravelled << std::endl;
         }
     };
 

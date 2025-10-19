@@ -503,14 +503,23 @@ namespace board {
         bool const isKingInCheck(types::PieceColour c) const {
             assert(c != types::PieceColour::NONE);
             player::Player &player = players[helper::indexFromColour(c)];
-            std::set<types::boardIndex> s = player.getPieces()[helper::indexFromType(types::PieceType::KING)].get();
+            std::set<types::boardIndex> s = player.getPieces().at(helper::indexFromType(types::PieceType::KING)).get();
             std::set<types::boardIndex>::iterator it = s.begin();
             assert(it != s.end());
             types::boardIndex kingIndex = *it;
             // generate possible attacks
             // check ray attacks () and 
-            std::vector<types::Direction> diags {types::Direction::NORTHEAST, types::Direction::SOUTHEAST, types::Direction::SOUTHWEST, types::Direction::NORTHWEST};
-            std::vector<types::Direction> upDowns {types::Direction::NORTH, types::Direction::EAST, types::Direction::SOUTH, types::Direction::WEST};
+            // diags throws error when deallocating due to mem corruption
+            std::vector<types::Direction> diags {
+                types::Direction::NORTHEAST,
+                    types::Direction::SOUTHEAST,
+                    types::Direction::SOUTHWEST,
+                    types::Direction::NORTHWEST};
+            std::vector<types::Direction> upDowns {
+                types::Direction::NORTH,
+                    types::Direction::EAST,
+                    types::Direction::SOUTH,
+                    types::Direction::WEST};
             for (types::Direction d : diags) {
                 // sliding piece check
                 std::array<types::boardIndex, 41> ray = getRay(kingIndex, d);
@@ -796,6 +805,10 @@ namespace board {
 
         constexpr bool isPlayerCheckmate(types::PieceColour c) const {
             return players[helper::indexFromColour(c)].get().isCheckmate();
+        }
+
+        constexpr bool isValidPlay(const types::Move m) const {
+            return boardArray[m.fromIndex()].colour() == turn;
         }
     };
 
